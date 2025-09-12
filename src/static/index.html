@@ -968,6 +968,7 @@
           return;
         }
         currentCard = session[sessionIdx];
+        currentCard.shownTime = Date.now(); // Track when the card is shown
         foundFrets = currentCard.found.slice();
         $("#quiz-note-btn").text(currentCard.note);
         // expose stable attributes for tests (and other tooling)
@@ -1074,7 +1075,8 @@
           note: currentCard.note,
           userAnswer: fret,
           correct: isCorrect,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
         if (isCorrect) {
@@ -1113,7 +1115,8 @@
           note: currentCard.note,
           userAnswer: f,
           correct: isCorrect,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
         if (isCorrect) {
