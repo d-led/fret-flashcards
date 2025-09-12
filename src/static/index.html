@@ -576,6 +576,7 @@
     </div>
     <script>
       const SETTINGS_KEY = "guitar_flashcard_settings_v1";
+      const STATS_KEY = "guitar_flashcard_stats_v1";
 
       const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
       const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -763,6 +764,8 @@
 
       let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
 
+      let statistics = []; // Array to hold answer events
+
       // Octaves for MIDI calculation based on string count (expanded to 3-12)
       // Removed: now combined into defaultTunings
 
@@ -837,6 +840,23 @@
             tuning = defaultTunings[numStrings].strings.slice();
           }
         } catch (e) {}
+      }
+
+      // Function to save statistics to localStorage
+      function saveStatistics() {
+        localStorage.setItem(STATS_KEY, JSON.stringify(statistics));
+      }
+
+      // Function to load statistics from localStorage
+      function loadStatistics() {
+        try {
+          const raw = localStorage.getItem(STATS_KEY);
+          if (raw) {
+            statistics = JSON.parse(raw);
+          }
+        } catch (e) {
+          statistics = [];
+        }
       }
 
       function midiToFreq(midi) {
@@ -1024,6 +1044,16 @@
         let fret = parseInt($(this).attr("data-fret"));
         playAnsweredNote(currentCard.string, fret);
         let isCorrect = currentCard.frets.includes(fret);
+        // Record the answer event
+        statistics.push({
+          tuning: tuning.slice(), // Copy current tuning array
+          string: currentCard.string,
+          note: currentCard.note,
+          userAnswer: fret,
+          correct: isCorrect,
+          timestamp: Date.now()
+        });
+        saveStatistics(); // Persist after each event
         if (isCorrect) {
           if (extendedRange) {
             if (!foundFrets.includes(fret)) {
@@ -1053,6 +1083,16 @@
         if (s !== currentCard.string) return;
         playAnsweredNote(s, f);
         let isCorrect = currentCard.frets.includes(f);
+        // Record the answer event
+        statistics.push({
+          tuning: tuning.slice(), // Copy current tuning array
+          string: currentCard.string,
+          note: currentCard.note,
+          userAnswer: f,
+          correct: isCorrect,
+          timestamp: Date.now()
+        });
+        saveStatistics(); // Persist after each event
         if (isCorrect) {
           if (extendedRange) {
             if (!foundFrets.includes(f)) {
@@ -1341,6 +1381,7 @@
         }
 
         loadSettings();
+        loadStatistics(); // Load stats on init
         updateTuningUI(); // Initialize tuning UI
         makeSession();
         showCard();
