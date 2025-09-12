@@ -299,7 +299,7 @@ Cypress.Commands.add("setAccidentals", (enabled) => {
 });
 
 Cypress.Commands.add("setTimeoutSeconds", (seconds) => {
-  cy.get("#timeout-seconds").clear().type(seconds.toString()).trigger("change");
+  cy.get("#timeout-seconds").select(seconds.toString());
 });
 
 Cypress.Commands.add("setNumStrings", (num) => {
