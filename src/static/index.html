@@ -764,7 +764,9 @@
 
       let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
 
-      let statistics = []; // Array to hold answer events
+      let statistics = {
+        answers: []
+      }; // Object to hold answer events in 'answers' array
 
       // Octaves for MIDI calculation based on string count (expanded to 3-12)
       // Removed: now combined into defaultTunings
@@ -852,10 +854,18 @@
         try {
           const raw = localStorage.getItem(STATS_KEY);
           if (raw) {
-            statistics = JSON.parse(raw);
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              // Backward compatibility: if old data is an array, wrap it in object
+              statistics = { answers: parsed };
+            } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.answers)) {
+              statistics = parsed;
+            } else {
+              statistics = { answers: [] };
+            }
           }
         } catch (e) {
-          statistics = [];
+          statistics = { answers: [] };
         }
       }
 
@@ -1045,7 +1055,7 @@
         playAnsweredNote(currentCard.string, fret);
         let isCorrect = currentCard.frets.includes(fret);
         // Record the answer event
-        statistics.push({
+        statistics.answers.push({
           tuning: tuning.slice(), // Copy current tuning array
           string: currentCard.string,
           note: currentCard.note,
@@ -1084,7 +1094,7 @@
         playAnsweredNote(s, f);
         let isCorrect = currentCard.frets.includes(f);
         // Record the answer event
-        statistics.push({
+        statistics.answers.push({
           tuning: tuning.slice(), // Copy current tuning array
           string: currentCard.string,
           note: currentCard.note,
