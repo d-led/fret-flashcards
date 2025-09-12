@@ -887,6 +887,7 @@
           statistics = { answers: [] };
         }
         updateStatsButton(); // Update button after loading
+        computeStringErrorCounts(); // Compute after loading stats
       }
 
       // Function to update the reset stats button text
@@ -1042,11 +1043,25 @@
         $("#fret-buttons").html(btns);
       }
 
+      let stringErrorCounts = []; // Array to hold error counts per string for current tuning
+
+      // Function to compute error counts per string for the current tuning
+      function computeStringErrorCounts() {
+        stringErrorCounts = Array(numStrings).fill(0);
+        const currentTuningStr = JSON.stringify(tuning);
+        statistics.answers.forEach(answer => {
+          if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
+            stringErrorCounts[answer.string]++;
+          }
+        });
+      }
+
       function drawFretboardTable(highlightStringIdx, foundFretsArr) {
         let fretRows = "";
         for (let s = 0; s < stringNames.length; s++) {
           fretRows += `<tr>`;
-          fretRows += `<td class="open-note">${stringNames[s].openNote}</td>`;
+          // Add title attribute for hover tooltip showing error count
+          fretRows += `<td class="open-note" title="wrong: ${stringErrorCounts[s]}">${stringNames[s].openNote}</td>`;
           for (let f = 0; f < fretCount; f++) {
             let fretClass = "fret-cell";
             if (f === 0) fretClass += " open-fret";
@@ -1130,6 +1145,8 @@
           shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
+        computeStringErrorCounts(); // Recompute error counts after answer
+        drawFretboardTable(currentCard.string, foundFrets); // Redraw fretboard to update hover tooltips
         if (isCorrect) {
           if (extendedRange) {
             if (!foundFrets.includes(fret)) {
@@ -1170,6 +1187,8 @@
           shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
+        computeStringErrorCounts(); // Recompute error counts after answer
+        drawFretboardTable(currentCard.string, foundFrets); // Redraw fretboard to update hover tooltips
         if (isCorrect) {
           if (extendedRange) {
             if (!foundFrets.includes(f)) {
@@ -1458,7 +1477,7 @@
         }
 
         loadSettings();
-        loadStatistics(); // Load stats on init
+        loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
         updateTuningUI(); // Initialize tuning UI
         makeSession();
         showCard();
