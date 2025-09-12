@@ -437,6 +437,14 @@
           width: auto;
           min-width: 5em;
         }
+        /* Ensure there is comfortable vertical spacing when the label wraps
+           and the select/input drops to the next line on small screens */
+       .config-table td select,
+       .config-table td input[type="number"],
+       .config-table td .tuning-select {
+         display: inline-block; /* stable box for margin */
+         margin-top: 0.5em;     /* space between wrapped label and control */
+       }
         button {
           font-size: var(--font-normal);
           padding: 0.6em 1em;
@@ -526,7 +534,7 @@
           <table class="config-table">
             <tr>
               <td>
-                Timeout after correct answer (seconds):
+                Next question after (seconds):
                 <select id="timeout-seconds">
                   <option value="0">0</option>
                   <option value="1">1</option>
