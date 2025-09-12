@@ -5,7 +5,7 @@ describe("Guitar Fretboard Flashcard Game", () => {
     // Visit the app first to load the page
     cy.visitApp();
     // Set timeout to 0 seconds to avoid race conditions in tests
-    cy.get("#timeout-seconds").select("0");
+    cy.setTimeoutSeconds(0);
   });
 
   it("app start-up", () => {
