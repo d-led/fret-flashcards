@@ -25,6 +25,10 @@ A compact browser tool to practice and memorize notes on a 3- to 12-string guita
   - Python 3: `python -m http.server 8000` then open `http://localhost:8000/src/static/index.html`
   - Node: `npx http-server .` then open the corresponding URL.
 
+## Inspiration
+
+Inspired on a whim by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard".
+
 ## Tests
 
 - Cypress spec: `cypress/e2e/spec.cy.js`.
