@@ -565,6 +565,11 @@
                 <button id="reset-tuning">Reset to Standard Tuning</button>
               </td>
             </tr>
+            <tr>
+              <td>
+                <button id="reset-stats">Reset stats (0)</button>
+              </td>
+            </tr>
           </table>
         </div>
       </div>
@@ -847,6 +852,7 @@
       // Function to save statistics to localStorage
       function saveStatistics() {
         localStorage.setItem(STATS_KEY, JSON.stringify(statistics));
+        updateStatsButton(); // Update button after saving
       }
 
       // Function to load statistics from localStorage
@@ -867,6 +873,13 @@
         } catch (e) {
           statistics = { answers: [] };
         }
+        updateStatsButton(); // Update button after loading
+      }
+
+      // Function to update the reset stats button text
+      function updateStatsButton() {
+        const count = statistics.answers.length;
+        $("#reset-stats").text(`Reset stats (${count})`);
       }
 
       function midiToFreq(midi) {
@@ -1451,6 +1464,12 @@
           saveSettings();
           makeSession();
           showCard();
+        });
+
+        // Add event handler for reset stats button
+        $("#reset-stats").on("click", function () {
+          statistics = { answers: [] };
+          saveStatistics();
         });
 
         // Sound banner click handler (only needed on iOS)
