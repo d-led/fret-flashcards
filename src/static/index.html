@@ -942,7 +942,44 @@
           }
         }
         session = shuffle(session);
+        // Replace simple shuffle with weighted shuffle if stats exist and there are mistakes
+        if (statistics.answers.length > 0) {
+          const currentTuningStr = JSON.stringify(tuning);
+          const mistakeCounts = Array(numStrings).fill(0);
+          let totalMistakes = 0;
+          statistics.answers.forEach(answer => {
+            if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
+              mistakeCounts[answer.string]++;
+              totalMistakes++;
+            }
+          });
+          if (totalMistakes > 0) {
+            const weights = session.map(card => 1 + (mistakeCounts[card.string] / totalMistakes) * 0.5);
+            session = weightedShuffle(session, weights);
+          }
+        }
         sessionIdx = 0;
+      }
+
+      // Add weighted shuffle function
+      function weightedShuffle(arr, weights) {
+        const result = [];
+        let totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        while (arr.length > 0) {
+          let rand = Math.random() * totalWeight;
+          let cumWeight = 0;
+          for (let i = 0; i < arr.length; i++) {
+            cumWeight += weights[i];
+            if (rand < cumWeight) {
+              result.push(arr[i]);
+              totalWeight -= weights[i];
+              arr.splice(i, 1);
+              weights.splice(i, 1);
+              break;
+            }
+          }
+        }
+        return result;
       }
 
       function shuffle(a) {
