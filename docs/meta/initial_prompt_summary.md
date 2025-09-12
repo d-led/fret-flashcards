@@ -105,7 +105,7 @@ This document contains the sequential development requirements and tasks for imp
 ## Implementation Notes
 
 - The application should be a single HTML file with embedded CSS and JavaScript
-- Use jQuery for DOM manipulation and event handling  
+- Use jQuery for DOM manipulation and event handling
 - Implement local storage for settings persistence with proper validation
 - Focus on mobile-first responsive design
 - Ensure audio works across different browsers and mobile devices
