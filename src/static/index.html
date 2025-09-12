@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guitar Fretboard Flashcard Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+      :root {
+        --bg: #222;
+        --text: #f2f2f2;
+        --accent: #3498db;
+        --success: #2ecc40;
+        --error: #e74c3c;
+        --warning: #f7ca18;
+        --secondary-bg: #333;
+        --tertiary-bg: #444;
+        --inactive: #bbb;
+        --border: #666;
+        --border-radius: 8px;
+        --btn-radius: 12px;
+        --small-radius: 5px;
+        --font-large: 4em;
+        --font-medium: 1.5em;
+        --font-normal: 1.2em;
+        --font-small: 0.8em;
+        --padding: 0.5em;
+        --margin: 1em;
+        --transition: 0.3s;
+        --box-shadow: 0 0 0 5px #2264a7;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 540px;
+        margin: 3em auto 0;
+        padding: 2em;
+        background: var(--secondary-bg);
+        border-radius: var(--border-radius);
+      }
+
+      .flashcard {
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 2em;
+      }
+
+      .note-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-bottom: 0.2em;
+        gap: 0.5em;
+        width: 100%;
+        flex-wrap: nowrap; /* prevent the row from wrapping unexpectedly */
+      }
+
+      .quiz-note-btn {
+        background: var(--accent);
+        color: var(--text);
+        border: none;
+        border-radius: var(--btn-radius);
+        padding: var(--padding) 1em;
+        font-size: var(--font-medium);
+        cursor: pointer;
+        margin-right: 0.4em;
+        box-shadow: var(--box-shadow);
+        transition: box-shadow var(--transition);
+        flex: 0 0 auto;
+        max-width: 40%; /* prevent it from getting too wide on mid sizes */
+        box-sizing: border-box;
+      }
+
+      .countdown-inline {
+        font-size: var(--font-large);
+        font-weight: bold;
+        color: var(--success);
+        min-width: 2.3em;
+        text-align: left;
+        transition: color var(--transition);
+        margin: 0 0.5em;
+        display: inline-block;
+      }
+
+      .string {
+        font-size: var(--font-large);
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* truncate if space is very small */
+      }
+
+      .string::before {
+        content: "on the ";
+      }
+
+      .fretboard-area {
+        margin-bottom: 1.5em;
+        overflow-x: auto; /* allow horizontal scroll when many frets; prevents layout break */
+      }
+
+      .fretboard-table {
+        width: 100%;
+        table-layout: fixed; /* distribute remaining width equally among columns */
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+      }
+
+      .fretboard-table th,
+      .fretboard-table td {
+        padding: 0;
+        margin: 0;
+      }
+
+      .fretboard-table th {
+        height: 32px;
+      }
+
+      .fretboard-table .open-note {
+        font-weight: bold;
+        font-size: 1.15em;
+        width: 48px; /* fixed column for note names */
+        min-width: 48px;
+        text-align: right;
+        padding-right: 6px;
+        background: var(--bg);
+        color: var(--text);
+        border-right: 2px solid var(--border);
+        white-space: nowrap;
+      }
+
+      .fretboard-table .fret-label {
+        /* removed fixed width; allow equal distribution */
+        width: auto;
+        min-width: 24px;
+        height: 32px;
+        text-align: center;
+        font-size: 0.85em;
+        color: var(--inactive);
+        box-sizing: border-box;
+      }
+
+      .fretboard-table .fret-dot-cell {
+        width: auto;
+        min-width: 24px;
+        height: 28px;
+        text-align: center;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .fretboard-table .fret-cell {
+        /* removed hard-coded width to let table-layout:fixed distribute columns */
+        width: auto;
+        min-width: 28px;
+        height: 28px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        cursor: pointer;
+        text-align: center;
+        vertical-align: middle;
+        transition: background var(--transition);
+        position: relative;
+        box-sizing: border-box;
+      }
+
+      .fretboard-table .fret-dot {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background: #e2e2e2;
+        border-radius: 50%;
+        margin: 0 auto;
+        margin-top: 7px;
+      }
+
+      .fretboard-table .fret-dot.double {
+        height: 30px;
+        width: 14px;
+        background: none;
+        position: relative;
+        top: 0;
+      }
+
+      .fretboard-table .fret-dot.double .dot {
+        width: 12px;
+        height: 12px;
+        background: #e2e2e2;
+        border-radius: 50%;
+        position: absolute;
+        left: 4px;
+      }
+
+      .fretboard-table .fret-dot.double .dot1 {
+        top: 4px;
+      }
+
+      .fretboard-table .fret-dot.double .dot2 {
+        top: 18px;
+      }
+
+      .fretboard-table .open-note {
+        font-weight: bold;
+        font-size: 1.15em;
+        width: 48px;
+        text-align: right;
+        padding-right: 6px;
+        background: var(--bg);
+        color: var(--text);
+        border-right: 2px solid var(--border);
+      }
+
+      .fretboard-table .fret-cell {
+        width: 32px;
+        height: 28px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        cursor: pointer;
+        text-align: center;
+        vertical-align: middle;
+        transition: background var(--transition);
+        position: relative;
+      }
+
+      .fretboard-table .fret-cell.inactive {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      .fretboard-table .fret-cell.active-string {
+        background: #888;
+        color: var(--bg);
+      }
+
+      .fretboard-table .fret-cell.fret-found {
+        background: var(--success) !important;
+        color: var(--text);
+      }
+
+      .fretboard-table .fret-cell.fret-wrong {
+        background: var(--error) !important;
+      }
+
+      .fretboard-table .fret-cell.open-fret {
+        background: var(--warning) !important;
+        color: var(--bg);
+        font-weight: bold;
+      }
+
+      .fretboard-table .open-note-row td {
+        height: 28px;
+      }
+
+      .fretboard-table .fretboard-header {
+        background: var(--secondary-bg);
+      }
+
+      .fretboard-table .fretboard-mark-row td {
+        background: var(--secondary-bg);
+      }
+
+      .fretboard-table .fretboard-mark-row .fret-dot-cell {
+        height: 28px;
+      }
+
+      .fret-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+        gap: 0.5em;
+        justify-content: center;
+        margin-bottom: var(--margin);
+      }
+
+      .fret-btn {
+        background: var(--tertiary-bg);
+        border: none;
+        color: var(--text);
+        font-size: var(--font-medium);
+        padding: var(--padding) 1em;
+        border-radius: var(--small-radius);
+        cursor: pointer;
+        transition: background var(--transition);
+        text-align: center;
+      }
+
+      .fret-btn.correct {
+        background: var(--success);
+      }
+
+      .fret-btn.wrong {
+        background: var(--error);
+      }
+
+      .fret-btn.open-fret {
+        background: var(--warning);
+        color: var(--bg);
+        font-weight: bold;
+      }
+
+      .options {
+        margin-bottom: var(--margin);
+        display: flex;
+        flex-direction: column;
+        gap: 0.4em;
+      }
+
+      .play-btn {
+        background: var(--accent);
+        color: var(--text);
+        border: none;
+        border-radius: var(--small-radius);
+        padding: var(--padding) 1.1em;
+        font-size: var(--font-normal);
+        cursor: pointer;
+        margin-top: var(--margin);
+      }
+
+      .config {
+        margin-bottom: var(--margin);
+      }
+
+      .config-table,
+      .tuning-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .config-table td {
+        padding: var(--padding) 0;
+      }
+
+      .tuning-table td {
+        padding: 0.2em 0;
+      }
+
+      .sound-enable-banner {
+        background: var(--error);
+        color: var(--text);
+        padding: var(--padding) 1em;
+        text-align: center;
+        margin-bottom: var(--margin);
+        border-radius: var(--small-radius);
+        cursor: pointer;
+        font-size: var(--font-normal);
+        font-weight: bold;
+        display: none;
+      }
+
+      .sound-enable-banner:hover {
+        background: #c0392b;
+      }
+
+      .sound-enable-banner.enabled {
+        background: var(--success);
+      }
+
+      .flashcard-instruction {
+        font-size: var(--font-small);
+        color: var(--inactive);
+        margin-bottom: var(--margin);
+        align-self: flex-start;
+      }
+
+      .timeout-input {
+        width: 4em;
+      }
+
+      .copyright {
+        text-align: center;
+        font-size: var(--font-small);
+        margin-top: 2em;
+        color: var(--inactive);
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: var(--padding);
+        }
+        .note-row {
+          gap: var(--padding);
+        }
+        .quiz-note-btn {
+          font-size: 2em;
+          padding: 0.6em 1.2em;
+        }
+        .countdown-inline {
+          font-size: 2em;
+          min-width: 1.6em;
+        }
+        .string {
+          font-size: 2em;
+        }
+        .fret-btn {
+          font-size: 1em;
+          padding: 0.4em 0.6em;
+        }
+        .config-table td {
+          font-size: var(--font-normal);
+          padding: 0.8em 0;
+        }
+        .tuning-table td {
+          font-size: var(--font-normal);
+          padding: 0.6em 0;
+        }
+        input[type="checkbox"] {
+          width: 1.5em;
+          height: 1.5em;
+          margin-right: var(--padding);
+        }
+        input[type="number"],
+        select {
+          font-size: var(--font-normal);
+          padding: var(--padding);
+          margin-left: var(--padding);
+          width: auto;
+          min-width: 4em;
+        }
+        .tuning-select {
+          font-size: var(--font-normal);
+          padding: var(--padding);
+          margin-left: var(--padding);
+          width: auto;
+          min-width: 5em;
+        }
+        button {
+          font-size: var(--font-normal);
+          padding: 0.6em 1em;
+          margin-top: var(--padding);
+        }
+        label {
+          font-size: var(--font-normal);
+          margin-bottom: var(--padding);
+        }
+      }
+
+      @media (min-width: 601px) {
+        .container {
+          max-width: 100%;
+        }
+        .quiz-note-btn {
+          font-size: var(--font-large);
+        }
+        .fret-btn {
+          text-align: center;
+          padding: var(--padding) 0.5em;
+        }
+      }
+
+      /* --- Fix for .note-row layout around the 600px breakpoint --- */
+      /* Keep button from growing and let the string take remaining space safely */
+      .note-row {
+        flex-wrap: nowrap; /* prevent the row from wrapping unexpectedly */
+      }
+
+      /* Make the quiz button a fixed-size flex item so it cannot push other content */
+      .quiz-note-btn {
+        flex: 0 0 auto;
+        max-width: 40%; /* prevent it from getting too wide on mid sizes */
+        box-sizing: border-box;
+      }
+
+      /* Let the string take remaining space but be allowed to shrink;
+         min-width:0 is important for overflow handling inside flex containers */
+      .string {
+        flex: 1 1 auto;
+        min-width: 0;
+        /* white-space: nowrap; */
+        /* overflow: hidden; */
+        text-overflow: ellipsis; /* truncate if space is very small */
+      }
+
+      /* Optionally reduce the abrupt jump at 601px by capping the large-font usage */
+      @media (min-width: 601px) {
+        .quiz-note-btn {
+          /* limit the huge jump caused by var(--font-large) */
+          font-size: clamp(1.8rem, 3.2vw, var(--font-large));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="sound-banner" class="sound-enable-banner">🔊 Click here to enable sound</div>
+      <div class="flashcard">
+        <div class="flashcard-instruction">Find the note</div>
+        <div class="note-row">
+          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?</button>
+          <div class="string" id="flashcard-string">?</div>
+          <span class="countdown-inline" id="countdown"></span>
+        </div>
+        <div class="fretboard-area" id="fretboard-area"></div>
+      </div>
+      <div class="fret-buttons" id="fret-buttons"></div>
+      <div class="options">
+        <label>
+          <input type="checkbox" id="extended-range" />
+          Extended range (frets 12-24)
+        </label>
+        <label>
+          <input type="checkbox" id="accidentals" />
+          Include sharps/flats (C#, Db, etc.)
+        </label>
+        <div class="config">
+          <table class="config-table">
+            <tr>
+              <td>
+                Timeout after correct answer (seconds):
+                <input type="number" min="0" max="10" id="timeout-seconds" value="2" class="timeout-input" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Number of strings:
+                <select id="num-strings">
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6" selected>6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td id="tuning-config">
+                <!-- Dynamically populated with tuning table -->
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <button id="reset-tuning">Reset to Standard Tuning</button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">Copyright &copy; 2025 Github copilot and Dmitry Ledentsov's 🧠</div>
+    <script>
+      const SETTINGS_KEY = "guitar_flashcard_settings_v1";
+
+      const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
+      const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+      const flatNotes = ["Db", "Eb", "Gb", "Ab", "Bb"];
+      const sharpNotes = ["C#", "D#", "F#", "G#", "A#"];
+      const noteVariants = [
+        { name: "C", idx: 0 },
+        { name: "C#", idx: 1 },
+        { name: "Db", idx: 1 },
+        { name: "D", idx: 2 },
+        { name: "D#", idx: 3 },
+        { name: "Eb", idx: 3 },
+        { name: "E", idx: 4 },
+        { name: "F", idx: 5 },
+        { name: "F#", idx: 6 },
+        { name: "Gb", idx: 6 },
+        { name: "G", idx: 7 },
+        { name: "G#", idx: 8 },
+        { name: "Ab", idx: 8 },
+        { name: "A", idx: 9 },
+        { name: "A#", idx: 10 },
+        { name: "Bb", idx: 10 },
+        { name: "B", idx: 11 },
+      ];
+
+      const typicalFretMarks = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
+      const doubleFretMarkers = [12, 24];
+
+      let currentCard = null;
+      let extendedRange = false;
+      let showAccidentals = false;
+      let timeoutSeconds = 2;
+      let pendingTimeout = null;
+      let session = [];
+      let sessionIdx = 0;
+      let foundFrets = [];
+      let countdownInterval = null;
+      let countdownValue = 0;
+      let fretCount = 12; // default: 0th + frets 1-11
+
+      // Declare stringNames as an empty array (was missing, causing UI breakage)
+      let stringNames = [];
+
+      // Add new variables for configurable strings and tuning
+      let numStrings = 6;
+
+      // Default tunings for different string counts (expanded to 3-12)
+      const defaultTunings = {
+        3: {
+          name: "Kids guitar",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+          ],
+          octaves: [4, 3, 3],
+        },
+        4: {
+          name: "Mandolin",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "A", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "G", octave: 2 },
+          ],
+          octaves: [4, 3, 3, 2],
+        },
+        5: {
+          name: "Open G",
+          strings: [
+            { note: "D", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "G", octave: 2 },
+          ],
+          octaves: [4, 3, 3, 3, 2],
+        },
+        6: {
+          name: "Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2],
+        },
+        7: {
+          name: "7-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2],
+        },
+        8: {
+          name: "8-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+            { note: "F#", octave: 2 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2, 2],
+        },
+        9: {
+          name: "9-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+            { note: "F#", octave: 2 },
+            { note: "C#", octave: 1 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1],
+        },
+        10: {
+          name: "10-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+            { note: "F#", octave: 2 },
+            { note: "C#", octave: 1 },
+            { note: "G#", octave: 1 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1],
+        },
+        11: {
+          name: "11-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+            { note: "F#", octave: 2 },
+            { note: "C#", octave: 1 },
+            { note: "G#", octave: 1 },
+            { note: "D#", octave: 1 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1],
+        },
+        12: {
+          name: "12-String Standard",
+          strings: [
+            { note: "E", octave: 4 },
+            { note: "B", octave: 3 },
+            { note: "G", octave: 3 },
+            { note: "D", octave: 3 },
+            { note: "A", octave: 2 },
+            { note: "E", octave: 2 },
+            { note: "B", octave: 2 },
+            { note: "F#", octave: 2 },
+            { note: "C#", octave: 1 },
+            { note: "G#", octave: 1 },
+            { note: "D#", octave: 1 },
+            { note: "A#", octave: 1 },
+          ],
+          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1],
+        },
+      };
+
+      let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
+
+      // Octaves for MIDI calculation based on string count (expanded to 3-12)
+      // Removed: now combined into defaultTunings
+
+      // Function to calculate MIDI from note and octave
+      function getMidi(note, octave) {
+        const baseMidi = {
+          C: 0,
+          "C#": 1,
+          D: 2,
+          "D#": 3,
+          E: 4,
+          F: 5,
+          "F#": 6,
+          G: 7,
+          "G#": 8,
+          A: 9,
+          "A#": 10,
+          B: 11,
+        };
+        return 12 * (octave + 1) + baseMidi[note];
+      }
+
+      // Update saveSettings to include new config
+      function saveSettings() {
+        const settings = {
+          extendedRange: !!extendedRange,
+          showAccidentals: !!showAccidentals,
+          timeoutSeconds: Number(timeoutSeconds),
+          numStrings: Number(numStrings),
+          tuning: tuning.slice(),
+        };
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      }
+
+      // Update loadSettings to load new config (adjusted validation for 3-12)
+      function loadSettings() {
+        try {
+          const raw = localStorage.getItem(SETTINGS_KEY);
+          if (!raw) return;
+          const settings = JSON.parse(raw);
+          if (typeof settings !== "object") return;
+          if ("extendedRange" in settings) {
+            extendedRange = !!settings.extendedRange;
+            $("#extended-range").prop("checked", extendedRange);
+          }
+          if ("showAccidentals" in settings) {
+            showAccidentals = !!settings.showAccidentals;
+            $("#accidentals").prop("checked", showAccidentals);
+          }
+          if ("timeoutSeconds" in settings) {
+            let val = Number(settings.timeoutSeconds);
+            if (isFinite(val) && val >= 0 && val <= 10) {
+              timeoutSeconds = val;
+              $("#timeout-seconds").val(timeoutSeconds);
+            }
+          }
+          if ("numStrings" in settings) {
+            let val = Number(settings.numStrings);
+            if (val >= 3 && val <= 12) {
+              numStrings = val;
+              $("#num-strings").val(numStrings);
+            }
+          }
+          if ("tuning" in settings && Array.isArray(settings.tuning) && settings.tuning.length === numStrings) {
+            // Validate that each tuning element has note and octave
+            if (settings.tuning.every((t) => t && typeof t.note === "string" && typeof t.octave === "number")) {
+              tuning = settings.tuning.slice();
+            } else {
+              tuning = defaultTunings[numStrings].strings.slice();
+            }
+          } else {
+            tuning = defaultTunings[numStrings].strings.slice();
+          }
+        } catch (e) {}
+      }
+
+      function midiToFreq(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+      }
+
+      function getNoteIdxAtFret(stringIdx, fretIdx) {
+        const openIdx = allNotes.indexOf(stringNames[stringIdx].openNote);
+        return (openIdx + fretIdx) % 12;
+      }
+
+      function notesToSet() {
+        if (showAccidentals) {
+          return allNotes.concat(flatNotes);
+        }
+        return naturalNotes;
+      }
+
+      // Return English ordinal for a positive integer (1 -> "1st", 2 -> "2nd", 11 -> "11th", etc.)
+      function getOrdinal(n) {
+        const s = ["th", "st", "nd", "rd"];
+        const v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+      }
+
+      function makeSession() {
+        // Set correct fret count: open string + 11 frets in default, +24 in extended
+        fretCount = extendedRange ? 25 : 12;
+        // Dynamically build stringNames based on numStrings and tuning
+        stringNames.length = 0; // Clear existing
+        for (let i = 0; i < numStrings; i++) {
+          let midi = getMidi(tuning[i].note, tuning[i].octave);
+          const num = i + 1;
+          const ord = getOrdinal(num); // e.g. "1st"
+          let name = `${ord}`;
+          stringNames.push({ name, openNote: tuning[i].note, midi });
+        }
+        session = [];
+        let notes = notesToSet();
+        let frets = [...Array(fretCount).keys()]; // 0 ... 11 or 0 ... 24
+        for (let s = 0; s < stringNames.length; s++) {
+          for (let n of notes) {
+            let idxs = [];
+            let openIdx = allNotes.indexOf(stringNames[s].openNote);
+            for (let f of frets) {
+              let noteIdx = (openIdx + f) % 12;
+              let noteOnFret = allNotes[noteIdx];
+              if (noteOnFret === n || (showAccidentals && ((sharpNotes.includes(n) && noteOnFret === n) || (flatNotes.includes(n) && allNotes[noteIdx] === n)))) {
+                idxs.push(f);
+              }
+            }
+            if (idxs.length > 0) {
+              session.push({
+                string: s,
+                note: n,
+                frets: idxs.slice(),
+                found: [],
+              });
+            }
+          }
+        }
+        session = shuffle(session);
+        sessionIdx = 0;
+      }
+
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          let j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function showCard() {
+        clearTimeout(pendingTimeout);
+        clearInterval(countdownInterval);
+        $("#countdown").text("");
+        if (session.length === 0) {
+          $("#quiz-note-btn").text("?");
+          // clear machine-readable attributes when no session
+          $("#quiz-note-btn").removeAttr("data-note");
+          $("#flashcard-string").removeAttr("data-string-index data-string-name data-frets-count");
+          $("#flashcard-string").text("Start!");
+          $("#fret-buttons").empty();
+          $("#fretboard-area").empty();
+          return;
+        }
+        currentCard = session[sessionIdx];
+        foundFrets = currentCard.found.slice();
+        $("#quiz-note-btn").text(currentCard.note);
+        // expose stable attributes for tests (and other tooling)
+        $("#quiz-note-btn").attr("data-note", currentCard.note);
+        $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
+        $("#flashcard-string").text(
+          // show as a readable sentence: "on the ... string"
+          (extendedRange ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)") : stringNames[currentCard.string].name) + " string",
+        );
+
+        drawFretboardTable(currentCard.string, foundFrets);
+
+        let btns = "";
+        for (let f = 0; f < fretCount; f++) {
+          let btnClass = "fret-btn";
+          if (f === 0) btnClass += " open-fret";
+          if (foundFrets.includes(f)) btnClass += " correct";
+          btns += `<button class="${btnClass}" data-fret="${f}">${f}</button>`;
+        }
+        $("#fret-buttons").html(btns);
+      }
+
+      function drawFretboardTable(highlightStringIdx, foundFretsArr) {
+        let fretRows = "";
+        for (let s = 0; s < stringNames.length; s++) {
+          fretRows += `<tr>`;
+          fretRows += `<td class="open-note">${stringNames[s].openNote}</td>`;
+          for (let f = 0; f < fretCount; f++) {
+            let fretClass = "fret-cell";
+            if (f === 0) fretClass += " open-fret";
+            if (s === highlightStringIdx) {
+              fretClass += " active-string";
+              if (foundFretsArr.includes(f)) fretClass += " fret-found";
+            } else {
+              fretClass += " inactive";
+            }
+            fretRows += `<td class="${fretClass}" data-string="${s}" data-fret="${f}"></td>`;
+          }
+          fretRows += `</tr>`;
+        }
+
+        // Fret marker row (dots)
+        let markRow = '<tr class="fretboard-mark-row">';
+        markRow += "<td></td>";
+        for (let f = 0; f < fretCount; f++) {
+          let marker = "";
+          let fretNum = f; // 0 = open, 1 = 1st fret, etc.
+          if (extendedRange) {
+            if (typicalFretMarks.includes(fretNum)) {
+              if (doubleFretMarkers.includes(fretNum)) {
+                marker = `<span class="fret-dot double">
+                        <span class="dot dot1"></span>
+                        <span class="dot dot2"></span>
+                    </span>`;
+              } else {
+                marker = `<span class="fret-dot"></span>`;
+              }
+            }
+          } else {
+            // Only markers for 3,5,7,9
+            if ([3, 5, 7, 9].includes(fretNum)) {
+              marker = `<span class="fret-dot"></span>`;
+            }
+          }
+          markRow += `<td class="fret-dot-cell">${marker}</td>`;
+        }
+        markRow += "</tr>";
+
+        // Table header row (fret numbers)
+        let headerRow = '<tr class="fretboard-header">';
+        headerRow += "<th></th>";
+        for (let f = 0; f < fretCount; f++) {
+          headerRow += `<th class="fret-label">${f}</th>`;
+        }
+        headerRow += "</tr>";
+
+        let tableHtml = `<table class="fretboard-table"><thead>${headerRow}</thead><tbody>${fretRows}${markRow}</tbody></table>`;
+        $("#fretboard-area").html(tableHtml);
+      }
+
+      function nextCard() {
+        sessionIdx++;
+        if (sessionIdx >= session.length) {
+          alert("Session complete!");
+          makeSession();
+        }
+        showCard();
+      }
+
+      function markButton(btn, correct) {
+        $(btn).addClass(correct ? "correct" : "wrong");
+        if (!correct) setTimeout(() => $(btn).removeClass("wrong"), 1000);
+      }
+
+      function handleFretClick(e) {
+        if (!currentCard) return;
+        let fret = parseInt($(this).attr("data-fret"));
+        playAnsweredNote(currentCard.string, fret);
+        let isCorrect = currentCard.frets.includes(fret);
+        if (isCorrect) {
+          if (extendedRange) {
+            if (!foundFrets.includes(fret)) {
+              foundFrets.push(fret);
+              currentCard.found = foundFrets.slice();
+              markButton($(`.fret-btn[data-fret=${fret}]`), true);
+              highlightFretOnFretboard(currentCard.string, fret, true);
+            }
+            if (foundFrets.length === currentCard.frets.length) {
+              doCountdownAndNext();
+            }
+          } else {
+            markButton($(`.fret-btn[data-fret=${fret}]`), true);
+            highlightFretOnFretboard(currentCard.string, fret, true);
+            doCountdownAndNext();
+          }
+        } else {
+          markButton($(`.fret-btn[data-fret=${fret}]`), false);
+          highlightFretOnFretboard(currentCard.string, fret, false);
+          playDesiredNote(currentCard.string, currentCard.frets[0]);
+        }
+      }
+
+      function handleFretboardClick(e) {
+        let s = Number($(this).attr("data-string"));
+        let f = Number($(this).attr("data-fret"));
+        if (s !== currentCard.string) return;
+        playAnsweredNote(s, f);
+        let isCorrect = currentCard.frets.includes(f);
+        if (isCorrect) {
+          if (extendedRange) {
+            if (!foundFrets.includes(f)) {
+              foundFrets.push(f);
+              currentCard.found = foundFrets.slice();
+              markButton($(`.fret-btn[data-fret=${f}]`), true);
+              highlightFretOnFretboard(currentCard.string, f, true);
+            }
+            if (foundFrets.length === currentCard.frets.length) {
+              doCountdownAndNext();
+            }
+          } else {
+            markButton($(`.fret-btn[data-fret=${f}]`), true);
+            highlightFretOnFretboard(currentCard.string, f, true);
+            doCountdownAndNext();
+          }
+        } else {
+          markButton($(`.fret-btn[data-fret=${f}]`), false);
+          highlightFretOnFretboard(currentCard.string, f, false);
+          playDesiredNote(currentCard.string, currentCard.frets[0]);
+        }
+      }
+
+      function playAnsweredNote(stringIdx, fretIdx) {
+        let midi = stringNames[stringIdx].midi + fretIdx;
+        let freq = midiToFreq(midi);
+        playTone(freq, 0.7);
+      }
+
+      function playDesiredNote(stringIdx, fretIdx) {
+        let midi = stringNames[stringIdx].midi + fretIdx;
+        let freq = midiToFreq(midi);
+        setTimeout(() => playTone(freq, 0.7), 250);
+      }
+
+      function highlightFretOnFretboard(stringIdx, fretIdx, correct) {
+        let selector = `.fret-cell[data-string="${stringIdx}"][data-fret="${fretIdx}"]`;
+        let $fret = $(selector);
+        if (correct) {
+          $fret.removeClass("fret-wrong").addClass("fret-found");
+        } else {
+          $fret.addClass("fret-wrong");
+          setTimeout(() => {
+            $fret.removeClass("fret-wrong");
+          }, 1000);
+        }
+      }
+
+      function doCountdownAndNext() {
+        clearInterval(countdownInterval);
+        if (timeoutSeconds === 0) {
+          nextCard();
+          return;
+        }
+        countdownValue = timeoutSeconds;
+        $("#countdown").text("⏳ " + countdownValue);
+        countdownInterval = setInterval(() => {
+          countdownValue--;
+          $("#countdown").text(countdownValue > 0 ? "⏳ " + countdownValue : "");
+          if (countdownValue <= 0) {
+            clearInterval(countdownInterval);
+            $("#countdown").text("");
+            nextCard();
+          }
+        }, 1000);
+      }
+
+      function playNoteCard() {
+        if (!currentCard) return;
+        let fret = currentCard.frets[0];
+        let midi = stringNames[currentCard.string].midi + fret;
+        let freq = midiToFreq(midi);
+        playTone(freq, 0.8);
+      }
+
+      // New: HTML5 Audio element approach instead of Web Audio API
+      let audioElements = {}; // Cache for generated audio elements
+      let audioEnabled = false;
+      let isIOS = false;
+
+      // Detect iOS devices
+      function detectIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      }
+
+      // Generate a WAV data URL for a given frequency
+      function generateToneDataURL(freq, duration = 0.8, sampleRate = 44100) {
+        const length = Math.floor(sampleRate * duration);
+        const buffer = new ArrayBuffer(44 + length * 2);
+        const view = new DataView(buffer);
+
+        // WAV header
+        const writeString = (offset, string) => {
+          for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+          }
+        };
+
+        writeString(0, "RIFF");
+        view.setUint32(4, 36 + length * 2, true);
+        writeString(8, "WAVE");
+        writeString(12, "fmt ");
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, "data");
+        view.setUint32(40, length * 2, true);
+
+        // Compute MIDI and octave from frequency
+        const midi = 69 + 12 * Math.log2(freq / 440);
+        const octave = Math.floor(midi / 12) - 1;
+        const useTriangle = octave === 1 || octave === 2;
+
+        // Generate wave data (triangle for octaves 1-2, sine otherwise)
+        for (let i = 0; i < length; i++) {
+          let sample;
+          if (useTriangle) {
+            sample = (4 * Math.abs((((i * freq) / sampleRate) % 1) - 0.5) - 1) * 0.15 * 32767;
+          } else {
+            sample = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.15 * 32767;
+          }
+          const offset = 44 + i * 2;
+          if (offset + 1 < buffer.byteLength) {
+            view.setInt16(offset, sample, true);
+          }
+        }
+
+        const blob = new Blob([buffer], { type: "audio/wav" });
+        return URL.createObjectURL(blob);
+      }
+
+      // Updated playTone to use HTML5 Audio elements
+      function playTone(freq, duration) {
+        // On non-iOS devices, ensure audio is initialized
+        if (!isIOS && !audioEnabled) {
+          audioEnabled = true; // Assume it works on non-iOS
+          initAudioContext();
+        }
+
+        // For iOS, require explicit enabling
+        if (isIOS && !audioEnabled) {
+          console.warn("Audio not enabled on iOS - click enable sound banner");
+          return;
+        }
+
+        try {
+          const cacheKey = `${Math.round(freq)}_${duration}`;
+
+          if (!audioElements[cacheKey]) {
+            const audio = new Audio();
+            try {
+              audio.src = generateToneDataURL(freq, duration);
+              audio.preload = "auto";
+              audioElements[cacheKey] = audio;
+            } catch (err) {
+              console.error("Error generating tone:", err);
+              return;
+            }
+          }
+
+          const audio = audioElements[cacheKey];
+          audio.currentTime = 0;
+          const playPromise = audio.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log("Audio played successfully");
+              })
+              .catch((err) => {
+                console.error("Error playing audio:", err);
+                // On first failure, try to re-enable audio
+                if (!isIOS) {
+                  setTimeout(() => initAudioContext(), 100);
+                }
+              });
+          }
+        } catch (err) {
+          console.error("Error playing tone:", err);
+        }
+      }
+
+      // Add debounce function for saving timeout
+      let timeoutSaveDebounce = null;
+      function debouncedSaveTimeout() {
+        clearTimeout(timeoutSaveDebounce);
+        timeoutSaveDebounce = setTimeout(() => {
+          let v = parseInt($("#timeout-seconds").val());
+          if (isNaN(v) || v < 0 || v > 10) v = 2;
+          timeoutSeconds = v;
+          saveSettings();
+        }, 200);
+      }
+
+      // Function to update the tuning UI
+      function updateTuningUI() {
+        let html = '<table class="tuning-table">';
+        for (let i = 0; i < numStrings; i++) {
+          let noteOptions = allNotes.map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`).join("");
+          html += `<tr><td>String ${i + 1}: <select class="tuning-select" data-string="${i}">${noteOptions}</select></td></tr>`;
+        }
+        html += "</table>";
+        $("#tuning-config").html(html);
+      }
+
+      // Initialize audio - create test sound to enable audio context
+      function initAudioContext() {
+        try {
+          // Create a short silent audio element and play it
+          const testAudio = new Audio();
+          testAudio.src =
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmQfCjuP2O/Qfi8HI3/A7tqPQQkSUbDn56ZSFAk+ltztw2QfCTuN2bC/";
+
+          const playPromise = testAudio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                audioEnabled = true;
+                if (isIOS) updateSoundBanner();
+                testAudio.pause();
+                testAudio.currentTime = 0;
+                console.log("Audio enabled successfully");
+              })
+              .catch((err) => {
+                // Suppress expected autoplay policy warnings on desktop
+                if (!isIOS && err.name === "NotAllowedError") {
+                  // This is expected on desktop - audio will work after user interaction
+                  audioEnabled = true;
+                } else {
+                  console.error("Failed to enable audio:", err);
+                  if (isIOS) {
+                    audioEnabled = false;
+                  } else {
+                    // On non-iOS, assume audio will work even if test fails
+                    audioEnabled = true;
+                  }
+                }
+              });
+          } else {
+            // Fallback for older browsers
+            audioEnabled = true;
+          }
+        } catch (err) {
+          console.error("Failed to initialize audio:", err);
+          if (!isIOS) {
+            // On non-iOS, assume audio will work
+            audioEnabled = true;
+          }
+        }
+      }
+
+      function updateSoundBanner() {
+        const banner = $("#sound-banner");
+        if (audioEnabled) {
+          banner.addClass("enabled").text("🔊 Sound enabled!");
+          setTimeout(() => banner.hide(), 2000);
+        } else {
+          banner.removeClass("enabled").text("🔊 Click here to enable sound").show();
+        }
+      }
+
+      $(function () {
+        // Detect iOS and show banner if needed
+        isIOS = detectIOS();
+        if (isIOS) {
+          $("#sound-banner").show();
+          // Don't auto-initialize on iOS - require user action
+        } else {
+          // On non-iOS devices, initialize audio automatically
+          audioEnabled = true;
+          initAudioContext();
+        }
+
+        loadSettings();
+        updateTuningUI(); // Initialize tuning UI
+        makeSession();
+        showCard();
+
+        $("#fret-buttons").on("click", ".fret-btn", handleFretClick);
+
+        $("#quiz-note-btn").on("click", function () {
+          playNoteCard();
+        });
+
+        $("#extended-range").on("change", function () {
+          extendedRange = this.checked;
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+        $("#accidentals").on("change", function () {
+          showAccidentals = this.checked;
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+        $("#timeout-seconds").on("change", function () {
+          let v = parseInt(this.value);
+          timeoutSeconds = isNaN(v) ? 2 : v;
+          saveSettings();
+        });
+        $("#timeout-seconds").on("keypress", debouncedSaveTimeout);
+
+        $("#fretboard-area").on("click", ".fret-cell.active-string", handleFretboardClick);
+
+        // Add event handler for number of strings change
+        $("#num-strings").on("change", function () {
+          numStrings = parseInt(this.value);
+          tuning = defaultTunings[numStrings].strings.slice(); // Reset to default tuning for new count
+          updateTuningUI();
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+
+        // Add event handler for individual tuning changes
+        $("#tuning-config").on("change", ".tuning-select", function () {
+          let stringIdx = $(this).data("string");
+          tuning[stringIdx].note = this.value;
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+
+        // Add event handler for reset button
+        $("#reset-tuning").on("click", function () {
+          numStrings = 6;
+          $("#num-strings").val(6);
+          tuning = defaultTunings[6].strings.slice();
+          updateTuningUI();
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+
+        // Sound banner click handler (only needed on iOS)
+        $("#sound-banner").on("click", function () {
+          initAudioContext();
+        });
+      });
+    </script>
+  </body>
+</html>

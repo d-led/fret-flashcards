@@ -1,0 +1,15 @@
+{
+  "name": "fret-flashcards",
+  "version": "1.0.0",
+  "description": "Guitar Fretboard Flashcard Game",
+  "main": "src/static/index.html",
+  "scripts": {
+    "e2e": "cypress run --e2e --browser chrome",
+    "cy": "cypress open --e2e --browser chrome",
+    "prettier": "prettier -w ."
+  },
+  "devDependencies": {
+    "cypress": "^15.2.0",
+    "prettier": "^3.6.2"
+  }
+}
