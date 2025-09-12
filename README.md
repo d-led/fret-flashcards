@@ -13,6 +13,7 @@ A compact browser tool to practice and memorize notes on a 3- to 12-string guita
 - Reset tuning to standard 6-string configuration
 - Visual cues and audio feedback for correct/incorrect answers
 - Settings persist across browser sessions so your preferences are retained
+- Optional quiz bias towards strings of the current tuning with the most mistakes
 
 ## Deployment
 
