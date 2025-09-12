@@ -164,4 +164,22 @@ describe("Guitar Fretboard Flashcard Game", () => {
       cy.gameShouldBePlayable();
     }
   });
+
+  it("should show 12th fret marker in default mode", () => {
+    cy.setExtendedRange(false);
+    cy.allowUItotSettle();
+    cy.shouldHaveCorrectTableStructureInDefault();
+    cy.shouldHave12thFretMarkerInDefault();
+    // Verify game still works (no extra playable frets)
+    cy.gameShouldBePlayable();
+  });
+
+  it("should show 12th fret marker in extended mode", () => {
+    cy.setExtendedRange(true);
+    cy.allowUItotSettle();
+    cy.shouldHaveCorrectTableStructureInExtended();
+    cy.shouldHave12thFretMarkerInExtended();
+    // Verify game still works
+    cy.gameShouldBePlayable();
+  });
 });
