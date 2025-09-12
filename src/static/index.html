@@ -1205,20 +1205,30 @@
         try {
           const cacheKey = `${Math.round(freq)}_${duration}`;
 
-          if (!audioElements[cacheKey]) {
-            const audio = new Audio();
+          // On iOS, don't reuse cached audio elements to prevent playback conflicts
+          // Create a new audio element each time for reliable playback
+          let audio;
+          if (isIOS || !audioElements[cacheKey]) {
+            audio = new Audio();
             try {
               audio.src = generateToneDataURL(freq, duration);
               audio.preload = "auto";
-              audioElements[cacheKey] = audio;
+              if (!isIOS) {
+                audioElements[cacheKey] = audio; // Only cache on non-iOS
+              }
             } catch (err) {
               console.error("Error generating tone:", err);
               return;
             }
+          } else {
+            audio = audioElements[cacheKey];
           }
 
-          const audio = audioElements[cacheKey];
-          audio.currentTime = 0;
+          // For non-iOS cached elements, reset position
+          if (!isIOS) {
+            audio.currentTime = 0;
+          }
+
           const playPromise = audio.play();
 
           if (playPromise !== undefined) {
