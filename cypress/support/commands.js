@@ -368,17 +368,17 @@ Cypress.Commands.add("allowUItotSettle", () => {
 // Check for 12th fret marker (double dots) in default mode (extra column)
 Cypress.Commands.add("shouldHave12thFretMarkerInDefault", () => {
   // In default mode, the last .fret-dot-cell should have double dots
-  cy.get('.fret-dot-cell').last().find('.fret-dot.double').should('exist');
+  cy.get(".fret-dot-cell").last().find(".fret-dot.double").should("exist");
   // Ensure the extra fret cell is hidden
-  cy.get('.fret-cell').last().should('have.css', 'visibility', 'hidden');
+  cy.get(".fret-cell").last().should("have.css", "visibility", "hidden");
   // Ensure the extra header is hidden
-  cy.get('.fret-label').last().should('have.css', 'visibility', 'hidden');
+  cy.get(".fret-label").last().should("have.css", "visibility", "hidden");
 });
 
 // Check for 12th fret marker in extended mode (within range)
 Cypress.Commands.add("shouldHave12thFretMarkerInExtended", () => {
   // In extended mode, f=12 is at index 12 (0-based, after open)
-  cy.get('.fret-dot-cell').eq(12).find('.fret-dot.double').should('exist');
+  cy.get(".fret-dot-cell").eq(12).find(".fret-dot.double").should("exist");
 });
 
 // Verify table structure and hidden elements in default mode
@@ -387,11 +387,11 @@ Cypress.Commands.add("shouldHaveCorrectTableStructureInDefault", () => {
   const columnsDefault = 13;
   const stringsDefault = 6;
   // total fret-cells = strings * columns
-  cy.get('.fret-cell').should('have.length', stringsDefault * columnsDefault);
+  cy.get(".fret-cell").should("have.length", stringsDefault * columnsDefault);
   // header labels count == columns
-  cy.get('.fret-label').should('have.length', columnsDefault);
+  cy.get(".fret-label").should("have.length", columnsDefault);
   // dot-cells count == columns
-  cy.get('.fret-dot-cell').should('have.length', columnsDefault);
+  cy.get(".fret-dot-cell").should("have.length", columnsDefault);
 });
 
 // Verify table structure in extended mode
@@ -400,9 +400,9 @@ Cypress.Commands.add("shouldHaveCorrectTableStructureInExtended", () => {
   const columnsExtended = 25;
   const stringsExtended = 6;
   // total fret-cells = strings * columns
-  cy.get('.fret-cell').should('have.length', stringsExtended * columnsExtended);
+  cy.get(".fret-cell").should("have.length", stringsExtended * columnsExtended);
   // header labels count == columns
-  cy.get('.fret-label').should('have.length', columnsExtended);
+  cy.get(".fret-label").should("have.length", columnsExtended);
   // dot-cells count == columns
-  cy.get('.fret-dot-cell').should('have.length', columnsExtended);
+  cy.get(".fret-dot-cell").should("have.length", columnsExtended);
 });

@@ -774,7 +774,7 @@
       let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
 
       let statistics = {
-        answers: []
+        answers: [],
       }; // Object to hold answer events in 'answers' array
 
       let enableBias = true; // Default to true for improved learning
@@ -877,7 +877,7 @@
             if (Array.isArray(parsed)) {
               // Backward compatibility: if old data is an array, wrap it in object
               statistics = { answers: parsed };
-            } else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.answers)) {
+            } else if (parsed && typeof parsed === "object" && Array.isArray(parsed.answers)) {
               statistics = parsed;
             } else {
               statistics = { answers: [] };
@@ -961,7 +961,7 @@
           const currentTuningStr = JSON.stringify(tuning);
           const mistakeCounts = Array(numStrings).fill(0);
           let totalMistakes = 0;
-          statistics.answers.forEach(answer => {
+          statistics.answers.forEach((answer) => {
             if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
               mistakeCounts[answer.string]++;
               totalMistakes++;
@@ -969,7 +969,7 @@
           });
           const biasStrength = 1; // Adjust this value to increase/decrease bias effect
           if (totalMistakes > 0) {
-            const weights = session.map(card => 1 + (mistakeCounts[card.string] / totalMistakes) * biasStrength);
+            const weights = session.map((card) => 1 + (mistakeCounts[card.string] / totalMistakes) * biasStrength);
             session = weightedShuffle(session, weights);
           }
         }
@@ -1049,7 +1049,7 @@
       function computeStringErrorCounts() {
         stringErrorCounts = Array(numStrings).fill(0);
         const currentTuningStr = JSON.stringify(tuning);
-        statistics.answers.forEach(answer => {
+        statistics.answers.forEach((answer) => {
           if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
             stringErrorCounts[answer.string]++;
           }
@@ -1163,7 +1163,7 @@
           userAnswer: fret,
           correct: isCorrect,
           timestamp: Date.now(),
-          shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
+          shownTimestamp: currentCard.shownTime, // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
         computeStringErrorCounts(); // Recompute error counts after answer
@@ -1205,7 +1205,7 @@
           userAnswer: f,
           correct: isCorrect,
           timestamp: Date.now(),
-          shownTimestamp: currentCard.shownTime // Add shown timestamp for response time calculation
+          shownTimestamp: currentCard.shownTime, // Add shown timestamp for response time calculation
         });
         saveStatistics(); // Persist after each event
         computeStringErrorCounts(); // Recompute error counts after answer
