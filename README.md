@@ -27,7 +27,7 @@ A compact browser tool to practice and memorize notes on a 3- to 12-string guita
 
 ## Inspiration
 
-Inspired on a whim by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard".
+Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard".
 
 ## Tests
 
