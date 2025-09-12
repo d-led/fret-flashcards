@@ -518,6 +518,10 @@
           <input type="checkbox" id="accidentals" />
           Include accidentals: sharps (♯) and flats (♭)
         </label>
+        <label>
+          <input type="checkbox" id="enable-bias" />
+          Bias towards strings with mistakes
+        </label>
         <div class="config">
           <table class="config-table">
             <tr>
@@ -773,6 +777,8 @@
         answers: []
       }; // Object to hold answer events in 'answers' array
 
+      let enableBias = true; // Default to true for improved learning
+
       // Octaves for MIDI calculation based on string count (expanded to 3-12)
       // Removed: now combined into defaultTunings
 
@@ -803,6 +809,7 @@
           timeoutSeconds: Number(timeoutSeconds),
           numStrings: Number(numStrings),
           tuning: tuning.slice(),
+          enableBias: !!enableBias,
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       }
@@ -845,6 +852,12 @@
             }
           } else {
             tuning = defaultTunings[numStrings].strings.slice();
+          }
+          if ("enableBias" in settings) {
+            enableBias = !!settings.enableBias;
+            $("#enable-bias").prop("checked", enableBias);
+          } else {
+            $("#enable-bias").prop("checked", enableBias); // Ensure default true is reflected
           }
         } catch (e) {}
       }
@@ -942,8 +955,8 @@
           }
         }
         session = shuffle(session);
-        // Replace simple shuffle with weighted shuffle if stats exist and there are mistakes
-        if (statistics.answers.length > 0) {
+        // Replace simple shuffle with weighted shuffle if stats exist, there are mistakes, and bias is enabled
+        if (enableBias && statistics.answers.length > 0) {
           const currentTuningStr = JSON.stringify(tuning);
           const mistakeCounts = Array(numStrings).fill(0);
           let totalMistakes = 0;
@@ -1515,6 +1528,13 @@
         // Sound banner click handler (only needed on iOS)
         $("#sound-banner").on("click", function () {
           initAudioContext();
+        });
+
+        $("#enable-bias").on("change", function () {
+          enableBias = this.checked;
+          saveSettings();
+          makeSession();
+          showCard();
         });
       });
     </script>
