@@ -676,11 +676,6 @@
         { name: "B", idx: 11 },
       ];
 
-      // Function to format notes with unicode musical symbols
-      function formatNoteForDisplay(note) {
-        return note.replace(/#/g, '♯').replace(/b/g, '♭');
-      }
-
       // Independent octave shift (in semitones) applied when writing notation for each clef.
       // Adjust these to control where notes appear on the staff for treble and bass independently.
       let trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
@@ -1486,7 +1481,7 @@
         currentCard = session[sessionIdx];
         currentCard.shownTime = Date.now(); // Track when the card is shown
         foundFrets = currentCard.found.slice();
-        $("#quiz-note-btn").text(formatNoteForDisplay(currentCard.note));
+        $("#quiz-note-btn").text(currentCard.note);
         // expose stable attributes for tests (and other tooling)
         $("#quiz-note-btn").attr("data-note", currentCard.note);
         if (showScoreNotation) {
@@ -1543,7 +1538,7 @@
           fretRows += `<tr>`;
           // Add title attribute for hover tooltip showing error count (safe fallback to 0)
           const wrongCount = Array.isArray(stringErrorCounts) ? stringErrorCounts[s] || 0 : 0;
-          fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0">${formatNoteForDisplay(stringNames[s].openNote)}</td>`;
+          fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0">${stringNames[s].openNote}</td>`;
           for (let f = 0; f < fretCount + extraFret; f++) {
             let fretClass = "fret-cell";
             if (f === 0) fretClass += " open-fret";
@@ -1904,7 +1899,7 @@
       function updateTuningUI() {
         let html = '<div class="tuning-container">';
         for (let i = 0; i < numStrings; i++) {
-          let noteOptions = allNotes.map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${formatNoteForDisplay(n)}</option>`).join("");
+          let noteOptions = allNotes.map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`).join("");
           let octaveOptions = "";
           for (let oct = 0; oct <= 8; oct++) {
             octaveOptions += `<option value="${oct}" ${tuning[i].octave === oct ? "selected" : ""}>${oct}</option>`;
