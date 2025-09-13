@@ -53,7 +53,7 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        margin-bottom: 2em;
+        /* margin-bottom: 2em; */
       }
 
       .note-row {
@@ -136,7 +136,7 @@
       }
 
       .fretboard-area {
-        margin-bottom: 1.5em;
+        /* margin-bottom: 1.5em; */
         overflow-x: auto;
       }
       .fretboard-table {
@@ -267,6 +267,13 @@
       }
       .fretboard-table .open-note-row td {
         height: 28px;
+      }
+
+      .countdown-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 0.5em;
       }
 
       .fret-buttons {
@@ -619,14 +626,16 @@
         <div class="note-row">
           <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?</button>
           <div class="string" id="flashcard-string">?</div>
-          <span class="countdown-inline" id="countdown"></span>
-          <button class="countdown-skip" id="skip-countdown" title="Skip to next quiz">⏭️</button>
           <div id="note-score">
             <div id="treble-score"></div>
             <div id="bass-score"></div>
           </div>
         </div>
         <div class="fretboard-area" id="fretboard-area"></div>
+        <div class="countdown-row">
+          <span class="countdown-inline" id="countdown"></span>
+          <button class="countdown-skip" id="skip-countdown" title="Skip to next quiz">⏭️</button>
+        </div>
       </div>
       <div class="fret-buttons" id="fret-buttons"></div>
       <div class="options">
@@ -1784,6 +1793,7 @@
         let s = Number($(this).attr("data-string"));
         let f = Number($(this).attr("data-fret"));
         if (s !== currentCard.string) return;
+
         playAnsweredNote(s, f);
         let isCorrect = currentCard.frets.includes(f);
         // Record the answer event
