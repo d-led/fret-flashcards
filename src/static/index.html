@@ -825,18 +825,31 @@
             if (!trebleNoteObj) {
               console.warn("Skipping treble render: no notes");
             } else {
-              const trebleStaveNote = factoryTreble.StaveNote(trebleNoteObj);
-              
-              // Add explicit accidental modifiers to display sharps/flats
-              trebleNoteObj.keys.forEach((key, index) => {
-                if (key.includes('#')) {
-                  trebleStaveNote.addModifier(new VexFlow.Accidental('#'), index);
-                } else if (key.includes('b')) {
-                  trebleStaveNote.addModifier(new VexFlow.Accidental('b'), index);
-                }
-              });
+                // Normalize keys to ASCII accidentals (VexFlow expects '#' and 'b')
+                trebleNoteObj.keys = trebleNoteObj.keys.map((k) => k.replace(/♯/g, '#').replace(/♭/g, 'b'));
+                // Ensure keys are in the form 'c#' or 'cb' (lowercase note letter, accidental ASCII preserved)
+                trebleNoteObj.keys = trebleNoteObj.keys.map((k) => {
+                  const parts = k.split('/');
+                  const notePart = parts[0];
+                  const octavePart = parts[1];
+                  const normalizedNote = notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : '');
+                  return `${normalizedNote}/${octavePart}`;
+                });
+
+                const trebleStaveNote = factoryTreble.StaveNote(trebleNoteObj);
               
               const voiceTreble = scoreTreble.voice([trebleStaveNote]);
+              // Apply accidentals automatically using VexFlow's helper (respects key signature)
+              try {
+                VexFlow.Accidental.applyAccidentals([voiceTreble], scoreKey);
+              } catch (e) {
+                console.warn('applyAccidentals failed for treble voice, falling back to explicit modifiers', e);
+                trebleNoteObj.keys.forEach((key, index) => {
+                  if (key.includes('#')) trebleStaveNote.addModifier(new VexFlow.Accidental('#'), index);
+                  else if (key.includes('b')) trebleStaveNote.addModifier(new VexFlow.Accidental('b'), index);
+                });
+              }
+
               // Defensive: ensure voiceTreble appears valid before formatting/drawing
               if (!voiceTreble || typeof voiceTreble.getTickables !== "function") {
                 console.warn("Invalid treble voice, skipping draw", voiceTreble);
@@ -912,18 +925,30 @@
             if (!bassNoteObj) {
               console.warn("Skipping bass render: no notes");
             } else {
-              const bassStaveNote = factoryBass.StaveNote(bassNoteObj);
-              
-              // Add explicit accidental modifiers to display sharps/flats
-              bassNoteObj.keys.forEach((key, index) => {
-                if (key.includes('#')) {
-                  bassStaveNote.addModifier(new VexFlow.Accidental('#'), index);
-                } else if (key.includes('b')) {
-                  bassStaveNote.addModifier(new VexFlow.Accidental('b'), index);
-                }
+              // Normalize keys to ASCII accidentals for VexFlow
+              bassNoteObj.keys = bassNoteObj.keys.map((k) => k.replace(/♯/g, '#').replace(/♭/g, 'b'));
+              bassNoteObj.keys = bassNoteObj.keys.map((k) => {
+                const parts = k.split('/');
+                const notePart = parts[0];
+                const octavePart = parts[1];
+                const normalizedNote = notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : '');
+                return `${normalizedNote}/${octavePart}`;
               });
-              
+
+              const bassStaveNote = factoryBass.StaveNote(bassNoteObj);
+
               const voiceBass = scoreBass.voice([bassStaveNote]);
+              // Apply accidentals automatically for the bass voice as well
+              try {
+                VexFlow.Accidental.applyAccidentals([voiceBass], scoreKey);
+              } catch (e) {
+                console.warn('applyAccidentals failed for bass voice, falling back to explicit modifiers', e);
+                bassNoteObj.keys.forEach((key, index) => {
+                  if (key.includes('#')) bassStaveNote.addModifier(new VexFlow.Accidental('#'), index);
+                  else if (key.includes('b')) bassStaveNote.addModifier(new VexFlow.Accidental('b'), index);
+                });
+              }
+
               if (!voiceBass || typeof voiceBass.getTickables !== "function") {
                 console.warn("Invalid bass voice, skipping draw", voiceBass);
               } else {
@@ -1215,13 +1240,15 @@
         const octave = Math.floor(midi / 12) - 1;
         const noteIndex = midi % 12;
 
+        // Normalize possible unicode accidentals passed from UI (e.g. '♯','♭')
+        if (typeof quizNote === "string") {
+          quizNote = quizNote.replace(/♯/g, "#").replace(/♭/g, "b");
+        }
+
         console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}, scoreKey=${scoreKey}`);
 
-        // First priority: use key signature to determine enharmonic spelling
-        let noteName = getEnharmonicForKey(noteIndex, scoreKey);
-        
-        // Second priority: if quiz note has a specific accidental preference, respect it
-        // (but only if it's a valid enharmonic equivalent)
+        // First priority: respect an explicit quiz accidental preference (sharp/flat)
+        let noteName = null;
         if (quizNote && quizNote.includes("b")) {
           const flatVariant = noteVariants.find((nv) => nv.idx === noteIndex && nv.name.includes("b"));
           if (flatVariant) {
@@ -1234,6 +1261,11 @@
             noteName = sharpVariant.name;
             console.log(`Using quiz sharp preference: ${noteName}`);
           }
+        }
+
+        // Second priority: if quiz didn't force a choice, use key signature preferences
+        if (!noteName) {
+          noteName = getEnharmonicForKey(noteIndex, scoreKey);
         }
 
         console.log(`midiToNoteAndOctave result: ${noteName}${octave} (key-context: ${getEnharmonicForKey(noteIndex, scoreKey)})`);
