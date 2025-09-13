@@ -826,6 +826,16 @@
               console.warn("Skipping treble render: no notes");
             } else {
               const trebleStaveNote = factoryTreble.StaveNote(trebleNoteObj);
+              
+              // Add explicit accidental modifiers to display sharps/flats
+              trebleNoteObj.keys.forEach((key, index) => {
+                if (key.includes('#')) {
+                  trebleStaveNote.addModifier(new VexFlow.Accidental('#'), index);
+                } else if (key.includes('b')) {
+                  trebleStaveNote.addModifier(new VexFlow.Accidental('b'), index);
+                }
+              });
+              
               const voiceTreble = scoreTreble.voice([trebleStaveNote]);
               // Defensive: ensure voiceTreble appears valid before formatting/drawing
               if (!voiceTreble || typeof voiceTreble.getTickables !== "function") {
@@ -903,6 +913,16 @@
               console.warn("Skipping bass render: no notes");
             } else {
               const bassStaveNote = factoryBass.StaveNote(bassNoteObj);
+              
+              // Add explicit accidental modifiers to display sharps/flats
+              bassNoteObj.keys.forEach((key, index) => {
+                if (key.includes('#')) {
+                  bassStaveNote.addModifier(new VexFlow.Accidental('#'), index);
+                } else if (key.includes('b')) {
+                  bassStaveNote.addModifier(new VexFlow.Accidental('b'), index);
+                }
+              });
+              
               const voiceBass = scoreBass.voice([bassStaveNote]);
               if (!voiceBass || typeof voiceBass.getTickables !== "function") {
                 console.warn("Invalid bass voice, skipping draw", voiceBass);
@@ -1152,32 +1172,71 @@
         return 12 * (octave + 1) + baseMidi[note];
       }
 
+      // Helper function to get the correct enharmonic spelling for a note based on key signature
+      function getEnharmonicForKey(noteIndex, keySignature) {
+        // Define key signature preferences for enharmonic spellings
+        const keyPreferences = {
+          // Sharp keys prefer sharps
+          'G': ['F#'], 'D': ['F#', 'C#'], 'A': ['F#', 'C#', 'G#'], 'E': ['F#', 'C#', 'G#', 'D#'],
+          'B': ['F#', 'C#', 'G#', 'D#', 'A#'], 'F#': ['F#', 'C#', 'G#', 'D#', 'A#', 'E#'],
+          'C#': ['F#', 'C#', 'G#', 'D#', 'A#', 'E#', 'B#'],
+          // Flat keys prefer flats  
+          'F': ['Bb'], 'Bb': ['Bb', 'Eb'], 'Eb': ['Bb', 'Eb', 'Ab'], 'Ab': ['Bb', 'Eb', 'Ab', 'Db'],
+          'Db': ['Bb', 'Eb', 'Ab', 'Db', 'Gb'], 'Gb': ['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'],
+          'Cb': ['Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb', 'Fb'],
+          // C major has no preference
+          'C': []
+        };
+
+        const preferences = keyPreferences[keySignature] || [];
+        
+        // Find all possible note names for this MIDI note index
+        const possibleNames = noteVariants.filter(nv => nv.idx === noteIndex).map(nv => nv.name);
+        
+        // If natural note exists, and key has no strong preference, use natural
+        const naturalNote = allNotes[noteIndex];
+        if (!naturalNote.includes('#') && !naturalNote.includes('b')) {
+          return naturalNote;
+        }
+        
+        // Check if any of the possible names match the key preferences
+        for (const pref of preferences) {
+          if (possibleNames.includes(pref)) {
+            return pref;
+          }
+        }
+        
+        // Fall back to the first available variant or default
+        return possibleNames[0] || allNotes[noteIndex];
+      }
+
       // Function to convert MIDI back to note name and octave, preserving the quiz note preference
       function midiToNoteAndOctave(midi, quizNote) {
         const octave = Math.floor(midi / 12) - 1;
         const noteIndex = midi % 12;
 
-        console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}`);
+        console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}, scoreKey=${scoreKey}`);
 
-        // Find the correct note name that matches the quiz note preference
-        let noteName;
+        // First priority: use key signature to determine enharmonic spelling
+        let noteName = getEnharmonicForKey(noteIndex, scoreKey);
+        
+        // Second priority: if quiz note has a specific accidental preference, respect it
+        // (but only if it's a valid enharmonic equivalent)
         if (quizNote && quizNote.includes("b")) {
-          // Prefer flat notation if quiz note is flat
           const flatVariant = noteVariants.find((nv) => nv.idx === noteIndex && nv.name.includes("b"));
-          noteName = flatVariant ? flatVariant.name : allNotes[noteIndex];
-          console.log(`Using flat preference: flatVariant=${flatVariant ? flatVariant.name : "none"}, final=${noteName}`);
+          if (flatVariant) {
+            noteName = flatVariant.name;
+            console.log(`Using quiz flat preference: ${noteName}`);
+          }
         } else if (quizNote && quizNote.includes("#")) {
-          // Prefer sharp notation if quiz note is sharp
           const sharpVariant = noteVariants.find((nv) => nv.idx === noteIndex && nv.name.includes("#"));
-          noteName = sharpVariant ? sharpVariant.name : allNotes[noteIndex];
-          console.log(`Using sharp preference: sharpVariant=${sharpVariant ? sharpVariant.name : "none"}, final=${noteName}`);
-        } else {
-          // Use natural note or default to sharp if no preference
-          noteName = allNotes[noteIndex];
-          console.log(`Using default: ${noteName}`);
+          if (sharpVariant) {
+            noteName = sharpVariant.name;
+            console.log(`Using quiz sharp preference: ${noteName}`);
+          }
         }
 
-        console.log(`midiToNoteAndOctave result: ${noteName}${octave}`);
+        console.log(`midiToNoteAndOctave result: ${noteName}${octave} (key-context: ${getEnharmonicForKey(noteIndex, scoreKey)})`);
         return { note: noteName, octave: octave };
       }
 
