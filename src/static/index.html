@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Guitar Fretboard Flashcard Game</title>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow.js"></script>
     <style>
+      /* Consolidated CSS: duplicates removed; latest definitions kept */
       :root {
         --bg: #222;
         --text: #f2f2f2;
@@ -61,7 +63,11 @@
         margin-bottom: 0.2em;
         gap: 0.5em;
         width: 100%;
-        flex-wrap: nowrap; /* prevent the row from wrapping unexpectedly */
+        flex-wrap: wrap;
+      }
+      .note-row {
+        flex-wrap: nowrap;
+        gap: 0.5em;
       }
 
       .quiz-note-btn {
@@ -76,19 +82,45 @@
         box-shadow: var(--box-shadow);
         transition: box-shadow var(--transition);
         flex: 0 0 auto;
-        max-width: 40%; /* prevent it from getting too wide on mid sizes */
+        max-width: 140px;
+        min-width: 56px;
         box-sizing: border-box;
       }
 
+      #note-score {
+        max-width: 260px;
+        min-width: 56px;
+        height: 100px;
+        overflow: visible;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #note-score svg {
+        background: transparent;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        height: 100%;
+        width: auto;
+        max-width: 100%;
+        display: block;
+      }
+      #treble-score,
+      #bass-score {
+        overflow: visible;
+        display: block;
+        background: white;
+      }
+
       .countdown-inline {
-        font-size: var(--font-large);
-        font-weight: bold;
-        color: var(--success);
-        min-width: 2.3em;
-        text-align: left;
-        transition: color var(--transition);
-        margin: 0 0.5em;
-        display: inline-block;
+        min-width: 2ch;
+        font-size: clamp(1.6rem, 3.5vw, var(--font-large));
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.25em;
       }
 
       .string {
@@ -97,31 +129,28 @@
         min-width: 0;
         white-space: normal;
         overflow: visible;
+        /* text-overflow: ellipsis; */
       }
-
       .string::before {
         content: "on the ";
       }
 
       .fretboard-area {
         margin-bottom: 1.5em;
-        overflow-x: auto; /* allow horizontal scroll when many frets; prevents layout break */
+        overflow-x: auto;
       }
-
       .fretboard-table {
         width: 100%;
-        table-layout: fixed; /* distribute remaining width equally among columns */
+        table-layout: fixed;
         border-collapse: separate;
         border-spacing: 0;
         margin: 0;
       }
-
       .fretboard-table th,
       .fretboard-table td {
         padding: 0;
         margin: 0;
       }
-
       .fretboard-table th {
         height: 32px;
       }
@@ -129,18 +158,26 @@
       .fretboard-table .open-note {
         font-weight: bold;
         font-size: 1.15em;
-        width: 48px; /* fixed column for note names */
+        width: 48px;
         min-width: 48px;
         text-align: right;
         padding-right: 6px;
         background: var(--bg);
         color: var(--text);
         border-right: 2px solid var(--border);
+        cursor: pointer;
+        user-select: none;
         white-space: nowrap;
+        transition: background var(--transition);
+      }
+      .fretboard-table .open-note:hover {
+        background: #2980b9;
+      }
+      .fretboard-table .open-note:active {
+        background: #1f5582;
       }
 
       .fretboard-table .fret-label {
-        /* removed fixed width; allow equal distribution */
         width: auto;
         min-width: 24px;
         height: 32px;
@@ -149,7 +186,6 @@
         color: var(--inactive);
         box-sizing: border-box;
       }
-
       .fretboard-table .fret-dot-cell {
         width: auto;
         min-width: 24px;
@@ -160,7 +196,6 @@
       }
 
       .fretboard-table .fret-cell {
-        /* removed hard-coded width to let table-layout:fixed distribute columns */
         width: auto;
         min-width: 28px;
         height: 28px;
@@ -173,6 +208,26 @@
         position: relative;
         box-sizing: border-box;
       }
+      .fretboard-table .fret-cell.inactive {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .fretboard-table .fret-cell.active-string {
+        background: #888;
+        color: var(--bg);
+      }
+      .fretboard-table .fret-cell.fret-found {
+        background: var(--success) !important;
+        color: var(--text);
+      }
+      .fretboard-table .fret-cell.fret-wrong {
+        background: var(--error) !important;
+      }
+      .fretboard-table .fret-cell.open-fret {
+        background: var(--warning);
+        color: var(--bg);
+        font-weight: bold;
+      }
 
       .fretboard-table .fret-dot {
         display: inline-block;
@@ -180,10 +235,8 @@
         height: 14px;
         background: #e2e2e2;
         border-radius: 50%;
-        margin: 0 auto;
-        margin-top: 7px;
+        margin: 7px auto 0;
       }
-
       .fretboard-table .fret-dot.double {
         height: 30px;
         width: 14px;
@@ -191,7 +244,6 @@
         position: relative;
         top: 0;
       }
-
       .fretboard-table .fret-dot.double .dot {
         width: 12px;
         height: 12px;
@@ -200,76 +252,20 @@
         position: absolute;
         left: 4px;
       }
-
       .fretboard-table .fret-dot.double .dot1 {
         top: 4px;
       }
-
       .fretboard-table .fret-dot.double .dot2 {
         top: 18px;
-      }
-
-      .fretboard-table .open-note {
-        font-weight: bold;
-        font-size: 1.15em;
-        width: 48px;
-        text-align: right;
-        padding-right: 6px;
-        background: var(--bg);
-        color: var(--text);
-        border-right: 2px solid var(--border);
-      }
-
-      .fretboard-table .fret-cell {
-        width: 32px;
-        height: 28px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        cursor: pointer;
-        text-align: center;
-        vertical-align: middle;
-        transition: background var(--transition);
-        position: relative;
-      }
-
-      .fretboard-table .fret-cell.inactive {
-        opacity: 0.5;
-        cursor: default;
-      }
-
-      .fretboard-table .fret-cell.active-string {
-        background: #888;
-        color: var(--bg);
-      }
-
-      .fretboard-table .fret-cell.fret-found {
-        background: var(--success) !important;
-        color: var(--text);
-      }
-
-      .fretboard-table .fret-cell.fret-wrong {
-        background: var(--error) !important;
-      }
-
-      .fretboard-table .fret-cell.open-fret {
-        background: var(--warning) !important;
-        color: var(--bg);
-        font-weight: bold;
-      }
-
-      .fretboard-table .open-note-row td {
-        height: 28px;
       }
 
       .fretboard-table .fretboard-header {
         background: var(--secondary-bg);
       }
-
       .fretboard-table .fretboard-mark-row td {
         background: var(--secondary-bg);
       }
-
-      .fretboard-table .fretboard-mark-row .fret-dot-cell {
+      .fretboard-table .open-note-row td {
         height: 28px;
       }
 
@@ -280,7 +276,6 @@
         justify-content: center;
         margin-bottom: var(--margin);
       }
-
       .fret-btn {
         background: var(--tertiary-bg);
         border: none;
@@ -292,15 +287,12 @@
         transition: background var(--transition);
         text-align: center;
       }
-
       .fret-btn.correct {
         background: var(--success);
       }
-
       .fret-btn.wrong {
         background: var(--error);
       }
-
       .fret-btn.open-fret {
         background: var(--warning);
         color: var(--bg);
@@ -313,7 +305,6 @@
         flex-direction: column;
         gap: 0.4em;
       }
-
       .play-btn {
         background: var(--accent);
         color: var(--text);
@@ -328,19 +319,57 @@
       .config {
         margin-bottom: var(--margin);
       }
-
       .config-table,
-      .tuning-table {
+      .tuning-container {
         width: 100%;
+      }
+      .config-table {
         border-collapse: collapse;
       }
-
       .config-table td {
         padding: var(--padding) 0;
       }
 
-      .tuning-table td {
-        padding: 0.2em 0;
+      .tuning-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1em;
+      }
+      .string-config {
+        padding: 0.8em;
+        border: 1px solid var(--border);
+        border-radius: var(--small-radius);
+        flex: 1 1 200px;
+        min-width: 200px;
+      }
+      .string-label {
+        font-weight: bold;
+        margin-bottom: 0.5em;
+        display: block;
+      }
+      .string-controls {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        align-items: center;
+      }
+      .control-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+      }
+      .control-row span {
+        min-width: 3em;
+        font-size: var(--font-small);
+      }
+      .tuning-select,
+      .octave-select {
+        margin: 0;
+        font-size: var(--font-normal);
+        padding: var(--padding);
+        min-width: 4em;
       }
 
       .sound-enable-banner {
@@ -355,11 +384,9 @@
         font-weight: bold;
         display: none;
       }
-
       .sound-enable-banner:hover {
         background: #c0392b;
       }
-
       .sound-enable-banner.enabled {
         background: var(--success);
       }
@@ -370,21 +397,36 @@
         margin-bottom: var(--margin);
         align-self: flex-start;
       }
-
       .timeout-input {
         width: 4em;
       }
-
       .copyright {
         text-align: center;
         font-size: var(--font-small);
         margin-top: 2em;
         color: var(--inactive);
       }
-
       .small-comment-text {
         font-size: var(--font-small);
         color: var(--inactive);
+      }
+
+      #skip-countdown {
+        display: none;
+        background: var(--accent);
+        color: var(--text);
+        border: none;
+        border-radius: var(--btn-radius);
+        padding: var(--padding) 0.5em;
+        font-size: var(--font-medium);
+        cursor: pointer;
+        margin-left: 0.5em;
+        box-shadow: var(--box-shadow);
+        transition: box-shadow var(--transition);
+      }
+
+      .countdown-inline:not(:empty) + #skip-countdown {
+        display: inline-flex;
       }
 
       @media (max-width: 600px) {
@@ -413,9 +455,25 @@
           font-size: var(--font-normal);
           padding: 0.8em 0;
         }
-        .tuning-table td {
+        .string-config {
           font-size: var(--font-normal);
-          padding: 0.6em 0;
+          padding: 0.8em 0;
+          border: none;
+          border-bottom: 1px solid var(--border);
+          border-radius: 0;
+          flex: 1 1 100%;
+          min-width: 100%;
+        }
+        .tuning-container {
+          flex-direction: column;
+        }
+        .string-controls {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .control-row {
+          width: 100%;
+          justify-content: flex-start;
         }
         input[type="checkbox"] {
           width: 1.5em;
@@ -430,20 +488,19 @@
           width: auto;
           min-width: 4em;
         }
-        .tuning-select {
+        .tuning-select,
+        .octave-select {
           font-size: var(--font-normal);
           padding: var(--padding);
-          margin-left: var(--padding);
           width: auto;
-          min-width: 5em;
+          min-width: 4em;
+          margin: 0;
         }
-        /* Ensure there is comfortable vertical spacing when the label wraps
-           and the select/input drops to the next line on small screens */
         .config-table td select,
         .config-table td input[type="number"],
         .config-table td .tuning-select {
-          display: inline-block; /* stable box for margin */
-          margin-top: 0.5em; /* space between wrapped label and control */
+          display: inline-block;
+          margin-top: 0.5em;
         }
         button {
           font-size: var(--font-normal);
@@ -464,42 +521,11 @@
           max-width: 100%;
         }
         .quiz-note-btn {
-          font-size: var(--font-large);
+          font-size: clamp(1.8rem, 3.2vw, var(--font-large));
         }
         .fret-btn {
           text-align: center;
           padding: var(--padding) 0.5em;
-        }
-      }
-
-      /* --- Fix for .note-row layout around the 600px breakpoint --- */
-      /* Keep button from growing and let the string take remaining space safely */
-      .note-row {
-        flex-wrap: nowrap; /* prevent the row from wrapping unexpectedly */
-      }
-
-      /* Make the quiz button a fixed-size flex item so it cannot push other content */
-      .quiz-note-btn {
-        flex: 0 0 auto;
-        max-width: 40%; /* prevent it from getting too wide on mid sizes */
-        box-sizing: border-box;
-      }
-
-      /* Let the string take remaining space but be allowed to shrink;
-         min-width:0 is important for overflow handling inside flex containers */
-      .string {
-        flex: 1 1 auto;
-        min-width: 0;
-        /* white-space: nowrap; */
-        /* overflow: hidden; */
-        text-overflow: ellipsis; /* truncate if space is very small */
-      }
-
-      /* Optionally reduce the abrupt jump at 601px by capping the large-font usage */
-      @media (min-width: 601px) {
-        .quiz-note-btn {
-          /* limit the huge jump caused by var(--font-large) */
-          font-size: clamp(1.8rem, 3.2vw, var(--font-large));
         }
       }
     </style>
@@ -513,6 +539,11 @@
           <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?</button>
           <div class="string" id="flashcard-string">?</div>
           <span class="countdown-inline" id="countdown"></span>
+          <button class="countdown-skip" id="skip-countdown" title="Skip to next quiz">⏭️</button>
+          <div id="note-score">
+            <div id="treble-score"></div>
+            <div id="bass-score"></div>
+          </div>
         </div>
         <div class="fretboard-area" id="fretboard-area"></div>
       </div>
@@ -529,6 +560,10 @@
         <label>
           <input type="checkbox" id="enable-bias" />
           Bias towards strings with mistakes
+        </label>
+        <label>
+          <input type="checkbox" id="show-score-notation" />
+          Show score notation
         </label>
         <div class="config">
           <table class="config-table">
@@ -550,6 +585,28 @@
                 </select>
               </td>
             </tr>
+            <tr id="score-key-row" style="display: none">
+              <td>
+                Score key:
+                <select id="score-key">
+                  <option value="C">C</option>
+                  <option value="G">G</option>
+                  <option value="D">D</option>
+                  <option value="A">A</option>
+                  <option value="E">E</option>
+                  <option value="B">B</option>
+                  <option value="F#">F♯</option>
+                  <option value="C#">C♯</option>
+                  <option value="F">F</option>
+                  <option value="Bb">B♭</option>
+                  <option value="Eb">E♭</option>
+                  <option value="Ab">A♭</option>
+                  <option value="Db">D♭</option>
+                  <option value="Gb">G♭</option>
+                  <option value="Cb">C♭</option>
+                </select>
+              </td>
+            </tr>
             <tr>
               <td>
                 Number of strings:
@@ -562,13 +619,13 @@
                   <option value="8">8</option>
                   <option value="9">9</option>
                   <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
+                  <!-- <option value="11">11</option>
+                  <option value="12">12</option> -->
                 </select>
               </td>
             </tr>
-            <tr>
-              <td id="tuning-config">
+            <tr id="tuning-config">
+              <td>
                 <!-- Dynamically populated with tuning table -->
               </td>
             </tr>
@@ -619,6 +676,295 @@
         { name: "B", idx: 11 },
       ];
 
+      // Independent octave shift (in semitones) applied when writing notation for each clef.
+      // Adjust these to control where notes appear on the staff for treble and bass independently.
+      let trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
+      let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
+
+      function renderNoteScore(note, stringIndex, frets) {
+        const trebleContainer = document.getElementById("treble-score");
+        const bassContainer = document.getElementById("bass-score");
+
+        // Completely clear and reset containers
+        trebleContainer.innerHTML = "";
+        bassContainer.innerHTML = "";
+        trebleContainer.removeAttribute("style");
+        bassContainer.removeAttribute("style");
+
+        if (!note || !frets || frets.length === 0) return;
+
+        console.log("renderNoteScore - Quiz note:", note, "String:", stringIndex, "Frets:", frets);
+        console.log("String tuning:", tuning[stringIndex]);
+
+        // Calculate the actual notes and octaves for each fret position (sounding midi)
+        const openMidi = getMidi(tuning[stringIndex].note, tuning[stringIndex].octave);
+        console.log("Open MIDI:", openMidi);
+
+        // Staff MIDI ranges heuristic (to minimize ledger lines)
+        // Extended ranges to show notes in both clefs when appropriate
+        const TREBLE_MIN = 40; // ~E2 (extended down for 8-string guitar low notes)
+        const TREBLE_MAX = 127; // Open upwards for high notes
+        const BASS_MIN = 0; // Open downwards for low notes
+        const BASS_MAX = 91; // ~G6 (written 3 octaves up from G3)
+
+        const trebleNotes = [];
+        const bassNotes = [];
+
+        for (let f of frets) {
+          const midi = openMidi + f; // sounding midi
+          console.log(`Fret ${f}: sounding MIDI ${midi}`);
+
+          // For notation, apply independent octave shifts per clef so we can control written pitch separately
+          const writtenTrebleMidi = midi + trebleOctaveShift;
+          const writtenBassMidi = midi + bassOctaveShift;
+
+          // Check if notes fit well in each clef (within staff range without too many ledger lines)
+          const trebleFits = writtenTrebleMidi >= TREBLE_MIN && writtenTrebleMidi <= TREBLE_MAX;
+          const bassFits = writtenBassMidi >= BASS_MIN && writtenBassMidi <= BASS_MAX;
+
+          console.log(`Fret ${f}: trebleFits=${trebleFits}, bassFits=${bassFits}, writtenTreble=${writtenTrebleMidi}, writtenBass=${writtenBassMidi}`);
+
+          // Logic for determining which clef(s) to use:
+          // For bass guitar range (sounding MIDI up to G3 on 3rd string), prefer bass clef
+          // For higher guitar range, prefer treble clef
+          // Show both if the note fits well in both ranges
+
+          if (midi <= 55 && bassFits) {
+            // Low to mid range - prefer bass clef
+            const { note: bName, octave: bOct } = midiToNoteAndOctave(writtenBassMidi, note);
+            let vexB = bName.toLowerCase();
+            if (bName.includes("#")) vexB = bName.charAt(0).toLowerCase() + "#";
+            else if (bName.includes("b")) vexB = bName.charAt(0).toLowerCase() + "b";
+            const bPair = { note: vexB, octave: bOct };
+            if (!bassNotes.some((n) => n.note === bPair.note && n.octave === bPair.octave)) bassNotes.push(bPair);
+
+            // Also add to treble if it fits well (for comparison)
+            if (trebleFits) {
+              // Show treble clef for all notes that fit well
+              const { note: tName, octave: tOct } = midiToNoteAndOctave(writtenTrebleMidi, note);
+              let vexT = tName.toLowerCase();
+              if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
+              else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
+              const tPair = { note: vexT, octave: tOct };
+              if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+            }
+          } else if (midi > 55 && trebleFits) {
+            // High range - prefer treble clef
+            const { note: tName, octave: tOct } = midiToNoteAndOctave(writtenTrebleMidi, note);
+            let vexT = tName.toLowerCase();
+            if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
+            else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
+            const tPair = { note: vexT, octave: tOct };
+            if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+          } else {
+            // Fallback: choose the clef that minimizes ledger lines
+            const distToRange = (m, min, max) => {
+              if (m >= min && m <= max) return 0;
+              if (m < min) return min - m;
+              return m - max;
+            };
+
+            const trebleDist = distToRange(writtenTrebleMidi, TREBLE_MIN, TREBLE_MAX);
+            const bassDist = distToRange(writtenBassMidi, BASS_MIN, BASS_MAX);
+
+            let targetWrittenMidi, targetClef;
+            if (bassDist < trebleDist) {
+              targetWrittenMidi = writtenBassMidi;
+              targetClef = "bass";
+            } else {
+              targetWrittenMidi = writtenTrebleMidi;
+              targetClef = "treble";
+            }
+
+            const { note: displayNoteName, octave } = midiToNoteAndOctave(targetWrittenMidi, note);
+            console.log(`Fret ${f}: chosen clef ${targetClef}, written MIDI ${targetWrittenMidi}, note ${displayNoteName}${octave}`);
+
+            let vexNote = displayNoteName.toLowerCase();
+            if (displayNoteName.includes("#")) {
+              vexNote = displayNoteName.charAt(0).toLowerCase() + "#";
+            } else if (displayNoteName.includes("b")) {
+              vexNote = displayNoteName.charAt(0).toLowerCase() + "b";
+            }
+
+            const pair = { note: vexNote, octave: octave };
+
+            if (targetClef === "treble") {
+              if (!trebleNotes.some((n) => n.note === pair.note && n.octave === pair.octave)) trebleNotes.push(pair);
+            } else {
+              if (!bassNotes.some((n) => n.note === pair.note && n.octave === pair.octave)) bassNotes.push(pair);
+            }
+          }
+        }
+
+        console.log("Treble notes:", trebleNotes);
+        console.log("Bass notes:", bassNotes);
+
+        // Create note objects for VexFlow with explicit clef specification, matching library test style
+        const trebleNoteObj = trebleNotes.length > 0 ? { keys: trebleNotes.map((n) => `${n.note}/${n.octave}`), clef: "treble", duration: "w", stemDirection: 1 } : null;
+        const bassNoteObj = bassNotes.length > 0 ? { keys: bassNotes.map((n) => `${n.note}/${n.octave}`), clef: "bass", duration: "w", stemDirection: -1 } : null;
+
+        console.log("Final treble note object:", trebleNoteObj);
+        console.log("Final bass note object:", bassNoteObj);
+
+        const width = note.includes("#") || note.includes("b") ? 140 : 120;
+
+        // Create and render staves only when there are notes for that clef
+        // (avoid rendering empty staff glyphs when no notes are present)
+        if (trebleNotes.length > 0) {
+          try {
+            const factoryTreble = new VexFlow.Factory({
+              renderer: { elementId: "treble-score", width: width, height: 100 },
+            });
+
+            const scoreTreble = factoryTreble.EasyScore();
+            const systemTreble = factoryTreble.System();
+
+            console.log("Rendering treble notes:", trebleNoteObj);
+
+            // Defensive: don't attempt to create a voice from an empty array
+            if (!trebleNoteObj) {
+              console.warn("Skipping treble render: no notes");
+            } else {
+              const trebleStaveNote = factoryTreble.StaveNote(trebleNoteObj);
+              const voiceTreble = scoreTreble.voice([trebleStaveNote]);
+              // Defensive: ensure voiceTreble appears valid before formatting/drawing
+              if (!voiceTreble || typeof voiceTreble.getTickables !== "function") {
+                console.warn("Invalid treble voice, skipping draw", voiceTreble);
+              } else {
+                voiceTreble.setMode(VexFlow.Voice.Mode.SOFT);
+                systemTreble
+                  .addStave({ voices: [voiceTreble] })
+                  .addClef("treble")
+                  .addKeySignature(scoreKey);
+
+                factoryTreble.draw();
+                const trebleSvg = document.getElementById("treble-score").querySelector("svg");
+                if (trebleSvg) {
+                  // Remove the white background rect added by VexFlow to eliminate extra white space
+                  const bgRect = trebleSvg.querySelector("rect");
+                  if (bgRect) bgRect.remove();
+                  // Calculate tight bounding box around stave and notes
+                  const staveG = trebleSvg.querySelector("g.vf-stave");
+                  const noteG = trebleSvg.querySelector("g.vf-stavenote");
+                  let minX = Infinity,
+                    minY = Infinity,
+                    maxX = -Infinity,
+                    maxY = -Infinity;
+                  if (staveG) {
+                    const b = staveG.getBBox();
+                    minX = Math.min(minX, b.x);
+                    minY = Math.min(minY, b.y);
+                    maxX = Math.max(maxX, b.x + b.width);
+                    maxY = Math.max(maxY, b.y + b.height);
+                  }
+                  if (noteG) {
+                    const rect = noteG.querySelector("rect");
+                    if (rect) {
+                      const x = parseFloat(rect.getAttribute("x"));
+                      const y = parseFloat(rect.getAttribute("y"));
+                      const width = parseFloat(rect.getAttribute("width"));
+                      const height = parseFloat(rect.getAttribute("height"));
+                      minX = Math.min(minX, x);
+                      minY = Math.min(minY, y);
+                      maxX = Math.max(maxX, x + width);
+                      maxY = Math.max(maxY, y + height);
+                    }
+                  }
+                  if (minX !== Infinity) {
+                    const margin = 24;
+                    trebleSvg.setAttribute("viewBox", `${minX - margin} ${minY - margin} ${maxX - minX + 2 * margin} ${maxY - minY + 2 * margin}`);
+                  } else {
+                    // Fallback
+                    const bbox = trebleSvg.getBBox();
+                    trebleSvg.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+                  }
+                  trebleSvg.setAttribute("width", "100%");
+                  trebleSvg.setAttribute("height", "100%");
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Error rendering treble staff:", err, "\ntrebleNoteObj=", trebleNoteObj, "\ntrebleNotes=", trebleNotes);
+          }
+        }
+
+        if (bassNotes.length > 0) {
+          try {
+            const factoryBass = new VexFlow.Factory({
+              renderer: { elementId: "bass-score", width: width, height: 100 },
+            });
+
+            const scoreBass = factoryBass.EasyScore();
+            const systemBass = factoryBass.System();
+
+            console.log("Rendering bass notes:", bassNoteObj);
+
+            if (!bassNoteObj) {
+              console.warn("Skipping bass render: no notes");
+            } else {
+              const bassStaveNote = factoryBass.StaveNote(bassNoteObj);
+              const voiceBass = scoreBass.voice([bassStaveNote]);
+              if (!voiceBass || typeof voiceBass.getTickables !== "function") {
+                console.warn("Invalid bass voice, skipping draw", voiceBass);
+              } else {
+                voiceBass.setMode(VexFlow.Voice.Mode.SOFT);
+                systemBass
+                  .addStave({ voices: [voiceBass] })
+                  .addClef("bass")
+                  .addKeySignature(scoreKey);
+
+                factoryBass.draw();
+                const bassSvg = document.getElementById("bass-score").querySelector("svg");
+                if (bassSvg) {
+                  // Remove the white background rect added by VexFlow to eliminate extra white space and pessimize the bounding box
+                  const bgRect = bassSvg.querySelector("rect");
+                  if (bgRect) bgRect.remove();
+                  // Calculate tight bounding box around stave and notes
+                  const staveG = bassSvg.querySelector("g.vf-stave");
+                  const noteG = bassSvg.querySelector("g.vf-stavenote");
+                  let minX = Infinity,
+                    minY = Infinity,
+                    maxX = -Infinity,
+                    maxY = -Infinity;
+                  if (staveG) {
+                    const b = staveG.getBBox();
+                    minX = Math.min(minX, b.x);
+                    minY = Math.min(minY, b.y);
+                    maxX = Math.max(maxX, b.x + b.width);
+                    maxY = Math.max(maxY, b.y + b.height);
+                  }
+                  if (noteG) {
+                    const rect = noteG.querySelector("rect");
+                    if (rect) {
+                      const x = parseFloat(rect.getAttribute("x"));
+                      const y = parseFloat(rect.getAttribute("y"));
+                      const width = parseFloat(rect.getAttribute("width"));
+                      const height = parseFloat(rect.getAttribute("height"));
+                      minX = Math.min(minX, x);
+                      minY = Math.min(minY, y);
+                      maxX = Math.max(maxX, x + width);
+                      maxY = Math.max(maxY, y + height);
+                    }
+                  }
+                  if (minX !== Infinity) {
+                    const margin = 15;
+                    bassSvg.setAttribute("viewBox", `${minX - margin} ${minY - margin} ${maxX - minX + 2 * margin} ${maxY - minY + 2 * margin}`);
+                  } else {
+                    // Fallback
+                    const bbox = bassSvg.getBBox();
+                    bassSvg.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+                  }
+                  bassSvg.setAttribute("width", "100%");
+                  bassSvg.setAttribute("height", "100%");
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Error rendering bass staff:", err, "\nbassNoteObj=", bassNoteObj, "\nbassNotes=", bassNotes);
+          }
+        }
+      }
+
       const typicalFretMarks = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
       const doubleFretMarkers = [12, 24];
 
@@ -649,7 +995,6 @@
             { note: "B", octave: 3 },
             { note: "G", octave: 3 },
           ],
-          octaves: [4, 3, 3],
         },
         4: {
           name: "Mandolin",
@@ -659,7 +1004,6 @@
             { note: "D", octave: 3 },
             { note: "G", octave: 2 },
           ],
-          octaves: [4, 3, 3, 2],
         },
         5: {
           name: "Open G",
@@ -670,7 +1014,6 @@
             { note: "D", octave: 3 },
             { note: "G", octave: 2 },
           ],
-          octaves: [4, 3, 3, 3, 2],
         },
         6: {
           name: "Standard",
@@ -682,7 +1025,6 @@
             { note: "A", octave: 2 },
             { note: "E", octave: 2 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2],
         },
         7: {
           name: "7-String Standard",
@@ -695,7 +1037,6 @@
             { note: "E", octave: 2 },
             { note: "B", octave: 2 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2],
         },
         8: {
           name: "8-String Standard",
@@ -709,7 +1050,6 @@
             { note: "B", octave: 2 },
             { note: "F#", octave: 2 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2, 2],
         },
         9: {
           name: "9-String Standard",
@@ -724,7 +1064,6 @@
             { note: "F#", octave: 2 },
             { note: "C#", octave: 1 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1],
         },
         10: {
           name: "10-String Standard",
@@ -740,7 +1079,6 @@
             { note: "C#", octave: 1 },
             { note: "G#", octave: 1 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1],
         },
         11: {
           name: "11-String Standard",
@@ -757,7 +1095,6 @@
             { note: "G#", octave: 1 },
             { note: "D#", octave: 1 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1],
         },
         12: {
           name: "12-String Standard",
@@ -775,7 +1112,6 @@
             { note: "D#", octave: 1 },
             { note: "A#", octave: 1 },
           ],
-          octaves: [4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1],
         },
       };
 
@@ -786,6 +1122,8 @@
       }; // Object to hold answer events in 'answers' array
 
       let enableBias = true; // Default to true for improved learning
+      let showScoreNotation = false; // Default to false to hide score by default
+      let scoreKey = "C"; // Default key for score notation
 
       // Octaves for MIDI calculation based on string count (expanded to 3-12)
       // Removed: now combined into defaultTunings
@@ -795,18 +1133,52 @@
         const baseMidi = {
           C: 0,
           "C#": 1,
+          Db: 1,
           D: 2,
           "D#": 3,
+          Eb: 3,
           E: 4,
           F: 5,
           "F#": 6,
+          Gb: 6,
           G: 7,
           "G#": 8,
+          Ab: 8,
           A: 9,
           "A#": 10,
+          Bb: 10,
           B: 11,
         };
         return 12 * (octave + 1) + baseMidi[note];
+      }
+
+      // Function to convert MIDI back to note name and octave, preserving the quiz note preference
+      function midiToNoteAndOctave(midi, quizNote) {
+        const octave = Math.floor(midi / 12) - 1;
+        const noteIndex = midi % 12;
+
+        console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}`);
+
+        // Find the correct note name that matches the quiz note preference
+        let noteName;
+        if (quizNote && quizNote.includes("b")) {
+          // Prefer flat notation if quiz note is flat
+          const flatVariant = noteVariants.find((nv) => nv.idx === noteIndex && nv.name.includes("b"));
+          noteName = flatVariant ? flatVariant.name : allNotes[noteIndex];
+          console.log(`Using flat preference: flatVariant=${flatVariant ? flatVariant.name : "none"}, final=${noteName}`);
+        } else if (quizNote && quizNote.includes("#")) {
+          // Prefer sharp notation if quiz note is sharp
+          const sharpVariant = noteVariants.find((nv) => nv.idx === noteIndex && nv.name.includes("#"));
+          noteName = sharpVariant ? sharpVariant.name : allNotes[noteIndex];
+          console.log(`Using sharp preference: sharpVariant=${sharpVariant ? sharpVariant.name : "none"}, final=${noteName}`);
+        } else {
+          // Use natural note or default to sharp if no preference
+          noteName = allNotes[noteIndex];
+          console.log(`Using default: ${noteName}`);
+        }
+
+        console.log(`midiToNoteAndOctave result: ${noteName}${octave}`);
+        return { note: noteName, octave: octave };
       }
 
       // Update saveSettings to include new config
@@ -818,6 +1190,8 @@
           numStrings: Number(numStrings),
           tuning: tuning.slice(),
           enableBias: !!enableBias,
+          showScoreNotation: !!showScoreNotation,
+          scoreKey: scoreKey,
         };
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       }
@@ -846,7 +1220,7 @@
           }
           if ("numStrings" in settings) {
             let val = Number(settings.numStrings);
-            if (val >= 3 && val <= 12) {
+            if (val >= 3 && val <= 10) {
               numStrings = val;
               $("#num-strings").val(numStrings);
             }
@@ -866,6 +1240,19 @@
             $("#enable-bias").prop("checked", enableBias);
           } else {
             $("#enable-bias").prop("checked", enableBias); // Ensure default true is reflected
+          }
+          if ("showScoreNotation" in settings) {
+            showScoreNotation = !!settings.showScoreNotation;
+            $("#show-score-notation").prop("checked", showScoreNotation);
+            if (showScoreNotation) {
+              $("#score-key-row").show();
+            } else {
+              $("#score-key-row").hide();
+            }
+          }
+          if ("scoreKey" in settings) {
+            scoreKey = settings.scoreKey;
+            $("#score-key").val(scoreKey);
           }
         } catch (e) {}
       }
@@ -1029,6 +1416,7 @@
           $("#flashcard-string").text("Start!");
           $("#fret-buttons").empty();
           $("#fretboard-area").empty();
+          $("#note-score").hide();
           return;
         }
         currentCard = session[sessionIdx];
@@ -1037,6 +1425,12 @@
         $("#quiz-note-btn").text(currentCard.note);
         // expose stable attributes for tests (and other tooling)
         $("#quiz-note-btn").attr("data-note", currentCard.note);
+        if (showScoreNotation) {
+          $("#note-score").show();
+          renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
+        } else {
+          $("#note-score").hide();
+        }
         $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
         $("#flashcard-string").text(
           // show as a readable sentence: "on the ... string"
@@ -1085,7 +1479,7 @@
           fretRows += `<tr>`;
           // Add title attribute for hover tooltip showing error count (safe fallback to 0)
           const wrongCount = Array.isArray(stringErrorCounts) ? stringErrorCounts[s] || 0 : 0;
-          fretRows += `<td class="open-note" title="wrong: ${wrongCount}">${stringNames[s].openNote}</td>`;
+          fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0">${stringNames[s].openNote}</td>`;
           for (let f = 0; f < fretCount + extraFret; f++) {
             let fretClass = "fret-cell";
             if (f === 0) fretClass += " open-fret";
@@ -1270,6 +1664,7 @@
 
       function highlightFretOnFretboard(stringIdx, fretIdx, correct) {
         let selector = `.fret-cell[data-string="${stringIdx}"][data-fret="${fretIdx}"]`;
+        console.log("selector", selector);
         let $fret = $(selector);
         if (correct) {
           $fret.removeClass("fret-wrong").addClass("fret-found");
@@ -1443,12 +1838,28 @@
 
       // Function to update the tuning UI
       function updateTuningUI() {
-        let html = '<table class="tuning-table">';
+        let html = '<div class="tuning-container">';
         for (let i = 0; i < numStrings; i++) {
           let noteOptions = allNotes.map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`).join("");
-          html += `<tr><td>String ${i + 1}: <select class="tuning-select" data-string="${i}">${noteOptions}</select></td></tr>`;
+          let octaveOptions = "";
+          for (let oct = 0; oct <= 8; oct++) {
+            octaveOptions += `<option value="${oct}" ${tuning[i].octave === oct ? "selected" : ""}>${oct}</option>`;
+          }
+          html += `<div class="string-config">
+            <div class="string-label">String ${i + 1}:</div>
+            <div class="string-controls">
+              <div class="control-row">
+                <span>Note:</span>
+                <select class="tuning-select" data-string="${i}">${noteOptions}</select>
+              </div>
+              <div class="control-row">
+                <span>Octave:</span>
+                <select class="octave-select" data-string="${i}">${octaveOptions}</select>
+              </div>
+            </div>
+          </div>`;
         }
-        html += "</table>";
+        html += "</div>";
         $("#tuning-config").html(html);
       }
 
@@ -1553,6 +1964,12 @@
 
         $("#fretboard-area").on("click", ".fret-cell.active-string", handleFretboardClick);
 
+        // Add event handler for open string note clicks
+        $("#fretboard-area").on("click", ".open-note", function () {
+          let stringIdx = parseInt($(this).attr("data-string"));
+          playAnsweredNote(stringIdx, 0); // Play the open string (fret 0)
+        });
+
         // Add event handler for number of strings change
         $("#num-strings").on("change", function () {
           numStrings = parseInt(this.value);
@@ -1567,6 +1984,15 @@
         $("#tuning-config").on("change", ".tuning-select", function () {
           let stringIdx = $(this).data("string");
           tuning[stringIdx].note = this.value;
+          saveSettings();
+          makeSession();
+          showCard();
+        });
+
+        // Add event handler for octave changes
+        $("#tuning-config").on("change", ".octave-select", function () {
+          let stringIdx = $(this).data("string");
+          tuning[stringIdx].octave = parseInt(this.value);
           saveSettings();
           makeSession();
           showCard();
@@ -1597,8 +2023,32 @@
         $("#enable-bias").on("change", function () {
           enableBias = this.checked;
           saveSettings();
-          makeSession();
+          // Do not recreate session or change current card; bias applies to next makeSession()
+        });
+
+        $("#show-score-notation").on("change", function () {
+          showScoreNotation = this.checked;
+          saveSettings();
+          if (showScoreNotation) {
+            $("#score-key-row").show();
+          } else {
+            $("#score-key-row").hide();
+          }
           showCard();
+        });
+
+        $("#score-key").on("change", function () {
+          scoreKey = this.value;
+          saveSettings();
+          showCard();
+        });
+
+        // Add event handler for skip button
+        $("#skip-countdown").on("click", function () {
+          clearInterval(countdownInterval);
+          countdownValue = 0;
+          $("#countdown").text("");
+          nextCard();
         });
       });
     </script>
