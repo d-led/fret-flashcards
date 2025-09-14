@@ -55,11 +55,12 @@ jobs:
           path: test-results
       - name: Publish JUnit to GitHub Checks
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}       # run this step even if previous step failed
         with:
-          name: Cypress E2E
+          name: Test reports
           path: test-results/*.xml
-          reporter: junit
+          reporter: java-junit
 
   publish:
     needs: e2e
