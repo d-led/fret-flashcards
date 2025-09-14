@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import { build } from 'esbuild';
+import fs from "fs";
+import path from "path";
+import { build } from "esbuild";
 
-const root = path.resolve('.');
-const outdir = path.join(root, 'dist');
+const root = path.resolve(".");
+const outdir = path.join(root, "dist");
 
 function copyFile(src, dest) {
   fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -15,7 +15,7 @@ async function run() {
   if (fs.existsSync(outdir)) {
     const entries = fs.readdirSync(outdir);
     for (const name of entries) {
-      if (name === '.gitkeep') continue;
+      if (name === ".gitkeep") continue;
       const full = path.join(outdir, name);
       fs.rmSync(full, { recursive: true, force: true });
     }
@@ -24,50 +24,45 @@ async function run() {
   }
 
   // copy index.html
-  copyFile(path.join('src', 'static', 'index.html'), path.join(outdir, 'index.html'));
+  copyFile(path.join("src", "static", "index.html"), path.join(outdir, "index.html"));
 
   // copy css
-  const cssSrc = path.join('src', 'css', 'main.css');
-  const cssDest = path.join(outdir, 'main.css');
+  const cssSrc = path.join("src", "css", "main.css");
+  const cssDest = path.join(outdir, "main.css");
   if (fs.existsSync(cssSrc)) copyFile(cssSrc, cssDest);
 
   // build with esbuild targeting engines
   await build({
-    entryPoints: [path.join('src', 'ts', 'index.ts')],
+    entryPoints: [path.join("src", "ts", "index.ts")],
     bundle: true,
     sourcemap: true,
-    outfile: path.join(outdir, 'index.js'),
-    target: [
-      'chrome58',
-      'firefox57',
-      'safari11',
-      'edge16',
-    ],
-    format: 'iife',
-    platform: 'browser',
+    outfile: path.join(outdir, "index.js"),
+  target: ["es2019"],
+    format: "iife",
+    platform: "browser",
     minify: false,
-    logLevel: 'info',
+    logLevel: "info",
   });
 }
 
-if (process.argv.includes('--watch')) {
-  const chokidar = await import('chokidar');
-  console.log('watch mode: rebuilding on change');
-  const watcher = chokidar.watch(['src/ts/**', 'src/css/**', 'src/static/**']);
+if (process.argv.includes("--watch")) {
+  const chokidar = await import("chokidar");
+  console.log("watch mode: rebuilding on change");
+  const watcher = chokidar.watch(["src/ts/**", "src/css/**", "src/static/**"]);
   let building = false;
   const rebuild = async () => {
     if (building) return;
     building = true;
     try {
       await run();
-      console.log('build complete');
+      console.log("build complete");
     } catch (err) {
       console.error(err);
     } finally {
       building = false;
     }
   };
-  watcher.on('all', rebuild);
+  watcher.on("all", rebuild);
   // initial build
   await run();
 } else {

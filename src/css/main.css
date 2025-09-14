@@ -1,0 +1,607 @@
+/* Consolidated CSS: duplicates removed; latest definitions kept */
+:root {
+  --bg: #222;
+  --text: #f2f2f2;
+  --accent: #3498db;
+  --success: #2ecc40;
+  --error: #e74c3c;
+  --warning: #f7ca18;
+  --secondary-bg: #333;
+  --tertiary-bg: #444;
+  --inactive: #bbb;
+  --border: #666;
+  --border-radius: 8px;
+  --btn-radius: 12px;
+  --small-radius: 5px;
+  --font-large: 4em;
+  --font-medium: 1.5em;
+  --font-normal: 1.2em;
+  --font-small: 0.8em;
+  --padding: 0.5em;
+  --margin: 1em;
+  --transition: 0.3s;
+  --box-shadow: 0 0 0 5px #2264a7;
+}
+
+body {
+  font-family: sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 540px;
+  margin: 3em auto 0;
+  padding: 2em;
+  background: var(--secondary-bg);
+  border-radius: var(--border-radius);
+}
+
+.flashcard {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* margin-bottom: 2em; */
+}
+
+.note-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.2em;
+  gap: 0.5em;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.note-row {
+  flex-wrap: nowrap;
+  gap: 0.5em;
+}
+
+.quiz-note-btn {
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  border-radius: var(--btn-radius);
+  padding: var(--padding) 1em;
+  font-size: var(--font-medium);
+  cursor: pointer;
+  margin-right: 0.4em;
+  box-shadow: var(--box-shadow);
+  transition: box-shadow var(--transition);
+  flex: 0 0 auto;
+  max-width: 140px;
+  min-width: 56px;
+  box-sizing: border-box;
+}
+
+#note-score {
+  max-width: 260px;
+  min-width: 56px;
+  height: 100px;
+  overflow: visible;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#note-score svg {
+  background: transparent;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  display: block;
+}
+#treble-score,
+#bass-score {
+  overflow: visible;
+  display: block;
+  background: white;
+}
+
+.countdown-inline {
+  min-width: 2ch;
+  font-size: clamp(1.6rem, 3.5vw, var(--font-large));
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25em;
+}
+
+.string {
+  font-size: var(--font-large);
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  /* text-overflow: ellipsis; */
+}
+.string::before {
+  content: "on the ";
+}
+
+.fretboard-area {
+  /* margin-bottom: 1.5em; */
+  overflow-x: auto;
+}
+.fretboard-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+.fretboard-table th,
+.fretboard-table td {
+  padding: 0;
+  margin: 0;
+}
+.fretboard-table th {
+  height: 32px;
+}
+
+.fretboard-table .open-note {
+  font-weight: bold;
+  font-size: 1.15em;
+  width: 48px;
+  min-width: 48px;
+  text-align: right;
+  padding-right: 6px;
+  background: var(--bg);
+  color: var(--text);
+  border-right: 2px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background var(--transition);
+}
+.fretboard-table .open-note:hover {
+  background: #2980b9;
+}
+.fretboard-table .open-note:active {
+  background: #1f5582;
+}
+
+.fretboard-table .fret-label {
+  width: auto;
+  min-width: 24px;
+  height: 32px;
+  text-align: center;
+  font-size: 0.85em;
+  color: var(--inactive);
+  box-sizing: border-box;
+}
+.fretboard-table .fret-dot-cell {
+  width: auto;
+  min-width: 24px;
+  height: 28px;
+  text-align: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.fretboard-table .fret-cell {
+  width: auto;
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;
+  transition: background var(--transition);
+  position: relative;
+  box-sizing: border-box;
+}
+.fretboard-table .fret-cell.inactive {
+  opacity: 0.5;
+  cursor: default;
+}
+.fretboard-table .fret-cell.active-string {
+  background: #888;
+  color: var(--bg);
+}
+.fretboard-table .fret-cell.fret-found {
+  background: var(--success) !important;
+  color: var(--text);
+}
+.fretboard-table .fret-cell.fret-wrong {
+  background: var(--error) !important;
+}
+.fretboard-table .fret-cell.open-fret {
+  background: var(--warning);
+  color: var(--bg);
+  font-weight: bold;
+}
+
+.fretboard-table .fret-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: #e2e2e2;
+  border-radius: 50%;
+  margin: 7px auto 0;
+}
+.fretboard-table .fret-dot.double {
+  height: 30px;
+  width: 14px;
+  background: none;
+  position: relative;
+  top: 0;
+}
+.fretboard-table .fret-dot.double .dot {
+  width: 12px;
+  height: 12px;
+  background: #e2e2e2;
+  border-radius: 50%;
+  position: absolute;
+  left: 4px;
+}
+.fretboard-table .fret-dot.double .dot1 {
+  top: 4px;
+}
+.fretboard-table .fret-dot.double .dot2 {
+  top: 18px;
+}
+
+.fretboard-table .fretboard-header {
+  background: var(--secondary-bg);
+}
+.fretboard-table .fretboard-mark-row td {
+  background: var(--secondary-bg);
+}
+.fretboard-table .open-note-row td {
+  height: 28px;
+}
+
+.countdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0.5em;
+}
+
+.fret-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 0.5em;
+  justify-content: center;
+  margin-bottom: var(--margin);
+}
+.fret-btn {
+  background: var(--tertiary-bg);
+  border: none;
+  color: var(--text);
+  font-size: var(--font-medium);
+  padding: var(--padding) 1em;
+  border-radius: var(--small-radius);
+  cursor: pointer;
+  transition: background var(--transition);
+  text-align: center;
+}
+.fret-btn.correct {
+  background: var(--success);
+}
+.fret-btn.wrong {
+  background: var(--error);
+}
+.fret-btn.open-fret {
+  background: var(--warning);
+  color: var(--bg);
+  font-weight: bold;
+}
+
+.options {
+  margin-bottom: var(--margin);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+.play-btn {
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  border-radius: var(--small-radius);
+  padding: var(--padding) 1.1em;
+  font-size: var(--font-normal);
+  cursor: pointer;
+  margin-top: var(--margin);
+}
+
+.config {
+  margin-bottom: var(--margin);
+}
+.config-table,
+.tuning-container {
+  width: 100%;
+}
+.config-table {
+  border-collapse: collapse;
+}
+.config-table td {
+  padding: var(--padding) 0;
+}
+
+.tuning-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+.string-config {
+  padding: 0.8em;
+  border: 1px solid var(--border);
+  border-radius: var(--small-radius);
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+.string-label {
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  display: block;
+}
+.string-controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: center;
+}
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.control-row span {
+  min-width: 3em;
+  font-size: var(--font-small);
+}
+.tuning-select,
+.octave-select {
+  margin: 0;
+  font-size: var(--font-normal);
+  padding: var(--padding);
+  min-width: 4em;
+}
+
+.sound-enable-banner {
+  background: var(--error);
+  color: var(--text);
+  padding: var(--padding) 1em;
+  text-align: center;
+  margin-bottom: var(--margin);
+  border-radius: var(--small-radius);
+  cursor: pointer;
+  font-size: var(--font-normal);
+  font-weight: bold;
+  display: none;
+}
+.sound-enable-banner:hover {
+  background: #c0392b;
+}
+.sound-enable-banner.enabled {
+  background: var(--success);
+}
+
+.flashcard-instruction {
+  font-size: var(--font-normal);
+  color: var(--inactive);
+  margin-bottom: var(--margin);
+  align-self: flex-start;
+}
+.timeout-input {
+  width: 4em;
+}
+.copyright {
+  text-align: center;
+  font-size: var(--font-small);
+  margin-top: 2em;
+  color: var(--inactive);
+}
+.small-comment-text {
+  font-size: var(--font-small);
+  color: var(--inactive);
+}
+
+#skip-countdown {
+  display: none;
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  border-radius: var(--btn-radius);
+  padding: var(--padding) 0.5em;
+  font-size: var(--font-medium);
+  cursor: pointer;
+  margin-left: 0.5em;
+  box-shadow: var(--box-shadow);
+  transition: box-shadow var(--transition);
+}
+
+.countdown-inline:not(:empty) + #skip-countdown {
+  display: inline-flex;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: var(--padding);
+  }
+  .note-row {
+    gap: var(--padding);
+  }
+  .quiz-note-btn {
+    font-size: 2em;
+    padding: 0.6em 1.2em;
+  }
+  .countdown-inline {
+    font-size: 2em;
+    min-width: 1.6em;
+  }
+  .string {
+    font-size: 2em;
+  }
+  /* Keep the note score pinned to the right of the row so it doesn't
+           jump under the quiz button. Inside the score block stack the
+           staves vertically, but keep the whole score visually as a white
+           panel so it reads like a single unit. */
+  .note-row {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  /* Override desktop fixed height so small-screen panel sizes to content */
+  #note-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* pin contents to the top of the card */
+    gap: 0.12em; /* tighten spacing between staves */
+    margin-left: auto; /* keep it on the far right */
+    max-width: 180px;
+    width: auto;
+    background: white; /* preserve white score background */
+    padding: 3px;
+    box-sizing: border-box;
+    overflow: visible; /* parent will grow to fit content */
+    height: auto; /* let card height follow stacked staff heights */
+  }
+  /* Let the VexFlow containers size naturally but cap the visible SVG
+           height so the panel remains compact. This prevents clipping by
+           allowing the parent to expand while avoiding a huge empty top/bottom
+           margin coming from the SVG viewBox. */
+  #treble-score,
+  #bass-score {
+    width: 100%;
+    max-width: 160px;
+    height: auto;
+    overflow: visible;
+    background: transparent; /* outer #note-score provides the white panel */
+    padding: 0;
+    margin: 0;
+    display: block;
+  }
+  /* Keep bass clef visible inside the white panel without offset;
+           pull it up slightly to reduce the large vertical gap caused by
+           the SVG viewBox while avoiding clipping. */
+  #bass-score {
+    transform: none;
+    transform-origin: center top;
+    margin-top: 6px; /* keep a small gap between treble and bass */
+    z-index: 1;
+  }
+  /* Ensure embedded SVGs respect the container sizing */
+  #note-score svg {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 52px !important; /* cap the rendered staff height */
+    display: block;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0;
+  }
+  /* Shift treble SVG content upward to remove excessive top whitespace
+           produced by VexFlow viewBox without touching rendering logic. These
+           transforms are purely presentational and only applied on small
+           screens. */
+  /* Remove translate tweaks; use sizing + bass overlap instead. */
+  /* Nudge the treble staff up slightly to remove empty top space
+           while leaving the bass staff positioned normally. */
+  #treble-score svg {
+    transform: none !important;
+    margin-top: -10px !important;
+    max-height: 48px !important;
+  }
+  #bass-score svg {
+    transform: none !important;
+    margin-top: 0 !important;
+    max-height: 48px !important;
+  }
+  /* Hide any background rect VexFlow might insert as a fallback */
+  #note-score svg rect {
+    display: none !important;
+  }
+  .fret-btn {
+    font-size: 1em;
+    padding: 0.4em 0.6em;
+  }
+  .config-table td {
+    font-size: var(--font-normal);
+    padding: 0.8em 0;
+  }
+  .string-config {
+    font-size: var(--font-normal);
+    padding: 0.8em 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .tuning-container {
+    flex-direction: column;
+  }
+  .string-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .control-row {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  input[type="checkbox"] {
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: var(--padding);
+  }
+  input[type="number"],
+  select {
+    font-size: var(--font-normal);
+    padding: var(--padding);
+    margin-left: var(--padding);
+    width: auto;
+    min-width: 4em;
+  }
+  .tuning-select,
+  .octave-select {
+    font-size: var(--font-normal);
+    padding: var(--padding);
+    width: auto;
+    min-width: 4em;
+    margin: 0;
+  }
+  .config-table td select,
+  .config-table td input[type="number"],
+  .config-table td .tuning-select {
+    display: inline-block;
+    margin-top: 0.5em;
+  }
+  button {
+    font-size: var(--font-normal);
+    padding: 0.6em 1em;
+    margin-top: var(--padding);
+  }
+  label {
+    font-size: var(--font-normal);
+    margin-bottom: var(--padding);
+  }
+  .flashcard-instruction {
+    margin-bottom: var(--padding);
+  }
+}
+
+@media (min-width: 601px) {
+  .container {
+    max-width: 100%;
+  }
+  .quiz-note-btn {
+    font-size: clamp(1.8rem, 3.2vw, var(--font-large));
+  }
+  .fret-btn {
+    text-align: center;
+    padding: var(--padding) 0.5em;
+  }
+}
