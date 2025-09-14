@@ -24,51 +24,10 @@ function copyAssets() {
     fs.mkdirSync(outdir, { recursive: true });
   }
 
-  // copy index.html but inject build stamp (UTC date and git hash when available)
+  // copy index.html (no longer injecting build stamp since it's handled in JS)
   const indexSrc = path.join("src", "static", "index.html");
   const indexDest = path.join(outdir, "index.html");
-  try {
-    let html = fs.readFileSync(indexSrc, "utf8");
-
-    // build timestamp in UTC
-    const now = new Date();
-    const utcDate = now.toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC");
-
-    // try to get short git hash
-    let gitHash = "";
-    try {
-      gitHash = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
-    } catch (e) {
-      // ignore if git not available
-      gitHash = "";
-    }
-
-    // prepare stamp text and prefix with label; place on a new line after the GitHub link
-    const stampParts = [utcDate];
-    if (gitHash) stampParts.push(gitHash);
-    const stampText = "build: " + stampParts.join(" ");
-
-    // replace placeholder element with id="build-info" if present
-    const placeholderPattern = /<div\s+id=["']build-info["']\s*>[\s\S]*?<\/div>/i;
-  const replacement = `<div id="build-info">${stampText}</div>`;
-    if (placeholderPattern.test(html)) {
-      html = html.replace(placeholderPattern, replacement);
-    } else {
-      // fallback: try to inject after GitHub link (best-effort) or append before </body>
-      const githubPattern = /(<div class="copyright">[\s\S]*?<a[^>]*href="https:\/\/github.com\/d-led\/fret-flashcards"[^>]*>\s*GitHub\s*<\/a>\s*)(<\/div>)/i;
-      if (githubPattern.test(html)) {
-        html = html.replace(githubPattern, `$1<br> ${stampText} $2`);
-      } else {
-        html = html.replace(/<\/body>/i, `<div class="build-stamp">${stampText}</div>\n</body>`);
-      }
-    }
-
-    fs.mkdirSync(path.dirname(indexDest), { recursive: true });
-    fs.writeFileSync(indexDest, html, "utf8");
-  } catch (e) {
-    // if anything fails, fallback to straight copy
-    copyFile(indexSrc, indexDest);
-  }
+  copyFile(indexSrc, indexDest);
 
   // copy vendor libs from node_modules (vexflow and jquery)
   try {
@@ -93,6 +52,43 @@ function copyAssets() {
   const logoSrc = path.join("src", "logo", "logo.svg");
   const faviconDest = path.join(outdir, "favicon.svg");
   if (fs.existsSync(logoSrc)) copyFile(logoSrc, faviconDest);
+}
+
+function replaceBuildInfo() {
+  try {
+    const jsFile = path.join(outdir, "index.js");
+    if (!fs.existsSync(jsFile)) {
+      console.log("index.js not found, skipping build info replacement");
+      return;
+    }
+
+    // build timestamp in UTC
+    const now = new Date();
+    const utcDate = now.toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC");
+
+    // try to get short git hash
+    let gitHash = "";
+    try {
+      gitHash = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+    } catch (e) {
+      // ignore if git not available
+      gitHash = "";
+    }
+
+    // prepare stamp text
+    const stampParts = [utcDate];
+    if (gitHash) stampParts.push(gitHash);
+    const stampText = "build: " + stampParts.join(" ");
+
+    // read and replace in the built JS file
+    let jsContent = fs.readFileSync(jsFile, "utf8");
+    jsContent = jsContent.replace(/"build: unknown"/g, `"${stampText}"`);
+    fs.writeFileSync(jsFile, jsContent, "utf8");
+
+    console.log(`Replaced build info: ${stampText}`);
+  } catch (e) {
+    console.error("Failed to replace build info:", e);
+  }
 }
 
 async function buildJS(watch = false) {
@@ -124,6 +120,7 @@ async function buildJS(watch = false) {
             });
             build.onEnd(() => {
               console.log('Build complete');
+              replaceBuildInfo();
             });
           },
         },
@@ -142,6 +139,7 @@ async function buildJS(watch = false) {
   } else {
     copyAssets();
     await build(options);
+    replaceBuildInfo();
   }
 }
 

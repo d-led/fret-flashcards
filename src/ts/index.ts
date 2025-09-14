@@ -1,10 +1,18 @@
 import { PitchDetector } from 'pitchy';
 
+const buildInfo = "build: unknown";
+
 console.log(`loaded index.js`);
 
 $(async function () {
   const SETTINGS_KEY = "guitar_flashcard_settings_v1";
   const STATS_KEY = "guitar_flashcard_stats_v1";
+
+  // Fill build info
+  const buildInfoElement = document.getElementById("build-info");
+  if (buildInfoElement) {
+    buildInfoElement.textContent = buildInfo;
+  }
 
   const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
   const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
