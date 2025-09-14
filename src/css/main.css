@@ -485,23 +485,25 @@ body {
            staves vertically, but keep the whole score visually as a white
            panel so it reads like a single unit. */
   .note-row {
-    flex-wrap: nowrap;
-    align-items: center;
+    flex-wrap: nowrap; /* prevent wrapping */
+    align-items: flex-start; /* align to top instead of center */
   }
   /* Override desktop fixed height so small-screen panel sizes to content */
   #note-score {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* pin contents to the top of the card */
-    gap: 0.12em; /* tighten spacing between staves */
+    align-items: stretch; /* let items stretch to full width */
+    gap: 15px; /* optimal gap for separation */
     margin-left: auto; /* keep it on the far right */
-    max-width: 180px;
     width: auto;
+    min-width: 120px; /* smaller minimum to prevent wrapping */
+    max-width: 160px; /* smaller max width to fit better */
     background: white; /* preserve white score background */
-    padding: 3px;
+    padding: 12px; /* increase padding to prevent clipping */
     box-sizing: border-box;
     overflow: visible; /* parent will grow to fit content */
     height: auto; /* let card height follow stacked staff heights */
+    flex-shrink: 0; /* don't let it shrink */
   }
   /* Let the VexFlow containers size naturally but cap the visible SVG
            height so the panel remains compact. This prevents clipping by
@@ -509,51 +511,34 @@ body {
            margin coming from the SVG viewBox. */
   #treble-score,
   #bass-score {
-    width: 100%;
-    max-width: 160px;
+    width: 100%; /* fill container width */
     height: auto;
     overflow: visible;
     background: transparent; /* outer #note-score provides the white panel */
     padding: 0;
     margin: 0;
     display: block;
+    flex: 0 0 auto; /* don't grow or shrink, size to content */
+    position: relative; /* ensure proper stacking context */
   }
-  /* Keep bass clef visible inside the white panel without offset;
-           pull it up slightly to reduce the large vertical gap caused by
-           the SVG viewBox while avoiding clipping. */
+  
+  /* Force clear separation between staves on small screens */
   #bass-score {
-    transform: none;
-    transform-origin: center top;
-    margin-top: 6px; /* keep a small gap between treble and bass */
-    z-index: 1;
+    padding-top: 15px !important; /* use padding instead of margin */
+    margin-top: 0 !important; /* reset margin */
   }
-  /* Ensure embedded SVGs respect the container sizing */
+  /* Ensure embedded SVGs size properly and stack vertically */
   #note-score svg {
-    width: 100% !important;
+    width: 100% !important; /* fill container width */
     height: auto !important;
-    max-height: 52px !important; /* cap the rendered staff height */
+    max-width: 100% !important; /* respect container width */
+    max-height: none !important; /* remove height restrictions */
     display: block;
     background: transparent !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    margin: 0;
-  }
-  /* Shift treble SVG content upward to remove excessive top whitespace
-           produced by VexFlow viewBox without touching rendering logic. These
-           transforms are purely presentational and only applied on small
-           screens. */
-  /* Remove translate tweaks; use sizing + bass overlap instead. */
-  /* Nudge the treble staff up slightly to remove empty top space
-           while leaving the bass staff positioned normally. */
-  #treble-score svg {
-    transform: none !important;
-    margin-top: -10px !important;
-    max-height: 48px !important;
-  }
-  #bass-score svg {
-    transform: none !important;
-    margin-top: 0 !important;
-    max-height: 48px !important;
+    margin: 0 !important;
+    overflow: visible !important;
   }
   /* Hide any background rect VexFlow might insert as a fallback */
   #note-score svg rect {
