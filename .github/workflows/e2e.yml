@@ -64,7 +64,7 @@ jobs:
           path: test-results
       - name: Publish JUnit to GitHub Checks
         uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}       # run this step even if previous step failed
+        if: ${{ !cancelled() }} # run this step even if previous step failed
         with:
           name: Test reports
           path: test-results/*.xml

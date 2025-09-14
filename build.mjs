@@ -26,6 +26,20 @@ async function run() {
   // copy index.html
   copyFile(path.join("src", "static", "index.html"), path.join(outdir, "index.html"));
 
+  // copy vendor libs from node_modules (vexflow and jquery)
+  try {
+    const vendorDest = path.join(outdir, "vendor");
+    copyFile(path.join("node_modules", "vexflow", "build", "cjs", "vexflow.js"), path.join(vendorDest, "vexflow.js"));
+  } catch (e) {
+    // ignore if not present
+  }
+  try {
+    const vendorDest = path.join(outdir, "vendor");
+    copyFile(path.join("node_modules", "jquery", "dist", "jquery.min.js"), path.join(vendorDest, "jquery.min.js"));
+  } catch (e) {
+    // ignore if not present
+  }
+
   // copy css
   const cssSrc = path.join("src", "css", "main.css");
   const cssDest = path.join(outdir, "main.css");
@@ -37,7 +51,7 @@ async function run() {
     bundle: true,
     sourcemap: true,
     outfile: path.join(outdir, "index.js"),
-  target: ["es2019"],
+    target: ["es2019"],
     format: "iife",
     platform: "browser",
     minify: false,
