@@ -1113,7 +1113,16 @@ $(async function () {
           console.log(`Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`);
           const feedbackEl = document.getElementById('mic-feedback');
           if (feedbackEl) {
-            feedbackEl.textContent = `${namePart}${octavePart} out of range (fret ${fretDiff})`;
+            // Calculate octave difference: remove note difference (mod 12) and focus on octave steps
+            const octaveDiff = Math.floor(fretDiff / 12);
+            const hint = octaveDiff < 0 ? 'try octave higher' : 'try octave lower';
+            
+            // Calculate expected octave for this note on this string
+            const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+            const expectedMidi = openMidi + currentCard.frets[0]; // Use first valid fret position
+            const expectedOctave = Math.floor(expectedMidi / 12) - 1;
+            
+            feedbackEl.textContent = `${namePart}${octavePart} - ${hint} (need ~${expectedOctave})`;
             feedbackEl.style.color = '#f44336';
           }
           return;
