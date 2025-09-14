@@ -499,7 +499,7 @@ body {
     min-width: 120px; /* smaller minimum to prevent wrapping */
     max-width: 160px; /* smaller max width to fit better */
     background: white; /* preserve white score background */
-    padding: 12px; /* increase padding to prevent clipping */
+    padding-top: 20px; /* padding only on top */
     box-sizing: border-box;
     overflow: visible; /* parent will grow to fit content */
     height: auto; /* let card height follow stacked staff heights */
@@ -524,7 +524,7 @@ body {
   
   /* Force clear separation between staves on small screens */
   #bass-score {
-    padding-top: 15px !important; /* use padding instead of margin */
+    padding-top: 20px !important; /* use padding instead of margin */
     margin-top: 0 !important; /* reset margin */
   }
   /* Ensure embedded SVGs size properly and stack vertically */
