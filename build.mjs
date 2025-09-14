@@ -88,6 +88,11 @@ function copyAssets() {
   const cssSrc = path.join("src", "css", "main.css");
   const cssDest = path.join(outdir, "main.css");
   if (fs.existsSync(cssSrc)) copyFile(cssSrc, cssDest);
+
+  // copy favicon from logo
+  const logoSrc = path.join("src", "logo", "logo.svg");
+  const faviconDest = path.join(outdir, "favicon.svg");
+  if (fs.existsSync(logoSrc)) copyFile(logoSrc, faviconDest);
 }
 
 async function buildJS(watch = false) {
