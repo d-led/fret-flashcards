@@ -881,13 +881,15 @@ $(async function () {
         $("#note-score").hide();
       }
     } else {
+      // Always ensure the quiz note button is visible and shows the note text
       $("#quiz-note-btn").show();
+      // Update the button text so the textual hint is available even when notation is shown
+      $("#quiz-note-btn").text(currentCard.note);
       if (showScoreNotation) {
         $("#note-score").show();
         renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
       } else {
         $("#note-score").hide();
-        $("#quiz-note-btn").text(currentCard.note);
       }
     }
   }
