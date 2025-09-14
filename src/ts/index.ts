@@ -832,7 +832,7 @@ $(async function () {
       });
       const biasStrength = 1; // Adjust this value to increase/decrease bias effect
       if (totalMistakes > 0) {
-        const weights = session.map((card) => 1 + (mistakeCounts[card.string] / totalMistakes) * biasStrength);
+        const weights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
         session = weightedShuffle(session, weights);
       }
     }
