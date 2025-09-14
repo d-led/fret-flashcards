@@ -819,8 +819,9 @@ $(async function () {
       }
     }
     session = shuffle(session);
-    // Replace simple shuffle with weighted shuffle if stats exist, there are mistakes, and bias is enabled
-    if (enableBias && statistics.answers.length > 0) {
+    
+    // Always use weighted shuffle, but bias only affects mistake amplification
+    if (statistics.answers.length > 0) {
       const currentTuningStr = JSON.stringify(tuning);
       const mistakeCounts = Array(numStrings).fill(0);
       let totalMistakes = 0;
@@ -830,12 +831,24 @@ $(async function () {
           totalMistakes++;
         }
       });
-      const biasStrength = 1; // Adjust this value to increase/decrease bias effect
-      if (totalMistakes > 0) {
-        const weights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
-        session = weightedShuffle(session, weights);
-      }
+      
+      // Calculate weights: base weight = 1, mistakes add bias when enabled
+      const biasStrength = enableBias ? 1 : 0; // Only apply bias if enabled
+      const baseWeights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
+      
+      // Normalize by average and cap the difference to 3:1 ratio
+      const avgWeight = baseWeights.reduce((sum, w) => sum + w, 0) / baseWeights.length;
+      const maxWeight = avgWeight * 3;
+      const minWeight = avgWeight / 3;
+      
+      const weights = baseWeights.map(w => Math.max(minWeight, Math.min(maxWeight, w)));
+      session = weightedShuffle(session, weights);
+    } else {
+      // No statistics yet, use equal weights (all 1.0)
+      const weights = session.map(() => 1);
+      session = weightedShuffle(session, weights);
     }
+    
     // Recompute string error counts for the current tuning/session so UI tooltips are correct
     computeStringErrorCounts();
     sessionIdx = 0;
