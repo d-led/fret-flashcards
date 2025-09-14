@@ -1240,6 +1240,8 @@ $(async function () {
   let audioElements = {}; // Cache for generated audio elements
   let audioEnabled = false;
   let isIOS = false;
+  let audioCurrentlyPlaying = false; // Flag to track if audio is playing
+  let resumeMicTimeout = null; // Timeout for resuming mic after audio
 
   // Pitch detection state (pitchy)
   let micStream = null;
@@ -1331,6 +1333,15 @@ $(async function () {
     try {
       const cacheKey = `${Math.round(freq)}_${duration}`;
 
+      // Set audio playing flag to prevent microphone feedback
+      audioCurrentlyPlaying = true;
+      
+      // Clear any existing resume timeout
+      if (resumeMicTimeout) {
+        clearTimeout(resumeMicTimeout);
+        resumeMicTimeout = null;
+      }
+
       // On iOS, don't reuse cached audio elements to prevent playback conflicts
       // Create a new audio element each time for reliable playback
       let audio;
@@ -1344,6 +1355,7 @@ $(async function () {
           }
         } catch (err) {
           console.error("Error generating tone:", err);
+          audioCurrentlyPlaying = false; // Reset flag on error
           return;
         }
       } else {
@@ -1361,17 +1373,30 @@ $(async function () {
         playPromise
           .then(() => {
             console.log("Audio played successfully");
+            // Set up timeout to resume microphone after audio finishes
+            resumeMicTimeout = setTimeout(() => {
+              audioCurrentlyPlaying = false;
+              resumeMicTimeout = null;
+            }, (duration * 1000) + 200); // Add 200ms buffer
           })
           .catch((err) => {
             console.error("Error playing audio:", err);
+            audioCurrentlyPlaying = false; // Reset flag on error
             // On first failure, try to re-enable audio
             if (!isIOS) {
               setTimeout(() => initAudioContext(), 100);
             }
           });
+      } else {
+        // Fallback for older browsers - use duration timeout
+        resumeMicTimeout = setTimeout(() => {
+          audioCurrentlyPlaying = false;
+          resumeMicTimeout = null;
+        }, (duration * 1000) + 200);
       }
     } catch (err) {
       console.error("Error playing tone:", err);
+      audioCurrentlyPlaying = false; // Reset flag on error
     }
   }
 
@@ -1495,6 +1520,13 @@ $(async function () {
 
     const loop = () => {
       if (!pitchDetecting) return;
+      
+      // Skip processing if audio is currently playing to prevent feedback
+      if (audioCurrentlyPlaying) {
+        pitchAnimFrame = requestAnimationFrame(loop);
+        return;
+      }
+      
       analyserForPitch.getFloatTimeDomainData(pitchBuffer);
       // Compute simple RMS to detect whether the mic is receiving any signal
       let sum = 0;
@@ -1656,6 +1688,13 @@ $(async function () {
   if (noteMeterFill) noteMeterFill.style.width = '0%';
     detector = null;
     pitchBuffer = null;
+    
+    // Clear any pending resume timeout when stopping mic
+    if (resumeMicTimeout) {
+      clearTimeout(resumeMicTimeout);
+      resumeMicTimeout = null;
+    }
+    audioCurrentlyPlaying = false; // Reset audio playing flag
   }
 
   // Map a detected MIDI note to nearest fret for the current card and submit it
