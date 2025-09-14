@@ -1156,11 +1156,37 @@ $(async function () {
         fret = detectedMidi - openMidi;
         stringIdx = currentCard.string; // Force to current quiz string
         
-        // Show success feedback
+        // Check for approximate octave feedback - if detected note is roughly an octave off from expected
         const feedbackEl = document.getElementById('mic-feedback');
-        if (feedbackEl && octavePart !== null) {
-          feedbackEl.textContent = `${namePart}${octavePart} → fret ${fret}`;
-          feedbackEl.style.color = '#4caf50';
+        if (feedbackEl && source === 'mic') {
+          // Calculate expected MIDI range for the current quiz note
+          const expectedMidiValues = currentCard.frets.map((f: number) => openMidi + f);
+          const minExpected = Math.min(...expectedMidiValues);
+          const maxExpected = Math.max(...expectedMidiValues);
+          
+          // Check if detected note is approximately an octave off (10-14 semitones to account for different notes)
+          const lowerOctaveMin = detectedMidi - 14;
+          const lowerOctaveMax = detectedMidi - 10;
+          const higherOctaveMin = detectedMidi + 10; 
+          const higherOctaveMax = detectedMidi + 14;
+          
+          // Check if the expected range falls within an octave of the detected note
+          const isExpectedOctaveLower = (minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax);
+          const isExpectedOctaveHigher = (minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax);
+          
+          if (isExpectedOctaveLower) {
+            feedbackEl.textContent = `${namePart}${octavePart || ''} - try octave lower`;
+            feedbackEl.style.color = '#f44336';
+            return; // Don't process as valid answer
+          } else if (isExpectedOctaveHigher) {
+            feedbackEl.textContent = `${namePart}${octavePart || ''} - try octave higher`;  
+            feedbackEl.style.color = '#f44336';
+            return; // Don't process as valid answer
+          } else if (octavePart !== null) {
+            // Show normal detection feedback only if no octave issue detected
+            feedbackEl.textContent = `detected ${namePart}${octavePart} → fret ${fret}`;
+            feedbackEl.style.color = '#4caf50';
+          }
         }
       } else {
         console.warn(`Could not convert detected note ${detectedNote} to fret`);
