@@ -334,6 +334,10 @@ body {
   margin-top: var(--margin);
 }
 
+#mic-toggle {
+  margin-bottom: var(--margin);
+}
+
 .config {
   margin-bottom: var(--margin);
 }
