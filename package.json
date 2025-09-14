@@ -9,11 +9,13 @@
     "test:e2e": "npm run build && npm run e2e",
     "prettier": "prettier -w .",
     "build": "node build.mjs",
-    "watch": "node build.mjs --watch"
+    "watch": "node build.mjs --watch",
+    "serve": "npx -y http-server ./dist"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.33",
     "cypress": "^15.2.0",
+  "mocha-junit-reporter": "^2.0.0",
     "esbuild": "^0.25.9",
     "esbuild-plugin-tsc": "^0.5.0",
     "prettier": "^3.6.2",

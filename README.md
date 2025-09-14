@@ -21,10 +21,11 @@ A compact browser tool to practice and memorize notes on a 3- to 12-string guita
 
 ## Quick start
 
-- Open `src/static/index.html` in a browser for a quick run.
-- Or serve the repo root with a simple static server:
-  - Python 3: `python -m http.server 8000` then open `http://localhost:8000/src/static/index.html`
-  - Node: `npx http-server .` then open the corresponding URL.
+- run `npm i && npm build`
+- Open `src/dist/index.html` in a browser for a quick run.
+- Or serve the dist folder with a simple static server:
+  - Python 3: `python3 -m http.server 8000 -d dist` then open `http://localhost:8000`
+  - Node: `npx http-server ./dist` then open the corresponding URL. (`npm run serve`)
 
 ## Inspiration
 

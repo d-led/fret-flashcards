@@ -6,6 +6,10 @@ const path = require("path");
 const port = Math.floor(Math.random() * 7000) + 3000;
 
 module.exports = {
+  reporter: "mocha-junit-reporter",
+  reporterOptions: {
+    mochaFile: "test-results/junit-[hash].xml"
+  },
   e2e: {
     setupNodeEvents(on, config) {
       let server;
