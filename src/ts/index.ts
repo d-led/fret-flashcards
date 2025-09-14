@@ -1193,6 +1193,9 @@ $(async function () {
   let pitchBuffer = null;
   let smoothedLevel = 0;
   let lastMeterUpdate = 0;
+  let micBaselineRms = 0;
+  let baselineSamplesCount = 0;
+  let collectBaselineUntil = 0;
   let lastDetectedNoteId: number | null = null;
   let noteStableSince: number | null = null;
   let displayedNoteId: number | null = null;
@@ -1415,6 +1418,9 @@ $(async function () {
   pitchDetecting = true;
   smoothedLevel = 0;
   lastMeterUpdate = 0;
+  micBaselineRms = 0;
+  baselineSamplesCount = 0;
+  collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
   const statusEl = document.getElementById('mic-status');
   const meterEl = document.getElementById('mic-meter');
   if (statusEl) statusEl.style.display = 'inline';
@@ -1440,8 +1446,20 @@ $(async function () {
   // Use pitchy correctly: pass sampleRate as second arg
   const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
       const meterFill = document.getElementById('mic-meter-fill');
-      // Map rms to 0..1 (clamp) and smooth it; do NOT update DOM until note is stable
-      const level = Math.min(1, rms * 200);
+      // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
+      if (Date.now() < collectBaselineUntil) {
+        micBaselineRms += rms;
+        baselineSamplesCount++;
+      } else if (baselineSamplesCount > 0 && micBaselineRms > 0) {
+        micBaselineRms = micBaselineRms / baselineSamplesCount;
+        baselineSamplesCount = 0; // done collecting
+      }
+
+      // Subtract baseline and map to 0..1 using a dB scale. Add a small floor to avoid log(0).
+      const effectiveRms = Math.max(0, rms - (micBaselineRms || 0) * 1.05);
+      const rmsFloor = Math.max(effectiveRms, 1e-8);
+      const db = 20 * Math.log10(rmsFloor);
+      const level = Math.max(0, Math.min(1, (db + 80) / 80));
       smoothedLevel = smoothedLevel * 0.92 + level * 0.08;
       const now = Date.now();
       // Determine current detected note id (rounded MIDI) or null
@@ -1463,7 +1481,19 @@ $(async function () {
       // Only update visible status and meter when the same note persisted for NOTE_STABLE_MS
       const stable = noteStableSince !== null && now - noteStableSince >= NOTE_STABLE_MS;
       if (rms < 0.0005) {
+        // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
+        smoothedLevel = 0;
         if (statusEl) statusEl.textContent = `No input`;
+        const meterFillSilent = document.getElementById('mic-meter-fill');
+        const noteMeterFillSilent = document.getElementById('note-meter-fill');
+        if (meterFillSilent) {
+          meterFillSilent.style.width = `0%`;
+          meterFillSilent.style.background = '#4caf50';
+        }
+        if (noteMeterFillSilent) {
+          noteMeterFillSilent.style.width = `0%`;
+          noteMeterFillSilent.style.background = '#4caf50';
+        }
       } else if (stable && currentNoteId !== null) {
         // Show note and update meter when stable
         const midiRound = currentNoteId;
@@ -1472,12 +1502,20 @@ $(async function () {
         if (statusEl) statusEl.textContent = `${noteName}${octave} ${frequency.toFixed(1)}Hz (${clarity.toFixed(2)})`;
         // Update meter immediately when stable (use smoothedLevel)
         const meterFillStable = document.getElementById('mic-meter-fill');
+        const noteMeterFill = document.getElementById('note-meter-fill');
         if (meterFillStable) {
           const pct = Math.round(smoothedLevel * 100);
           meterFillStable.style.width = `${pct}%`;
           if (smoothedLevel < 0.4) meterFillStable.style.background = '#4caf50';
           else if (smoothedLevel < 0.8) meterFillStable.style.background = '#ffeb3b';
           else meterFillStable.style.background = '#f44336';
+        }
+        if (noteMeterFill) {
+          const pct = Math.round(smoothedLevel * 100);
+          noteMeterFill.style.width = `${pct}%`;
+          if (smoothedLevel < 0.4) noteMeterFill.style.background = '#4caf50';
+          else if (smoothedLevel < 0.8) noteMeterFill.style.background = '#ffeb3b';
+          else noteMeterFill.style.background = '#f44336';
         }
         // Submit this stable detected note to the quiz flow once
         if (displayedNoteId !== currentNoteId) {
@@ -1527,11 +1565,16 @@ $(async function () {
       statusEl.textContent = '';
       statusEl.style.display = 'none';
     }
-    const meterEl = document.getElementById('mic-meter');
+  const meterEl = document.getElementById('mic-meter');
     if (meterEl) meterEl.style.display = 'none';
     // clear meter
     const meterFill = document.getElementById('mic-meter-fill');
     if (meterFill) meterFill.style.width = '0%';
+  micBaselineRms = 0;
+  baselineSamplesCount = 0;
+  collectBaselineUntil = 0;
+  const noteMeterFill = document.getElementById('note-meter-fill');
+  if (noteMeterFill) noteMeterFill.style.width = '0%';
     detector = null;
     pitchBuffer = null;
   }

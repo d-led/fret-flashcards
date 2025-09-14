@@ -14,7 +14,11 @@
       <div class="flashcard">
         <div class="flashcard-instruction">Find the note</div>
         <div class="note-row">
-          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?</button>
+          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?
+            <span class="note-meter" id="note-meter" aria-hidden="true">
+              <span class="note-meter-fill" id="note-meter-fill" style="width:0%"></span>
+            </span>
+          </button>
           <div class="string" id="flashcard-string">?</div>
           <div id="note-score">
             <div id="treble-score"></div>

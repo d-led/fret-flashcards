@@ -78,6 +78,26 @@ body {
   box-sizing: border-box;
 }
 
+/* Small level meter inside the quiz note button */
+.note-meter {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  width: 56px;
+  height: 8px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+}
+.note-meter-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+  transition: width 120ms linear, background 120ms linear;
+}
+
 #note-score {
   max-width: 260px;
   min-width: 56px;
