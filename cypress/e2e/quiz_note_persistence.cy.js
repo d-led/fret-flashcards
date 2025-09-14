@@ -6,19 +6,20 @@ describe('Quiz note persistence with score notation', () => {
   });
 
   it('keeps textual quiz note visible after reload when score notation is enabled', () => {
-    // Enable score notation and ensure hide-quiz-note label becomes visible
-    cy.get('#show-score-notation').check();
-    cy.get('#score-key-row').should('be.visible');
+    // Enable score notation and ensure related UI becomes visible
+    cy.setScoreNotation(true);
+    cy.shouldHaveScoreNotation(true);
+
     // Ensure the quiz note has a machine-readable value
-    cy.get('#quiz-note-btn').should('exist');
-    cy.get('#quiz-note-btn').invoke('attr', 'data-note').should('match', /^[A-G][b#]?$/);
+    cy.shouldHaveQuizNoteExist();
+    cy.shouldHaveQuizNoteMachineReadable();
 
     // Reload the app (simulate browser reload)
     cy.reloadAndVisitApp();
 
     // After reload, score notation should still be enabled and the textual quiz note should still be present
-    cy.get('#show-score-notation').should('be.checked');
-    cy.get('#quiz-note-btn').should('be.visible');
-    cy.get('#quiz-note-btn').invoke('attr', 'data-note').should('match', /^[A-G][b#]?$/);
+    cy.shouldHaveScoreNotation(true);
+    cy.shouldHaveQuizNoteVisible();
+    cy.shouldHaveQuizNoteMachineReadable();
   });
 });

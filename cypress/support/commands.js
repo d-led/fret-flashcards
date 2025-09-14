@@ -99,6 +99,19 @@ Cypress.Commands.add("getQuizNoteAttr", () => {
   return cy.get("#quiz-note-btn").invoke("attr", "data-note");
 });
 
+// Quiz note assertion helpers
+Cypress.Commands.add("shouldHaveQuizNoteExist", () => {
+  cy.get("#quiz-note-btn").should("exist");
+});
+
+Cypress.Commands.add("shouldHaveQuizNoteVisible", () => {
+  cy.get("#quiz-note-btn").should("be.visible");
+});
+
+Cypress.Commands.add("shouldHaveQuizNoteMachineReadable", () => {
+  cy.getQuizNoteAttr().should("match", /^[A-G][b#]?$/);
+});
+
 // Return structured flashcard data: index (number|null), name|null, fretsCount (number|null), and the visible text
 Cypress.Commands.add("getFlashcardData", () => {
   return cy.get("#flashcard-string").then(($el) => {
@@ -323,6 +336,24 @@ Cypress.Commands.add("setAccidentals", (enabled) => {
 
 Cypress.Commands.add("setTimeoutSeconds", (seconds) => {
   cy.get("#timeout-seconds").select(seconds.toString());
+});
+
+// Score notation helpers
+Cypress.Commands.add("setScoreNotation", (enabled) => {
+  if (enabled) {
+    cy.get("#show-score-notation").check();
+  } else {
+    cy.get("#show-score-notation").uncheck();
+  }
+});
+
+Cypress.Commands.add("shouldHaveScoreNotation", (expected) => {
+  if (expected) {
+    cy.get("#show-score-notation").should("be.checked");
+    cy.get("#score-key-row").should("be.visible");
+  } else {
+    cy.get("#show-score-notation").should("not.be.checked");
+  }
 });
 
 Cypress.Commands.add("setNumStrings", (num) => {
