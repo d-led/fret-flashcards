@@ -29,11 +29,10 @@ jobs:
         run: |
           mkdir -p test-results
           npx cypress run --e2e --browser chrome --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/junit-[hash].xml
-      - name: Upload built site (dist)
+      - name: Upload Pages artifact (dist)
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: site-dist
           path: dist
       - name: Upload Cypress screenshots
         if: always()
@@ -66,14 +65,5 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && needs.e2e.result == 'success'
     steps:
-      - name: Download built site artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: site-dist
-          path: dist
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: dist
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
