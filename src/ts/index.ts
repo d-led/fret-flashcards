@@ -1,3 +1,5 @@
+import { PitchDetector } from 'pitchy';
+
 console.log(`loaded index.js`);
 
 $(async function () {
@@ -751,6 +753,14 @@ $(async function () {
     return (openIdx + fretIdx) % 12;
   }
 
+  // Convert string index and fret number to note name
+  function fretToNote(stringIdx, fretIdx) {
+    const openMidi = getMidi(tuning[stringIdx].note, tuning[stringIdx].octave);
+    const fretMidi = openMidi + fretIdx;
+    const { note } = midiToNoteAndOctave(fretMidi, currentCard?.note);
+    return note;
+  }
+
   function notesToSet() {
     if (showAccidentals) {
       return allNotes.concat(flatNotes);
@@ -1013,29 +1023,60 @@ $(async function () {
     showCard();
   }
 
-  function markButton(btn, correct) {
-    $(btn).addClass(correct ? "correct" : "wrong");
-    if (!correct) setTimeout(() => $(btn).removeClass("wrong"), 1000);
-  }
-
-  function handleFretClick(e) {
+  // Centralized answer submission for both UI and mic sources.
+  // `source` is a string like 'ui' or 'mic' to allow source-specific behavior later.
+  // Can accept either a fret number OR a note name (string will be empty if note is provided)
+  function submitAnswer(stringIdx, fret, source, detectedNote) {
     if (!currentCard) return;
-    let fret = parseInt($(this).attr("data-fret"));
-    playAnsweredNote(currentCard.string, fret);
-    let isCorrect = currentCard.frets.includes(fret);
+    
+    // If a note name was provided, convert it to the appropriate fret on the current string
+    if (detectedNote) {
+      // Convert detected note to MIDI
+      let detectedMidi = null;
+      for (const variant of noteVariants) {
+        if (variant.name === detectedNote) {
+          // We need to figure out the octave - find the closest match to the string's note range
+          const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+          
+          // Try different octaves to find the best match within reasonable fret range
+          for (let octave = 1; octave <= 8; octave++) {
+            const candidateMidi = getMidi(variant.name, octave);
+            const fretDiff = candidateMidi - openMidi;
+            if (fretDiff >= 0 && fretDiff <= 24) { // Within reasonable fret range
+              detectedMidi = candidateMidi;
+              break;
+            }
+          }
+          break;
+        }
+      }
+      
+      if (detectedMidi) {
+        const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+        fret = detectedMidi - openMidi;
+        stringIdx = currentCard.string; // Force to current quiz string
+      } else {
+        console.warn(`Could not convert detected note ${detectedNote} to fret`);
+        return;
+      }
+    }
+    
+    playAnsweredNote(stringIdx, fret);
+    const isCorrect = currentCard.frets.includes(fret);
     // Record the answer event
     statistics.answers.push({
-      tuning: tuning.slice(), // Copy current tuning array
+      tuning: tuning.slice(),
       string: currentCard.string,
       note: currentCard.note,
       userAnswer: fret,
       correct: isCorrect,
       timestamp: Date.now(),
-      shownTimestamp: currentCard.shownTime, // Add shown timestamp for response time calculation
+      shownTimestamp: currentCard.shownTime,
     });
-    saveStatistics(); // Persist after each event
-    computeStringErrorCounts(); // Recompute error counts after answer
-    drawFretboardTable(currentCard.string, foundFrets); // Redraw fretboard to update hover tooltips
+    saveStatistics();
+    computeStringErrorCounts();
+    drawFretboardTable(currentCard.string, foundFrets);
+
     if (isCorrect) {
       if (extendedRange) {
         if (!foundFrets.includes(fret)) {
@@ -1053,53 +1094,35 @@ $(async function () {
         doCountdownAndNext();
       }
     } else {
+      // Wrong answer behavior: replay desired note and mark wrong
       markButton($(`.fret-btn[data-fret=${fret}]`), false);
       highlightFretOnFretboard(currentCard.string, fret, false);
       playDesiredNote(currentCard.string, currentCard.frets[0]);
+      // If this came from the mic, avoid advancing and suppress any countdown
+      if (source === 'mic') {
+        clearTimeout(pendingTimeout);
+        clearInterval(countdownInterval);
+        countdownValue = 0;
+      }
     }
+  }
+
+  function markButton(btn, correct) {
+    $(btn).addClass(correct ? "correct" : "wrong");
+    if (!correct) setTimeout(() => $(btn).removeClass("wrong"), 1000);
+  }
+
+  function handleFretClick(e) {
+    if (!currentCard) return;
+    let fret = parseInt($(this).attr("data-fret"));
+    submitAnswer(currentCard.string, fret, 'ui', null);
   }
 
   function handleFretboardClick(e) {
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
-
-    playAnsweredNote(s, f);
-    let isCorrect = currentCard.frets.includes(f);
-    // Record the answer event
-    statistics.answers.push({
-      tuning: tuning.slice(), // Copy current tuning array
-      string: currentCard.string,
-      note: currentCard.note,
-      userAnswer: f,
-      correct: isCorrect,
-      timestamp: Date.now(),
-      shownTimestamp: currentCard.shownTime, // Add shown timestamp for response time calculation
-    });
-    saveStatistics(); // Persist after each event
-    computeStringErrorCounts(); // Recompute error counts after answer
-    drawFretboardTable(currentCard.string, foundFrets); // Redraw fretboard to update hover tooltips
-    if (isCorrect) {
-      if (extendedRange) {
-        if (!foundFrets.includes(f)) {
-          foundFrets.push(f);
-          currentCard.found = foundFrets.slice();
-          markButton($(`.fret-btn[data-fret=${f}]`), true);
-          highlightFretOnFretboard(currentCard.string, f, true);
-        }
-        if (foundFrets.length === currentCard.frets.length) {
-          doCountdownAndNext();
-        }
-      } else {
-        markButton($(`.fret-btn[data-fret=${f}]`), true);
-        highlightFretOnFretboard(currentCard.string, f, true);
-        doCountdownAndNext();
-      }
-    } else {
-      markButton($(`.fret-btn[data-fret=${f}]`), false);
-      highlightFretOnFretboard(currentCard.string, f, false);
-      playDesiredNote(currentCard.string, currentCard.frets[0]);
-    }
+    submitAnswer(s, f, 'ui', null);
   }
 
   function playAnsweredNote(stringIdx, fretIdx) {
@@ -1159,6 +1182,21 @@ $(async function () {
   let audioElements = {}; // Cache for generated audio elements
   let audioEnabled = false;
   let isIOS = false;
+
+  // Pitch detection state (pitchy)
+  let micStream = null;
+  let audioContextForPitch = null;
+  let analyserForPitch = null;
+  let detector = null;
+  let pitchDetecting = false;
+  let pitchAnimFrame = null;
+  let pitchBuffer = null;
+  let smoothedLevel = 0;
+  let lastMeterUpdate = 0;
+  let lastDetectedNoteId: number | null = null;
+  let noteStableSince: number | null = null;
+  let displayedNoteId: number | null = null;
+  const NOTE_STABLE_MS = 300;
 
   // Detect iOS devices
   function detectIOS() {
@@ -1361,6 +1399,157 @@ $(async function () {
     }
   }
 
+  // Start microphone and pitch detection using pitchy
+  async function startMic() {
+    if (pitchDetecting) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('getUserMedia not supported');
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+  audioContextForPitch = new AC();
+    const src = audioContextForPitch.createMediaStreamSource(micStream);
+  analyserForPitch = audioContextForPitch.createAnalyser();
+    analyserForPitch.fftSize = 2048;
+    src.connect(analyserForPitch);
+  detector = PitchDetector.forFloat32Array(analyserForPitch.fftSize);
+    pitchBuffer = new Float32Array(analyserForPitch.fftSize);
+  pitchDetecting = true;
+  smoothedLevel = 0;
+  lastMeterUpdate = 0;
+  const statusEl = document.getElementById('mic-status');
+  const meterEl = document.getElementById('mic-meter');
+  if (statusEl) statusEl.style.display = 'inline';
+  if (meterEl) meterEl.style.display = 'inline-block';
+
+  // statusEl already declared above
+
+    // Ensure AudioContext is running (user gesture should have started it)
+    if (audioContextForPitch && audioContextForPitch.state === 'suspended') {
+      audioContextForPitch.resume().catch(() => {});
+    }
+
+    const loop = () => {
+      if (!pitchDetecting) return;
+      analyserForPitch.getFloatTimeDomainData(pitchBuffer);
+      // Compute simple RMS to detect whether the mic is receiving any signal
+      let sum = 0;
+      for (let i = 0; i < pitchBuffer.length; i++) {
+        sum += pitchBuffer[i] * pitchBuffer[i];
+      }
+      const rms = Math.sqrt(sum / pitchBuffer.length);
+
+  // Use pitchy correctly: pass sampleRate as second arg
+  const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
+      const meterFill = document.getElementById('mic-meter-fill');
+      // Map rms to 0..1 (clamp) and smooth it; do NOT update DOM until note is stable
+      const level = Math.min(1, rms * 200);
+      smoothedLevel = smoothedLevel * 0.92 + level * 0.08;
+      const now = Date.now();
+      // Determine current detected note id (rounded MIDI) or null
+      let currentNoteId: number | null = null;
+      if (frequency && clarity) {
+        const midi = 69 + 12 * Math.log2(frequency / 440);
+        const midiRound = Math.round(midi);
+        currentNoteId = midiRound;
+      }
+
+      // Update stability timers
+      if (currentNoteId === lastDetectedNoteId) {
+        if (noteStableSince === null) noteStableSince = now;
+      } else {
+        lastDetectedNoteId = currentNoteId;
+        noteStableSince = currentNoteId === null ? null : now;
+      }
+
+      // Only update visible status and meter when the same note persisted for NOTE_STABLE_MS
+      const stable = noteStableSince !== null && now - noteStableSince >= NOTE_STABLE_MS;
+      if (rms < 0.0005) {
+        if (statusEl) statusEl.textContent = `No input`;
+      } else if (stable && currentNoteId !== null) {
+        // Show note and update meter when stable
+        const midiRound = currentNoteId;
+        const noteName = allNotes[(midiRound % 12 + 12) % 12];
+        const octave = Math.floor(midiRound / 12) - 1;
+        if (statusEl) statusEl.textContent = `${noteName}${octave} ${frequency.toFixed(1)}Hz (${clarity.toFixed(2)})`;
+        // Update meter immediately when stable (use smoothedLevel)
+        const meterFillStable = document.getElementById('mic-meter-fill');
+        if (meterFillStable) {
+          const pct = Math.round(smoothedLevel * 100);
+          meterFillStable.style.width = `${pct}%`;
+          if (smoothedLevel < 0.4) meterFillStable.style.background = '#4caf50';
+          else if (smoothedLevel < 0.8) meterFillStable.style.background = '#ffeb3b';
+          else meterFillStable.style.background = '#f44336';
+        }
+        // Submit this stable detected note to the quiz flow once
+        if (displayedNoteId !== currentNoteId) {
+          try {
+            // Map to nearest fret and submit via unified handler
+            submitDetectedNote(midiRound);
+          } catch (e) {
+            console.error('submitDetectedNote error', e);
+          }
+          displayedNoteId = currentNoteId;
+        }
+      } else {
+        if (statusEl) statusEl.textContent = `Detecting...`;
+      }
+      pitchAnimFrame = requestAnimationFrame(loop);
+    };
+
+    loop();
+  }
+
+  function stopMic() {
+    pitchDetecting = false;
+    if (pitchAnimFrame) {
+      cancelAnimationFrame(pitchAnimFrame);
+      pitchAnimFrame = null;
+    }
+    if (analyserForPitch) {
+      try {
+        analyserForPitch.disconnect();
+      } catch (e) {}
+      analyserForPitch = null;
+    }
+    if (audioContextForPitch) {
+      try {
+        audioContextForPitch.close();
+      } catch (e) {}
+      audioContextForPitch = null;
+    }
+    if (micStream) {
+      try {
+        micStream.getTracks().forEach((t) => t.stop());
+      } catch (e) {}
+      micStream = null;
+    }
+    const statusEl = document.getElementById('mic-status');
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.style.display = 'none';
+    }
+    const meterEl = document.getElementById('mic-meter');
+    if (meterEl) meterEl.style.display = 'none';
+    // clear meter
+    const meterFill = document.getElementById('mic-meter-fill');
+    if (meterFill) meterFill.style.width = '0%';
+    detector = null;
+    pitchBuffer = null;
+  }
+
+  // Map a detected MIDI note to nearest fret for the current card and submit it
+  function submitDetectedNote(midiRound) {
+    // Convert MIDI to note name and delegate to unified submitAnswer
+    try {
+      if (!currentCard) return;
+      const noteName = allNotes[(midiRound % 12 + 12) % 12];
+      console.log(`Detected note: ${noteName} (MIDI ${midiRound})`);
+      // Use the new submitAnswer with detected note instead of fret mapping
+      submitAnswer(null, null, 'mic', noteName);
+    } catch (e) {
+      console.error('submitDetectedNote failed', e);
+    }
+  }
+
   function updateSoundBanner() {
     const banner = $("#sound-banner");
     if (audioEnabled) {
@@ -1470,6 +1659,23 @@ $(async function () {
     // Sound banner click handler (only needed on iOS)
     $("#sound-banner").on("click", function () {
       initAudioContext();
+    });
+
+    // Mic toggle handler
+    $("#mic-toggle").on("click", async function () {
+      const $btn = $(this);
+      if (!pitchDetecting) {
+        try {
+          await startMic();
+          $btn.text("🎤 Disable Mic");
+        } catch (e) {
+          console.error("Failed to start mic:", e);
+          alert("Unable to access microphone: " + (e && e.message ? e.message : e));
+        }
+      } else {
+        stopMic();
+        $btn.text("🎤 Enable Mic");
+      }
     });
 
     $("#enable-bias").on("change", function () {
