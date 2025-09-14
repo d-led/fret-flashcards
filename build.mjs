@@ -11,27 +11,11 @@ function copyFile(src, dest) {
   fs.copyFileSync(src, dest);
 }
 
-function copyAssets() {
-  // ensure outdir exists and clean it but preserve dist/.gitkeep if present
-  if (fs.existsSync(outdir)) {
-    const entries = fs.readdirSync(outdir);
-    for (const name of entries) {
-      if (name === ".gitkeep") continue;
-      const full = path.join(outdir, name);
-      fs.rmSync(full, { recursive: true, force: true });
-    }
-  } else {
-    fs.mkdirSync(outdir, { recursive: true });
-  }
-
-  // copy index.html (no longer injecting build stamp since it's handled in JS)
-  const indexSrc = path.join("src", "static", "index.html");
-  const indexDest = path.join(outdir, "index.html");
-  copyFile(indexSrc, indexDest);
-
+function copyVendorAssets() {
   // copy vendor libs from node_modules (vexflow and jquery)
   try {
     const vendorDest = path.join(outdir, "vendor");
+    fs.mkdirSync(vendorDest, { recursive: true });
     copyFile(path.join("node_modules", "vexflow", "build", "cjs", "vexflow.js"), path.join(vendorDest, "vexflow.js"));
   } catch (e) {
     // ignore if not present
@@ -42,16 +26,6 @@ function copyAssets() {
   } catch (e) {
     // ignore if not present
   }
-
-  // copy css
-  const cssSrc = path.join("src", "css", "main.css");
-  const cssDest = path.join(outdir, "main.css");
-  if (fs.existsSync(cssSrc)) copyFile(cssSrc, cssDest);
-
-  // copy favicon from logo
-  const logoSrc = path.join("src", "logo", "logo.svg");
-  const faviconDest = path.join(outdir, "favicon.svg");
-  if (fs.existsSync(logoSrc)) copyFile(logoSrc, faviconDest);
 }
 
 function replaceBuildInfo() {
@@ -93,15 +67,27 @@ function replaceBuildInfo() {
 
 async function buildJS(watch = false) {
   const options = {
-    entryPoints: [path.join("src", "ts", "index.ts")],
+    entryPoints: [
+      path.join("src", "ts", "index.ts"),
+      path.join("src", "css", "main.css"),
+      path.join("src", "static", "index.html"),
+      path.join("src", "logo", "logo.svg")
+    ],
     bundle: true,
     sourcemap: true,
-    outfile: path.join(outdir, "index.js"),
+    outdir: outdir,
     target: ["es2019"],
     format: "iife",
     platform: "browser",
     minify: false,
     logLevel: "info",
+    loader: {
+      '.html': 'copy',
+      '.css': 'copy',
+      '.svg': 'copy'
+    },
+    assetNames: '[name]',
+    entryNames: '[name]'
   };
 
   if (watch) {
@@ -112,11 +98,11 @@ async function buildJS(watch = false) {
       ...options,
       plugins: [
         {
-          name: 'copy-assets',
+          name: 'copy-vendor-assets',
           setup(build) {
             build.onStart(() => {
               console.log('Build starting...');
-              copyAssets();
+              copyVendorAssets();
             });
             build.onEnd(() => {
               console.log('Build complete');
@@ -137,7 +123,7 @@ async function buildJS(watch = false) {
       process.exit(0);
     });
   } else {
-    copyAssets();
+    copyVendorAssets();
     await build(options);
     replaceBuildInfo();
   }
