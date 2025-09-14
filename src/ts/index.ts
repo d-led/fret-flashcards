@@ -223,49 +223,73 @@ $(async function () {
               .addKeySignature(scoreKey);
 
             factoryTreble.draw();
-            const trebleSvg = document.getElementById("treble-score").querySelector("svg");
-            if (trebleSvg) {
-              // Remove the white background rect added by VexFlow to eliminate extra white space
-              const bgRect = trebleSvg.querySelector("rect");
-              if (bgRect) bgRect.remove();
-              // Calculate tight bounding box around stave and notes
-              const staveG = trebleSvg.querySelector("g.vf-stave");
-              const noteG = trebleSvg.querySelector("g.vf-stavenote");
-              let minX = Infinity,
-                minY = Infinity,
-                maxX = -Infinity,
-                maxY = -Infinity;
-              if (staveG) {
-                const b = staveG.getBBox();
-                minX = Math.min(minX, b.x);
-                minY = Math.min(minY, b.y);
-                maxX = Math.max(maxX, b.x + b.width);
-                maxY = Math.max(maxY, b.y + b.height);
-              }
-              if (noteG) {
-                const rect = noteG.querySelector("rect");
-                if (rect) {
-                  const x = parseFloat(rect.getAttribute("x"));
-                  const y = parseFloat(rect.getAttribute("y"));
-                  const width = parseFloat(rect.getAttribute("width"));
-                  const height = parseFloat(rect.getAttribute("height"));
-                  minX = Math.min(minX, x);
-                  minY = Math.min(minY, y);
-                  maxX = Math.max(maxX, x + width);
-                  maxY = Math.max(maxY, y + height);
+
+            // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
+            (async () => {
+              const trebleSvgEl = trebleContainer?.querySelector('svg');
+              if (trebleSvgEl) {
+                try {
+                  console.log('Applying smart SVG optimization to treble clef...');
+                  
+                  // Instead of using getBBox() which includes oversized text bounds,
+                  // manually calculate bounds based on visual elements
+                  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                  
+                  // Get bounds from staff lines (these are the core visual structure)
+                  const paths = trebleSvgEl.querySelectorAll('path');
+                  paths.forEach(path => {
+                    try {
+                      const pathBBox = (path as SVGPathElement).getBBox();
+                      minX = Math.min(minX, pathBBox.x);
+                      minY = Math.min(minY, pathBBox.y);
+                      maxX = Math.max(maxX, pathBBox.x + pathBBox.width);
+                      maxY = Math.max(maxY, pathBBox.y + pathBBox.height);
+                    } catch (e) {
+                      // Skip paths that can't be measured
+                    }
+                  });
+                  
+                  // Get bounds from circles (note heads)
+                  const circles = trebleSvgEl.querySelectorAll('circle');
+                  circles.forEach(circle => {
+                    try {
+                      const circleBBox = (circle as SVGCircleElement).getBBox();
+                      minX = Math.min(minX, circleBBox.x);
+                      minY = Math.min(minY, circleBBox.y);
+                      maxX = Math.max(maxX, circleBBox.x + circleBBox.width);
+                      maxY = Math.max(maxY, circleBBox.y + circleBBox.height);
+                    } catch (e) {
+                      // Skip circles that can't be measured
+                    }
+                  });
+                  
+                  // If we found valid bounds, use them with minimal margin
+                  if (minX !== Infinity && minY !== Infinity) {
+                    const margin = 5; // Smaller margin for tighter cropping
+                    const cropX = minX - margin;
+                    const cropY = minY - margin;
+                    const cropWidth = (maxX - minX) + (2 * margin);
+                    const cropHeight = (maxY - minY) + (2 * margin);
+                    
+                    trebleSvgEl.setAttribute('viewBox', `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
+                    trebleSvgEl.setAttribute('width', '100%');
+                    trebleSvgEl.setAttribute('height', '100%');
+                    
+                    console.log(`Treble clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
+                  } else {
+                    // Fallback to getBBox if smart cropping fails
+                    const bbox = trebleSvgEl.getBBox();
+                    const margin = 10;
+                    trebleSvgEl.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2*margin} ${bbox.height + 2*margin}`);
+                    trebleSvgEl.setAttribute('width', '100%');
+                    trebleSvgEl.setAttribute('height', '100%');
+                    console.log('Treble clef: Fallback to getBBox cropping');
+                  }
+                } catch (error) {
+                  console.error('Error optimizing treble SVG:', error);
                 }
               }
-              if (minX !== Infinity) {
-                const margin = 24;
-                trebleSvg.setAttribute("viewBox", `${minX - margin} ${minY - margin} ${maxX - minX + 2 * margin} ${maxY - minY + 2 * margin}`);
-              } else {
-                // Fallback
-                const bbox = trebleSvg.getBBox();
-                trebleSvg.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-              }
-              trebleSvg.setAttribute("width", "100%");
-              trebleSvg.setAttribute("height", "100%");
-            }
+            })();
           }
         }
       } catch (err) {
@@ -321,49 +345,73 @@ $(async function () {
               .addKeySignature(scoreKey);
 
             factoryBass.draw();
-            const bassSvg = document.getElementById("bass-score").querySelector("svg");
-            if (bassSvg) {
-              // Remove the white background rect added by VexFlow to eliminate extra white space and pessimize the bounding box
-              const bgRect = bassSvg.querySelector("rect");
-              if (bgRect) bgRect.remove();
-              // Calculate tight bounding box around stave and notes
-              const staveG = bassSvg.querySelector("g.vf-stave");
-              const noteG = bassSvg.querySelector("g.vf-stavenote");
-              let minX = Infinity,
-                minY = Infinity,
-                maxX = -Infinity,
-                maxY = -Infinity;
-              if (staveG) {
-                const b = staveG.getBBox();
-                minX = Math.min(minX, b.x);
-                minY = Math.min(minY, b.y);
-                maxX = Math.max(maxX, b.x + b.width);
-                maxY = Math.max(maxY, b.y + b.height);
-              }
-              if (noteG) {
-                const rect = noteG.querySelector("rect");
-                if (rect) {
-                  const x = parseFloat(rect.getAttribute("x"));
-                  const y = parseFloat(rect.getAttribute("y"));
-                  const width = parseFloat(rect.getAttribute("width"));
-                  const height = parseFloat(rect.getAttribute("height"));
-                  minX = Math.min(minX, x);
-                  minY = Math.min(minY, y);
-                  maxX = Math.max(maxX, x + width);
-                  maxY = Math.max(maxY, y + height);
+
+            // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
+            (async () => {
+              const bassSvgEl = bassContainer?.querySelector('svg');
+              if (bassSvgEl) {
+                try {
+                  console.log('Applying smart SVG optimization to bass clef...');
+                  
+                  // Instead of using getBBox() which includes oversized text bounds,
+                  // manually calculate bounds based on visual elements
+                  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                  
+                  // Get bounds from staff lines (these are the core visual structure)
+                  const paths = bassSvgEl.querySelectorAll('path');
+                  paths.forEach(path => {
+                    try {
+                      const pathBBox = (path as SVGPathElement).getBBox();
+                      minX = Math.min(minX, pathBBox.x);
+                      minY = Math.min(minY, pathBBox.y);
+                      maxX = Math.max(maxX, pathBBox.x + pathBBox.width);
+                      maxY = Math.max(maxY, pathBBox.y + pathBBox.height);
+                    } catch (e) {
+                      // Skip paths that can't be measured
+                    }
+                  });
+                  
+                  // Get bounds from circles (note heads)
+                  const circles = bassSvgEl.querySelectorAll('circle');
+                  circles.forEach(circle => {
+                    try {
+                      const circleBBox = (circle as SVGCircleElement).getBBox();
+                      minX = Math.min(minX, circleBBox.x);
+                      minY = Math.min(minY, circleBBox.y);
+                      maxX = Math.max(maxX, circleBBox.x + circleBBox.width);
+                      maxY = Math.max(maxY, circleBBox.y + circleBBox.height);
+                    } catch (e) {
+                      // Skip circles that can't be measured
+                    }
+                  });
+                  
+                  // If we found valid bounds, use them with minimal margin
+                  if (minX !== Infinity && minY !== Infinity) {
+                    const margin = 5; // Smaller margin for tighter cropping
+                    const cropX = minX - margin;
+                    const cropY = minY - margin;
+                    const cropWidth = (maxX - minX) + (2 * margin);
+                    const cropHeight = (maxY - minY) + (2 * margin);
+                    
+                    bassSvgEl.setAttribute('viewBox', `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
+                    bassSvgEl.setAttribute('width', '100%');
+                    bassSvgEl.setAttribute('height', '100%');
+                    
+                    console.log(`Bass clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
+                  } else {
+                    // Fallback to getBBox if smart cropping fails
+                    const bbox = bassSvgEl.getBBox();
+                    const margin = 10;
+                    bassSvgEl.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2*margin} ${bbox.height + 2*margin}`);
+                    bassSvgEl.setAttribute('width', '100%');
+                    bassSvgEl.setAttribute('height', '100%');
+                    console.log('Bass clef: Fallback to getBBox cropping');
+                  }
+                } catch (error) {
+                  console.error('Error optimizing bass SVG:', error);
                 }
               }
-              if (minX !== Infinity) {
-                const margin = 15;
-                bassSvg.setAttribute("viewBox", `${minX - margin} ${minY - margin} ${maxX - minX + 2 * margin} ${maxY - minY + 2 * margin}`);
-              } else {
-                // Fallback
-                const bbox = bassSvg.getBBox();
-                bassSvg.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-              }
-              bassSvg.setAttribute("width", "100%");
-              bassSvg.setAttribute("height", "100%");
-            }
+            })();
           }
         }
       } catch (err) {
