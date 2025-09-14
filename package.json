@@ -10,6 +10,12 @@
   },
   "devDependencies": {
     "cypress": "^15.2.0",
-    "prettier": "^3.6.2"
+    "esbuild": "^0.25.9",
+    "esbuild-plugin-tsc": "^0.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
   }
 }
