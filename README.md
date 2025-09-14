@@ -3,6 +3,7 @@
 A compact browser tool to practice and memorize notes on a 3- to 12-string guitar-style fretboard.
 
 ![screenshot](./docs/img/app-screenshot.png)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards?ref=badge_shield)
 
 ## Features
 
@@ -41,3 +42,7 @@ Inspired by Steve Vai's anecdote about the first homework given to him by Joe Sa
 ## Notes for iOS users
 
 - On iOS devices you may need to tap the "enable sound" banner to hear tones.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards?ref=badge_large)
