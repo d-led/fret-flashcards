@@ -17,7 +17,7 @@ A compact browser tool to practice and memorize notes on a 3- to 12-string guita
 
 ## Deployment
 
-- Live at: https://ledentsov.de/js/learn-the-fretboard/
+- Live at: https://d-led.github.io/fret-flashcards
 
 ## Quick start
 
