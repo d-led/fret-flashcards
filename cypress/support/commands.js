@@ -25,7 +25,30 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 Cypress.Commands.add("visitApp", () => {
-  cy.visit(`http://localhost:${Cypress.env("port")}/`);
+  const base = Cypress.config("baseUrl") || Cypress.env("baseUrl");
+  if (base) {
+    const baseStr = String(base);
+    // If it's an absolute URL, visit it directly to avoid runner URL-resolution issues.
+    if (/^https?:\/\//i.test(baseStr)) {
+      cy.visit(baseStr);
+      return;
+    }
+
+    // If base looks like a path, fall back to visiting root so Cypress will resolve against config.baseUrl
+    cy.visit("/");
+    return;
+  }
+
+  const port = Cypress.env("port");
+  if (port) {
+    cy.visit(`http://localhost:${port}/`);
+    return;
+  }
+
+  // If we don't have a baseUrl or a port, fail fast with a helpful message
+  throw new Error(
+    "visitApp: no baseUrl provided and Cypress.env('port') is not set — start the dev server or provide baseUrl"
+  );
 });
 
 Cypress.Commands.add("shouldHaveMainElementsVisible", () => {
