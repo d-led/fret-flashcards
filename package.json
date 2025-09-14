@@ -4,6 +4,7 @@
   "description": "Guitar Fretboard Flashcard Game",
   "main": "src/dist/index.html",
   "scripts": {
+    "test": "mkdir -p test-results && vitest run",
     "e2e": "cypress run --e2e --browser chrome",
     "cy": "cypress open --e2e --browser chrome",
     "test:e2e": "npm run build && npm run e2e",
@@ -20,7 +21,8 @@
     "mocha-junit-reporter": "^2.0.0",
     "prettier": "^3.6.2",
     "sirv": "^2.0.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "jquery": "3.7.1",

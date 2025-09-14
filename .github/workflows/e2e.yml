@@ -41,6 +41,8 @@ jobs:
         run: npm ci --prefer-offline --no-audit --progress=false
       - name: Build project
         run: npm run build
+      - name: Run unit tests
+        run: npm test
       - name: Run E2E tests (with JUnit reporter)
         run: |
           mkdir -p test-results
