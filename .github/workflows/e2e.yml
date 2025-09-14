@@ -22,8 +22,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Cache npm (node_modules + npm cache)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
-        run: npm install
+        run: npm ci --prefer-offline --no-audit --progress=false
       - name: Build project
         run: npm run build
       - name: Run E2E tests (with JUnit reporter)
