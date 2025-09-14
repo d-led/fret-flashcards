@@ -10,23 +10,18 @@ module.exports = {
     setupNodeEvents(on, config) {
       let server;
 
-      // Start the server immediately on random port
+      // Start the server immediately on random port and serve `src/dist` statically
+      const sirv = require("sirv");
+      const distRoot = path.join(__dirname, "dist");
+      const serve = sirv(distRoot, { dev: false, single: true });
+
       server = http.createServer((req, res) => {
-        if (req.url === "/" || req.url === "/index.html") {
-          const filePath = path.join(__dirname, "src", "static", "index.html");
-          fs.readFile(filePath, (err, data) => {
-            if (err) {
-              res.writeHead(500);
-              res.end("Error loading index.html");
-              return;
-            }
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(data);
-          });
-        } else {
-          res.writeHead(404);
+        // Delegate static file serving to sirv (single: true will serve index.html for SPA)
+        serve(req, res, () => {
+          // If sirv didn't handle the request, return 404
+          res.writeHead(404, { "Content-Type": "text/plain" });
           res.end("Not found");
-        }
+        });
       });
 
       server

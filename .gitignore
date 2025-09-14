@@ -258,3 +258,5 @@ fabric.properties
 !.idea/runConfigurations
 
 # End of https://www.toptal.com/developers/gitignore/api/node,cypressio,webstorm+all,visualstudiocode
+
+.DS_Store
