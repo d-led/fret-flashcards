@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_pages:
+        description: 'Set to true to deploy to GitHub Pages after E2E'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -73,7 +79,7 @@ jobs:
   publish:
     needs: e2e
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && needs.e2e.result == 'success'
+    if: needs.e2e.result == 'success' && (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_pages == 'true')
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
@@ -83,6 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: cypress/included:latest
+    if: needs.publish.result == 'success' && (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_pages == 'true')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
