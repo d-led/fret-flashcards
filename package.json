@@ -10,7 +10,7 @@
     "prettier": "prettier -w .",
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "serve": "npx -y http-server ./dist"
+    "serve": "npx -y http-server ./dist -c-1"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.33",
