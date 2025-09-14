@@ -439,6 +439,10 @@ body {
   font-size: var(--font-small);
   color: var(--inactive);
 }
+/* extra space after small comment text blocks */
+.small-comment-text {
+  margin-bottom: 1em;
+}
 
 #skip-countdown {
   display: none;
