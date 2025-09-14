@@ -428,6 +428,13 @@ body {
   margin-top: 2em;
   color: var(--inactive);
 }
+.build-stamp,
+#build-info {
+  text-align: center;
+  font-size: var(--font-small);
+  margin-top: 1.5em; /* increased spacing before the build info */
+  color: var(--inactive);
+}
 .small-comment-text {
   font-size: var(--font-small);
   color: var(--inactive);
