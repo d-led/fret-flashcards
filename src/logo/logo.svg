@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <rect width="128" height="128" fill="#1a1a1a"/>
+    <g>
+        <!-- First Fret (yellow) -->
+        <line x1="32" y1="20" x2="32" y2="108" stroke="#f7ca18" stroke-width="8"/>
+
+        <!-- String -->
+        <line x1="32" y1="64" x2="108" y2="64" stroke="#6a6a6a" stroke-width="4"/>
+
+        <!-- Fret -->
+        <line x1="64" y1="20" x2="64" y2="108" stroke="#8a8a8a" stroke-width="8"/>
+
+        <!-- Dots -->
+        <circle cx="48" cy="64" r="10" fill="#2ecc40"/> <!-- green -->
+        <circle cx="80" cy="64" r="10" fill="#e74c3c"/> <!-- red -->
+    </g>
+</svg>
