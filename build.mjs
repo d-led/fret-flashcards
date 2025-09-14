@@ -10,7 +10,7 @@ function copyFile(src, dest) {
   fs.copyFileSync(src, dest);
 }
 
-async function run() {
+function copyAssets() {
   // ensure outdir exists and clean it but preserve dist/.gitkeep if present
   if (fs.existsSync(outdir)) {
     const entries = fs.readdirSync(outdir);
@@ -44,9 +44,10 @@ async function run() {
   const cssSrc = path.join("src", "css", "main.css");
   const cssDest = path.join(outdir, "main.css");
   if (fs.existsSync(cssSrc)) copyFile(cssSrc, cssDest);
+}
 
-  // build with esbuild targeting engines
-  await build({
+async function buildJS(watch = false) {
+  const options = {
     entryPoints: [path.join("src", "ts", "index.ts")],
     bundle: true,
     sourcemap: true,
@@ -56,31 +57,49 @@ async function run() {
     platform: "browser",
     minify: false,
     logLevel: "info",
-  });
+  };
+
+  if (watch) {
+    // Use esbuild's context API for watch mode
+    const { context } = await import('esbuild');
+    
+    const ctx = await context({
+      ...options,
+      plugins: [
+        {
+          name: 'copy-assets',
+          setup(build) {
+            build.onStart(() => {
+              console.log('Build starting...');
+              copyAssets();
+            });
+            build.onEnd(() => {
+              console.log('Build complete');
+            });
+          },
+        },
+      ],
+    });
+    
+    await ctx.watch();
+    console.log('Watching for changes...');
+    
+    // Keep the process alive
+    process.on('SIGINT', async () => {
+      console.log('\nStopping watch mode...');
+      await ctx.dispose();
+      process.exit(0);
+    });
+  } else {
+    copyAssets();
+    await build(options);
+  }
 }
 
 if (process.argv.includes("--watch")) {
-  const chokidar = await import("chokidar");
-  console.log("watch mode: rebuilding on change");
-  const watcher = chokidar.watch(["src/ts/**", "src/css/**", "src/static/**"]);
-  let building = false;
-  const rebuild = async () => {
-    if (building) return;
-    building = true;
-    try {
-      await run();
-      console.log("build complete");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      building = false;
-    }
-  };
-  watcher.on("all", rebuild);
-  // initial build
-  await run();
+  buildJS(true);
 } else {
-  run().catch((err) => {
+  buildJS(false).catch((err) => {
     console.error(err);
     process.exit(1);
   });
