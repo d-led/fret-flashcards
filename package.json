@@ -6,7 +6,9 @@
   "scripts": {
     "e2e": "cypress run --e2e --browser chrome",
     "cy": "cypress open --e2e --browser chrome",
-    "prettier": "prettier -w ."
+    "prettier": "prettier -w .",
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.33",
