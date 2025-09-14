@@ -1020,6 +1020,15 @@ $(async function () {
       alert("Session complete!");
       makeSession();
     }
+    // Clear mic feedback and status when moving to new question
+    const feedbackEl = document.getElementById('mic-feedback');
+    if (feedbackEl) {
+      feedbackEl.textContent = '';
+    }
+    const statusEl = document.getElementById('mic-status');
+    if (statusEl) {
+      statusEl.textContent = '';
+    }
     showCard();
   }
 
@@ -1029,32 +1038,81 @@ $(async function () {
   function submitAnswer(stringIdx, fret, source, detectedNote) {
     if (!currentCard) return;
     
+    // Clear mic feedback when an answer is submitted
+    const feedbackEl = document.getElementById('mic-feedback');
+    if (feedbackEl && source !== 'mic') {
+      feedbackEl.textContent = '';
+    }
+    // Clear detected note status when a manual answer is submitted
+    const statusEl = document.getElementById('mic-status');
+    if (statusEl && source !== 'mic') {
+      statusEl.textContent = '';
+    }
+    
     // If a note name was provided, convert it to the appropriate fret on the current string
     if (detectedNote) {
-      // Convert detected note to MIDI
-      let detectedMidi = null;
-      for (const variant of noteVariants) {
-        if (variant.name === detectedNote) {
-          // We need to figure out the octave - find the closest match to the string's note range
-          const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
-          
-          // Try different octaves to find the best match within reasonable fret range
-          for (let octave = 1; octave <= 8; octave++) {
-            const candidateMidi = getMidi(variant.name, octave);
-            const fretDiff = candidateMidi - openMidi;
-            if (fretDiff >= 0 && fretDiff <= 24) { // Within reasonable fret range
-              detectedMidi = candidateMidi;
-              break;
-            }
+      // detectedNote may be either "NAME" or "NAME/OCTAVE" (we pass octave from mic)
+      let namePart = detectedNote;
+      let octavePart = null;
+      if (detectedNote.includes("/")) {
+        const parts = detectedNote.split("/");
+        namePart = parts[0];
+        octavePart = parseInt(parts[1], 10);
+        if (!isFinite(octavePart)) octavePart = null;
+      }
+
+      // Find variant matching the detected name
+      const variant = noteVariants.find((v) => v.name === namePart);
+      if (!variant) {
+        console.warn(`Unknown detected note name: ${detectedNote}`);
+        const feedbackEl = document.getElementById('mic-feedback');
+        if (feedbackEl) {
+          feedbackEl.textContent = `Unknown note: ${detectedNote}`;
+          feedbackEl.style.color = '#f44336';
+        }
+        return;
+      }
+
+      // Try to compute MIDI using provided octave first (if any), otherwise search plausible octaves
+      let detectedMidi: number | null = null;
+      const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+      if (octavePart !== null) {
+        const candidateMidi = getMidi(variant.name, octavePart);
+        const fretDiff = candidateMidi - openMidi;
+        if (fretDiff >= 0 && fretDiff <= 24) {
+          detectedMidi = candidateMidi;
+        } else {
+          // When octave is explicitly provided (from mic), don't fall back to searching other octaves
+          console.log(`Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`);
+          const feedbackEl = document.getElementById('mic-feedback');
+          if (feedbackEl) {
+            feedbackEl.textContent = `${namePart}${octavePart} out of range (fret ${fretDiff})`;
+            feedbackEl.style.color = '#f44336';
           }
-          break;
+          return;
+        }
+      } else {
+        // Only search different octaves when no specific octave was provided
+        for (let octave = 1; octave <= 8; octave++) {
+          const candidateMidi = getMidi(variant.name, octave);
+          const fretDiff = candidateMidi - openMidi;
+          if (fretDiff >= 0 && fretDiff <= 24) { // Within reasonable fret range
+            detectedMidi = candidateMidi;
+            break;
+          }
         }
       }
-      
-      if (detectedMidi) {
-        const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+
+      if (detectedMidi !== null) {
         fret = detectedMidi - openMidi;
         stringIdx = currentCard.string; // Force to current quiz string
+        
+        // Show success feedback
+        const feedbackEl = document.getElementById('mic-feedback');
+        if (feedbackEl && octavePart !== null) {
+          feedbackEl.textContent = `${namePart}${octavePart} → fret ${fret}`;
+          feedbackEl.style.color = '#4caf50';
+        }
       } else {
         console.warn(`Could not convert detected note ${detectedNote} to fret`);
         return;
@@ -1423,8 +1481,10 @@ $(async function () {
   collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
   const statusEl = document.getElementById('mic-status');
   const meterEl = document.getElementById('mic-meter');
+  const feedbackEl = document.getElementById('mic-feedback');
   if (statusEl) statusEl.style.display = 'inline';
   if (meterEl) meterEl.style.display = 'inline-block';
+  if (feedbackEl) feedbackEl.style.display = 'inline';
 
   // statusEl already declared above
 
@@ -1483,9 +1543,9 @@ $(async function () {
       if (rms < 0.0005) {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
-        if (statusEl) statusEl.textContent = `No input`;
         const meterFillSilent = document.getElementById('mic-meter-fill');
         const noteMeterFillSilent = document.getElementById('note-meter-fill');
+        const meterEl = document.getElementById('mic-meter');
         if (meterFillSilent) {
           meterFillSilent.style.width = `0%`;
           meterFillSilent.style.background = '#4caf50';
@@ -1494,15 +1554,20 @@ $(async function () {
           noteMeterFillSilent.style.width = `0%`;
           noteMeterFillSilent.style.background = '#4caf50';
         }
+        // Change meter border to indicate no input
+        if (meterEl) {
+          meterEl.style.borderColor = '#555';
+        }
       } else if (stable && currentNoteId !== null) {
         // Show note and update meter when stable
         const midiRound = currentNoteId;
         const noteName = allNotes[(midiRound % 12 + 12) % 12];
         const octave = Math.floor(midiRound / 12) - 1;
-        if (statusEl) statusEl.textContent = `${noteName}${octave} ${frequency.toFixed(1)}Hz (${clarity.toFixed(2)})`;
+        if (statusEl) statusEl.textContent = `${noteName}${octave}`;
         // Update meter immediately when stable (use smoothedLevel)
         const meterFillStable = document.getElementById('mic-meter-fill');
         const noteMeterFill = document.getElementById('note-meter-fill');
+        const meterEl = document.getElementById('mic-meter');
         if (meterFillStable) {
           const pct = Math.round(smoothedLevel * 100);
           meterFillStable.style.width = `${pct}%`;
@@ -1517,18 +1582,27 @@ $(async function () {
           else if (smoothedLevel < 0.8) noteMeterFill.style.background = '#ffeb3b';
           else noteMeterFill.style.background = '#f44336';
         }
+        // Change meter border to indicate stable note detection
+        if (meterEl) {
+          meterEl.style.borderColor = '#4caf50';
+        }
         // Submit this stable detected note to the quiz flow once
         if (displayedNoteId !== currentNoteId) {
           try {
-            // Map to nearest fret and submit via unified handler
-            submitDetectedNote(midiRound);
+            // Map to nearest fret and submit via unified handler. Only mark displayedNoteId
+            // when submission succeeded to avoid a spurious guard that blocks future tries.
+            const ok = submitDetectedNote(midiRound);
+            if (ok) displayedNoteId = currentNoteId;
           } catch (e) {
             console.error('submitDetectedNote error', e);
           }
-          displayedNoteId = currentNoteId;
         }
       } else {
-        if (statusEl) statusEl.textContent = `Detecting...`;
+        // Change meter border to indicate detecting/unstable
+        const meterEl = document.getElementById('mic-meter');
+        if (meterEl) {
+          meterEl.style.borderColor = '#ffeb3b';
+        }
       }
       pitchAnimFrame = requestAnimationFrame(loop);
     };
@@ -1566,7 +1640,12 @@ $(async function () {
       statusEl.style.display = 'none';
     }
   const meterEl = document.getElementById('mic-meter');
-    if (meterEl) meterEl.style.display = 'none';
+    if (meterEl) {
+      meterEl.style.display = 'none';
+      meterEl.style.borderColor = '#777'; // Reset border color
+    }
+    const feedbackEl = document.getElementById('mic-feedback');
+    if (feedbackEl) feedbackEl.style.display = 'none';
     // clear meter
     const meterFill = document.getElementById('mic-meter-fill');
     if (meterFill) meterFill.style.width = '0%';
@@ -1585,11 +1664,14 @@ $(async function () {
     try {
       if (!currentCard) return;
       const noteName = allNotes[(midiRound % 12 + 12) % 12];
-      console.log(`Detected note: ${noteName} (MIDI ${midiRound})`);
-      // Use the new submitAnswer with detected note instead of fret mapping
-      submitAnswer(null, null, 'mic', noteName);
+      const octave = Math.floor(midiRound / 12) - 1;
+      console.log(`Detected note: ${noteName}${octave} (MIDI ${midiRound})`);
+      // Pass both name and octave (format: NAME/OCTAVE) so submitAnswer can use exact octave
+      submitAnswer(null, null, 'mic', `${noteName}/${octave}`);
+      return true;
     } catch (e) {
       console.error('submitDetectedNote failed', e);
+      return false;
     }
   }
 
