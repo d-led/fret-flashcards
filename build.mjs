@@ -52,7 +52,7 @@ function replaceBuildInfo() {
     // prepare stamp text
     const stampParts = [utcDate];
     if (gitHash) stampParts.push(gitHash);
-    const stampText = "build: " + stampParts.join(" ");
+    const stampText = "Build: " + stampParts.join(" ");
 
     // read and replace in the built JS file
     let jsContent = fs.readFileSync(jsFile, "utf8");

@@ -1,6 +1,6 @@
 import { PitchDetector } from 'pitchy';
 
-const buildInfo = "build: unknown";
+const buildInfo = "Build: unknown";
 
 console.log(`loaded index.js`);
 
