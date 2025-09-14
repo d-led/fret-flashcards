@@ -523,6 +523,7 @@ $(async function () {
   let enableBias = true; // Default to true for improved learning
   let showScoreNotation = false; // Default to false to hide score by default
   let scoreKey = "C"; // Default key for score notation
+  let hideQuizNote = false; // Default to false to show quiz note by default
 
   // Octaves for MIDI calculation based on string count (expanded to 3-12)
   // Removed: now combined into defaultTunings
@@ -645,6 +646,7 @@ $(async function () {
       enableBias: !!enableBias,
       showScoreNotation: !!showScoreNotation,
       scoreKey: scoreKey,
+      hideQuizNote: !!hideQuizNote,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
@@ -697,16 +699,21 @@ $(async function () {
       if ("showScoreNotation" in settings) {
         showScoreNotation = !!settings.showScoreNotation;
         $("#show-score-notation").prop("checked", showScoreNotation);
-        if (showScoreNotation) {
-          $("#score-key-row").show();
-        } else {
-          $("#score-key-row").hide();
+        $("#score-key-row").toggle(showScoreNotation);
+        $("#hide-quiz-note-label").toggle(showScoreNotation);
+        if (!showScoreNotation) {
+          hideQuizNote = false;
+          $("#hide-quiz-note").prop("checked", false);
         }
       }
       if ("scoreKey" in settings) {
         scoreKey = settings.scoreKey;
         $("#score-key").val(scoreKey);
       }
+      if ("hideQuizNote" in settings) {
+        hideQuizNote = !!settings.hideQuizNote;
+      }
+      $("#hide-quiz-note").prop("checked", hideQuizNote);
     } catch (e) {}
   }
 
@@ -863,6 +870,28 @@ $(async function () {
     return a;
   }
 
+  function updateQuizNoteDisplay() {
+    if (!currentCard) return;
+    if (hideQuizNote) {
+      $("#quiz-note-btn").hide();
+      if (showScoreNotation) {
+        $("#note-score").show();
+        renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
+      } else {
+        $("#note-score").hide();
+      }
+    } else {
+      $("#quiz-note-btn").show();
+      if (showScoreNotation) {
+        $("#note-score").show();
+        renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
+      } else {
+        $("#note-score").hide();
+        $("#quiz-note-btn").text(currentCard.note);
+      }
+    }
+  }
+
   function showCard() {
     clearTimeout(pendingTimeout);
     clearInterval(countdownInterval);
@@ -870,6 +899,7 @@ $(async function () {
     // Ensure error counts match current tuning/session before rendering
     computeStringErrorCounts();
     if (session.length === 0) {
+      $("#quiz-note-btn").show();
       $("#quiz-note-btn").text("?");
       // clear machine-readable attributes when no session
       $("#quiz-note-btn").removeAttr("data-note");
@@ -883,15 +913,10 @@ $(async function () {
     currentCard = session[sessionIdx];
     currentCard.shownTime = Date.now(); // Track when the card is shown
     foundFrets = currentCard.found.slice();
-    $("#quiz-note-btn").text(currentCard.note);
     // expose stable attributes for tests (and other tooling)
     $("#quiz-note-btn").attr("data-note", currentCard.note);
-    if (showScoreNotation) {
-      $("#note-score").show();
-      renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
-    } else {
-      $("#note-score").hide();
-    }
+    updateQuizNoteDisplay();
+    $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
     $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
     $("#flashcard-string").text(
       // show as a readable sentence: "on the ... string"
@@ -1851,18 +1876,25 @@ $(async function () {
     $("#show-score-notation").on("change", function () {
       showScoreNotation = this.checked;
       saveSettings();
-      if (showScoreNotation) {
-        $("#score-key-row").show();
-      } else {
-        $("#score-key-row").hide();
+      $("#score-key-row").toggle(this.checked);
+      $("#hide-quiz-note-label").toggle(this.checked);
+      if (!this.checked) {
+        $("#hide-quiz-note").prop("checked", false);
+        hideQuizNote = false;
       }
-      showCard();
+      if (currentCard) updateQuizNoteDisplay();
     });
 
     $("#score-key").on("change", function () {
       scoreKey = this.value;
       saveSettings();
       showCard();
+    });
+
+    $("#hide-quiz-note").on("change", function () {
+      hideQuizNote = this.checked;
+      saveSettings();
+      if (currentCard) updateQuizNoteDisplay();
     });
 
     // Add event handler for skip button
