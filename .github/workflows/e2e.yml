@@ -77,3 +77,57 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
+  post-publish-e2e:
+    needs: publish
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:latest
+    steps:
+      - name: Wait for Pages to become available
+        run: |
+          set -e
+          URL="https://d-led.github.io/fret-flashcards/"
+          echo "Waiting for $URL to respond..."
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+            if [ "$status" = "200" ]; then
+              echo "Site is live"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $status - retrying in 5s..."
+            sleep 5
+          done
+          echo "Site did not become available after 150s"
+          exit 1
+
+      - name: Run E2E tests against deployed Pages URL
+        run: |
+          mkdir -p test-results
+          npm run e2e -- --config baseUrl=https://d-led.github.io/fret-flashcards/ -- --browser chrome \
+            --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/junit-pages-[hash].xml
+      - name: Upload Cypress screenshots (post-publish)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-pages
+          path: cypress/screenshots
+      - name: Upload Cypress videos (post-publish)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos-pages
+          path: cypress/videos
+      - name: Upload test results (post-publish)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-pages
+          path: test-results
+      - name: Publish JUnit to GitHub Checks (post-publish)
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Pages deploy E2E reports
+          path: test-results/*.xml
+          reporter: java-junit
