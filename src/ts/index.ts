@@ -141,7 +141,7 @@ $(async function () {
       // Show both if the note fits well in both ranges
 
       if (midi <= 55 && bassFits) {
-        // Low to mid range - prefer bass clef
+        // Low to mid-range - prefer bass clef
         const { note: bName, octave: bOct } = midiToNoteAndOctave(writtenBassMidi, note);
         let vexB = bName.toLowerCase();
         if (bName.includes("#")) vexB = bName.charAt(0).toLowerCase() + "#";
@@ -530,9 +530,9 @@ $(async function () {
   }; // Object to hold answer events in 'answers' array
 
   let enableBias = true; // Default to true for improved learning
-  let showScoreNotation = false; // Default to false to hide score by default
+  let showScoreNotation = false; // Default to false, to hide score by default
   let scoreKey = "C"; // Default key for score notation
-  let hideQuizNote = false; // Default to false to show quiz note by default
+  let hideQuizNote = false; // Default to false, to show quiz note by default
 
   // Octaves for MIDI calculation based on string count (expanded to 3-12)
   // Removed: now combined into defaultTunings
@@ -613,9 +613,7 @@ $(async function () {
     const noteIndex = midi % 12;
 
     // Normalize possible unicode accidentals passed from UI (e.g. '♯','♭')
-    if (typeof quizNote === "string") {
-      quizNote = quizNote.replace(/♯/g, "#").replace(/♭/g, "b");
-    }
+    quizNote = quizNote.replace(/♯/g, "#").replace(/♭/g, "b");
 
     console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}, scoreKey=${scoreKey}`);
 
@@ -648,14 +646,14 @@ $(async function () {
   function saveSettings() {
     const settings = {
       fretCount: Number(fretCountSetting),
-      showAccidentals: !!showAccidentals,
+      showAccidentals: showAccidentals,
       timeoutSeconds: Number(timeoutSeconds),
       numStrings: Number(numStrings),
       tuning: tuning.slice(),
-      enableBias: !!enableBias,
-      showScoreNotation: !!showScoreNotation,
+      enableBias: enableBias,
+      showScoreNotation: showScoreNotation,
       scoreKey: scoreKey,
-      hideQuizNote: !!hideQuizNote,
+      hideQuizNote: hideQuizNote,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
@@ -683,7 +681,7 @@ $(async function () {
       }
 
       if ("showAccidentals" in settings) {
-        showAccidentals = !!settings.showAccidentals;
+        showAccidentals = settings.showAccidentals;
         $("#accidentals").prop("checked", showAccidentals);
       }
       if ("timeoutSeconds" in settings) {
@@ -711,13 +709,13 @@ $(async function () {
         tuning = defaultTunings[numStrings as keyof typeof defaultTunings].strings.slice();
       }
       if ("enableBias" in settings) {
-        enableBias = !!settings.enableBias;
+        enableBias = settings.enableBias;
         $("#enable-bias").prop("checked", enableBias);
       } else {
         $("#enable-bias").prop("checked", enableBias); // Ensure default true is reflected
       }
       if ("showScoreNotation" in settings) {
-        showScoreNotation = !!settings.showScoreNotation;
+        showScoreNotation = settings.showScoreNotation;
         $("#show-score-notation").prop("checked", showScoreNotation);
         $("#score-key-row").toggle(showScoreNotation);
         $("#hide-quiz-note-label").toggle(showScoreNotation);
@@ -731,7 +729,7 @@ $(async function () {
         $("#score-key").val(scoreKey);
       }
       if ("hideQuizNote" in settings) {
-        hideQuizNote = !!settings.hideQuizNote;
+        hideQuizNote = settings.hideQuizNote;
       }
       $("#hide-quiz-note").prop("checked", hideQuizNote);
     } catch (e) {}
@@ -1258,13 +1256,13 @@ $(async function () {
     if (!correct) setTimeout(() => $(btn).removeClass("wrong"), 1000);
   }
 
-  function handleFretClick(e) {
+  function handleFretClick() {
     if (!currentCard) return;
     let fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
   }
 
-  function handleFretboardClick(e) {
+  function handleFretboardClick() {
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
@@ -1350,6 +1348,7 @@ $(async function () {
 
   // Detect iOS devices
   function detectIOS() {
+    // noinspection JSDeprecatedSymbols
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
 
@@ -1557,12 +1556,7 @@ $(async function () {
               audioEnabled = true;
             } else {
               console.error("Failed to enable audio:", err);
-              if (isIOS) {
-                audioEnabled = false;
-              } else {
-                // On non-iOS, assume audio will work even if test fails
-                audioEnabled = true;
-              }
+              audioEnabled = !isIOS;
             }
           });
       } else {
@@ -1629,8 +1623,7 @@ $(async function () {
 
       // Use pitchy correctly: pass sampleRate as second arg
       const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
-      const meterFill = document.getElementById("mic-meter-fill");
-      // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
+// Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;
         baselineSamplesCount++;
@@ -1650,8 +1643,8 @@ $(async function () {
       let currentNoteId: number | null = null;
       if (frequency && clarity) {
         const midi = 69 + 12 * Math.log2(frequency / 440);
-        const midiRound = Math.round(midi);
-        currentNoteId = midiRound;
+
+        currentNoteId = Math.round(midi);
       }
 
       // Update stability timers
@@ -1798,8 +1791,8 @@ $(async function () {
       const octave = Math.floor(midiRound / 12) - 1;
       console.log(`Detected note: ${noteName}${octave} (MIDI ${midiRound})`);
       // Pass both name and octave (format: NAME/OCTAVE) so submitAnswer can use exact octave
-      const submitted = submitAnswer(null, null, "mic", `${noteName}/${octave}`);
-      return submitted !== false; // Return false if submitAnswer explicitly rejected the note
+
+      return submitAnswer(null, null, "mic", `${noteName}/${octave}`); // Return false if submitAnswer explicitly rejected the note
     } catch (e) {
       console.error("submitDetectedNote failed", e);
       return false;
