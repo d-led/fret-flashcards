@@ -501,7 +501,7 @@ body {
     margin-left: auto; /* keep it on the far right */
     width: auto;
     min-width: 120px; /* smaller minimum to prevent wrapping */
-    max-width: 160px; /* smaller max width to fit better */
+    max-width: 140px; /* smaller max width to fit better */
     background: white; /* preserve white score background */
     padding-top: 20px; /* padding only on top */
     box-sizing: border-box;
