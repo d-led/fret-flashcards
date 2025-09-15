@@ -1406,7 +1406,6 @@ $(async function () {
   let pitchAnimFrame = null;
   let pitchBuffer = null;
   let smoothedLevel = 0;
-  let lastMeterUpdate = 0;
   let micBaselineRms = 0;
   let baselineSamplesCount = 0;
   let collectBaselineUntil = 0;
@@ -1660,7 +1659,6 @@ $(async function () {
     pitchBuffer = new Float32Array(analyserForPitch.fftSize);
     pitchDetecting = true;
     smoothedLevel = 0;
-    lastMeterUpdate = 0;
     micBaselineRms = 0;
     baselineSamplesCount = 0;
     collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
