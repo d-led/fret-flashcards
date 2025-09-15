@@ -101,21 +101,25 @@ body {
 #note-score {
   max-width: 260px;
   min-width: 56px;
-  height: 100px;
+  height: auto;
   overflow: visible;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
 }
 #note-score svg {
   background: transparent;
-  border-radius: 4px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
   width: auto;
   max-width: 100%;
   display: block;
+  overflow: visible;
 }
 #treble-score,
 #bass-score {
