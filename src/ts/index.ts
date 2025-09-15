@@ -43,6 +43,55 @@ $(async function () {
   let trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
   let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
 
+  // Helper function to process and add treble notes
+  function addTrebleNote(tName: string, tOct: number, trebleNotes: Array<{note: string, octave: number}>) {
+    let vexT = tName.toLowerCase();
+    if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
+    else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
+    const tPair = { note: vexT, octave: tOct };
+    if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+  }
+
+  // Helper function to update bounds from SVG elements
+  function updateBoundsFromElements(elements: NodeListOf<Element>, bounds: { minX: number, minY: number, maxX: number, maxY: number }) {
+    elements.forEach((element) => {
+      try {
+        const bbox = (element as SVGGraphicsElement).getBBox();
+        bounds.minX = Math.min(bounds.minX, bbox.x);
+        bounds.minY = Math.min(bounds.minY, bbox.y);
+        bounds.maxX = Math.max(bounds.maxX, bbox.x + bbox.width);
+        bounds.maxY = Math.max(bounds.maxY, bbox.y + bbox.height);
+      } catch (e) {
+        // Skip elements that can't be measured
+      }
+    });
+  }
+
+  // Helper function to apply cropping to SVG element
+  function applySvgCropping(svgEl: SVGSVGElement, bounds: { minX: number, minY: number, maxX: number, maxY: number }, clefName: string) {
+    if (bounds.minX !== Infinity && bounds.minY !== Infinity) {
+      const margin = 5; // Smaller margin for tighter cropping
+      const cropX = bounds.minX - margin;
+      const cropY = bounds.minY - margin;
+      const cropWidth = bounds.maxX - bounds.minX + 2 * margin;
+      const cropHeight = bounds.maxY - bounds.minY + 2 * margin;
+
+      svgEl.setAttribute("viewBox", `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
+      svgEl.setAttribute("width", "100%");
+      svgEl.setAttribute("height", "100%");
+
+      console.log(`${clefName}: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
+    } else {
+      // Fallback to getBBox if smart cropping fails
+      const bbox = svgEl.getBBox();
+      const margin = 10;
+      svgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
+      svgEl.setAttribute("width", "100%");
+      svgEl.setAttribute("height", "100%");
+      console.log(`${clefName}: Fallback to getBBox cropping`);
+    }
+  }
+
   function renderNoteScore(note: string, stringIndex: number, frets: number[]) {
     const trebleContainer = document.getElementById("treble-score")!;
     const bassContainer = document.getElementById("bass-score")!;
@@ -104,20 +153,12 @@ $(async function () {
         if (trebleFits) {
           // Show treble clef for all notes that fit well
           const { note: tName, octave: tOct } = midiToNoteAndOctave(writtenTrebleMidi, note);
-          let vexT = tName.toLowerCase();
-          if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
-          else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
-          const tPair = { note: vexT, octave: tOct };
-          if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+          addTrebleNote(tName, tOct, trebleNotes);
         }
       } else if (midi > 55 && trebleFits) {
         // High range - prefer treble clef
         const { note: tName, octave: tOct } = midiToNoteAndOctave(writtenTrebleMidi, note);
-        let vexT = tName.toLowerCase();
-        if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
-        else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
-        const tPair = { note: vexT, octave: tOct };
-        if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+        addTrebleNote(tName, tOct, trebleNotes);
       } else {
         // Fallback: choose the clef that minimizes ledger lines
         const distToRange = (m: number, min: number, max: number): number => {
@@ -233,61 +274,14 @@ $(async function () {
 
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  let minX = Infinity,
-                    minY = Infinity,
-                    maxX = -Infinity,
-                    maxY = -Infinity;
-
-                  // Get bounds from staff lines (these are the core visual structure)
-                  const paths = trebleSvgEl.querySelectorAll("path");
-                  paths.forEach((path) => {
-                    try {
-                      const pathBBox = (path as SVGPathElement).getBBox();
-                      minX = Math.min(minX, pathBBox.x);
-                      minY = Math.min(minY, pathBBox.y);
-                      maxX = Math.max(maxX, pathBBox.x + pathBBox.width);
-                      maxY = Math.max(maxY, pathBBox.y + pathBBox.height);
-                    } catch (e) {
-                      // Skip paths that can't be measured
-                    }
-                  });
+                  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+                  updateBoundsFromElements(trebleSvgEl.querySelectorAll("path"), bounds);
 
                   // Get bounds from circles (note heads)
-                  const circles = trebleSvgEl.querySelectorAll("circle");
-                  circles.forEach((circle) => {
-                    try {
-                      const circleBBox = (circle as SVGCircleElement).getBBox();
-                      minX = Math.min(minX, circleBBox.x);
-                      minY = Math.min(minY, circleBBox.y);
-                      maxX = Math.max(maxX, circleBBox.x + circleBBox.width);
-                      maxY = Math.max(maxY, circleBBox.y + circleBBox.height);
-                    } catch (e) {
-                      // Skip circles that can't be measured
-                    }
-                  });
+                  updateBoundsFromElements(trebleSvgEl.querySelectorAll("circle"), bounds);
 
                   // If we found valid bounds, use them with minimal margin
-                  if (minX !== Infinity && minY !== Infinity) {
-                    const margin = 5; // Smaller margin for tighter cropping
-                    const cropX = minX - margin;
-                    const cropY = minY - margin;
-                    const cropWidth = maxX - minX + 2 * margin;
-                    const cropHeight = maxY - minY + 2 * margin;
-
-                    trebleSvgEl.setAttribute("viewBox", `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
-                    trebleSvgEl.setAttribute("width", "100%");
-                    trebleSvgEl.setAttribute("height", "100%");
-
-                    console.log(`Treble clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
-                  } else {
-                    // Fallback to getBBox if smart cropping fails
-                    const bbox = trebleSvgEl.getBBox();
-                    const margin = 10;
-                    trebleSvgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
-                    trebleSvgEl.setAttribute("width", "100%");
-                    trebleSvgEl.setAttribute("height", "100%");
-                    console.log("Treble clef: Fallback to getBBox cropping");
-                  }
+                  applySvgCropping(trebleSvgEl, bounds, "Treble clef");
                 } catch (error) {
                   console.error("Error optimizing treble SVG:", error);
                 }
@@ -358,61 +352,14 @@ $(async function () {
 
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  let minX = Infinity,
-                    minY = Infinity,
-                    maxX = -Infinity,
-                    maxY = -Infinity;
-
-                  // Get bounds from staff lines (these are the core visual structure)
-                  const paths = bassSvgEl.querySelectorAll("path");
-                  paths.forEach((path) => {
-                    try {
-                      const pathBBox = (path as SVGPathElement).getBBox();
-                      minX = Math.min(minX, pathBBox.x);
-                      minY = Math.min(minY, pathBBox.y);
-                      maxX = Math.max(maxX, pathBBox.x + pathBBox.width);
-                      maxY = Math.max(maxY, pathBBox.y + pathBBox.height);
-                    } catch (e) {
-                      // Skip paths that can't be measured
-                    }
-                  });
+                  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+                  updateBoundsFromElements(bassSvgEl.querySelectorAll("path"), bounds);
 
                   // Get bounds from circles (note heads)
-                  const circles = bassSvgEl.querySelectorAll("circle");
-                  circles.forEach((circle) => {
-                    try {
-                      const circleBBox = (circle as SVGCircleElement).getBBox();
-                      minX = Math.min(minX, circleBBox.x);
-                      minY = Math.min(minY, circleBBox.y);
-                      maxX = Math.max(maxX, circleBBox.x + circleBBox.width);
-                      maxY = Math.max(maxY, circleBBox.y + circleBBox.height);
-                    } catch (e) {
-                      // Skip circles that can't be measured
-                    }
-                  });
+                  updateBoundsFromElements(bassSvgEl.querySelectorAll("circle"), bounds);
 
                   // If we found valid bounds, use them with minimal margin
-                  if (minX !== Infinity && minY !== Infinity) {
-                    const margin = 5; // Smaller margin for tighter cropping
-                    const cropX = minX - margin;
-                    const cropY = minY - margin;
-                    const cropWidth = maxX - minX + 2 * margin;
-                    const cropHeight = maxY - minY + 2 * margin;
-
-                    bassSvgEl.setAttribute("viewBox", `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
-                    bassSvgEl.setAttribute("width", "100%");
-                    bassSvgEl.setAttribute("height", "100%");
-
-                    console.log(`Bass clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
-                  } else {
-                    // Fallback to getBBox if smart cropping fails
-                    const bbox = bassSvgEl.getBBox();
-                    const margin = 10;
-                    bassSvgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
-                    bassSvgEl.setAttribute("width", "100%");
-                    bassSvgEl.setAttribute("height", "100%");
-                    console.log("Bass clef: Fallback to getBBox cropping");
-                  }
+                  applySvgCropping(bassSvgEl, bounds, "Bass clef");
                 } catch (error) {
                   console.error("Error optimizing bass SVG:", error);
                 }
