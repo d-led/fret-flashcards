@@ -108,7 +108,7 @@ body {
   align-items: center;
   gap: 8px;
   background: white;
-  padding: 10px;
+  padding: 20px;
   border-radius: 4px;
 }
 #note-score svg {
