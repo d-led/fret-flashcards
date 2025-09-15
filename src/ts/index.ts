@@ -659,6 +659,8 @@ $(async function () {
   }
 
   // Update loadSettings to load new config (adjusted validation for 3-12)
+  let $timeout = $("#timeout-seconds");
+
   function loadSettings() {
     try {
       const raw = localStorage.getItem(SETTINGS_KEY);
@@ -693,7 +695,7 @@ $(async function () {
         let val = Number(settings.timeoutSeconds);
         if (isFinite(val) && val >= 0 && val <= 10) {
           timeoutSeconds = val;
-          $("#timeout-seconds").val(timeoutSeconds);
+          $timeout.val(timeoutSeconds);
         }
       }
       if ("numStrings" in settings) {
@@ -922,6 +924,8 @@ $(async function () {
     }
   }
 
+  let $fretboard = $("#fretboard-area");
+
   function showCard() {
     clearTimeout(pendingTimeout);
     clearInterval(countdownInterval);
@@ -933,7 +937,7 @@ $(async function () {
     const $quizNoteBtn = $("#quiz-note-btn");
     const $flashcardString = $("#flashcard-string");
     const $fretButtons = $("#fret-buttons");
-    const $fretboardArea = $("#fretboard-area");
+    const $fretboardArea = $fretboard;
     const $noteScore = $("#note-score");
 
     if (session.length === 0) {
@@ -1074,7 +1078,7 @@ $(async function () {
     headerRow += "</tr>";
 
     let tableHtml = `<table class="fretboard-table"><thead>${headerRow}</thead><tbody>${fretRows}${markRow}</tbody></table>`;
-    $("#fretboard-area").html(tableHtml);
+    $fretboard.html(tableHtml);
   }
 
   function nextCard() {
@@ -1319,13 +1323,14 @@ $(async function () {
       return;
     }
     countdownValue = timeoutSeconds;
-    $("#countdown").text("⏳ " + countdownValue);
+    let $countdown = $("#countdown");
+    $countdown.text("⏳ " + countdownValue);
     countdownInterval = setInterval(() => {
       countdownValue--;
-      $("#countdown").text(countdownValue > 0 ? "⏳ " + countdownValue : "");
+      $countdown.text(countdownValue > 0 ? "⏳ " + countdownValue : "");
       if (countdownValue <= 0) {
         clearInterval(countdownInterval);
-        $("#countdown").text("");
+        $countdown.text("");
         nextCard();
       }
     }, 1000);
@@ -1514,7 +1519,7 @@ $(async function () {
   function debouncedSaveTimeout() {
     clearTimeout(timeoutSaveDebounce);
     timeoutSaveDebounce = setTimeout(() => {
-      let v = parseInt($("#timeout-seconds").val());
+      let v = parseInt($timeout.val());
       if (isNaN(v) || v < 0 || v > 10) v = 2;
       timeoutSeconds = v;
       saveSettings();
@@ -1522,6 +1527,8 @@ $(async function () {
   }
 
   // Function to update the tuning UI
+  let $tuning = $("#tuning-config");
+
   function updateTuningUI() {
     let html = '<div class="tuning-container">';
     for (let i = 0; i < numStrings; i++) {
@@ -1545,7 +1552,7 @@ $(async function () {
           </div>`;
     }
     html += "</div>";
-    $("#tuning-config").html(html);
+    $tuning.html(html);
   }
 
   // Initialize audio - create test sound to enable audio context
@@ -1816,8 +1823,10 @@ $(async function () {
     }
   }
 
+  let $sound = $("#sound-banner");
+
   function updateSoundBanner() {
-    const banner = $("#sound-banner");
+    const banner = $sound;
     if (audioEnabled) {
       banner.addClass("enabled").text("🔊 Sound enabled!");
       setTimeout(() => banner.hide(), 2000);
@@ -1830,7 +1839,7 @@ $(async function () {
     // Detect iOS and show banner if needed
     isIOS = detectIOS();
     if (isIOS) {
-      $("#sound-banner").show();
+      $sound.show();
       // Don't auto-initialize on iOS - require user action
     } else {
       // On non-iOS devices, initialize audio automatically
@@ -1865,17 +1874,17 @@ $(async function () {
       makeSession();
       showCard();
     });
-    $("#timeout-seconds").on("change", function () {
+    $timeout.on("change", function () {
       let v = parseInt(this.value);
       timeoutSeconds = isNaN(v) ? 2 : v;
       saveSettings();
     });
-    $("#timeout-seconds").on("keypress", debouncedSaveTimeout);
+    $timeout.on("keypress", debouncedSaveTimeout);
 
-    $("#fretboard-area").on("click", ".fret-cell.active-string", handleFretboardClick);
+    $fretboard.on("click", ".fret-cell.active-string", handleFretboardClick);
 
     // Add event handler for open string note clicks
-    $("#fretboard-area").on("click", ".open-note", function () {
+    $fretboard.on("click", ".open-note", function () {
       let stringIdx = parseInt($(this).attr("data-string"));
       playAnsweredNote(stringIdx, 0); // Play the open string (fret 0)
     });
@@ -1891,7 +1900,7 @@ $(async function () {
     });
 
     // Add event handler for individual tuning changes
-    $("#tuning-config").on("change", ".tuning-select", function () {
+    $tuning.on("change", ".tuning-select", function () {
       let stringIdx = $(this).data("string");
       tuning[stringIdx].note = this.value;
       saveSettings();
@@ -1900,7 +1909,7 @@ $(async function () {
     });
 
     // Add event handler for octave changes
-    $("#tuning-config").on("change", ".octave-select", function () {
+    $tuning.on("change", ".octave-select", function () {
       let stringIdx = $(this).data("string");
       tuning[stringIdx].octave = parseInt(this.value);
       saveSettings();
@@ -1926,7 +1935,7 @@ $(async function () {
     });
 
     // Sound banner click handler (only needed on iOS)
-    $("#sound-banner").on("click", function () {
+    $sound.on("click", function () {
       initAudioContext();
     });
 
