@@ -59,7 +59,7 @@ function replaceBuildInfo() {
 
     // read and replace in the built JS file
     let jsContent = fs.readFileSync(jsFile, "utf8");
-    jsContent = jsContent.replace(/"build: unknown"/g, `"${stampText}"`);
+    jsContent = jsContent.replace(/"Build: unknown"/g, `"${stampText}"`);
     fs.writeFileSync(jsFile, jsContent, "utf8");
 
     console.log(`Replaced build info: ${stampText}`);
