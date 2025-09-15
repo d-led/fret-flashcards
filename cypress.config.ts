@@ -1,5 +1,6 @@
 import http from "http";
 import path from "path";
+import fs from "fs";
 import sirv from "sirv";
 import { defineConfig } from "cypress";
 
@@ -15,8 +16,22 @@ export default defineConfig({
   videoCompression: true,
   e2e: {
     setupNodeEvents(on, config) {
-      // Reference 'on' to satisfy strict compiler settings (it's unused by this config)
-      void on;
+      on("task", {
+        copyScreenshot({ src, dest }: { src: string; dest: string }) {
+          try {
+            const resolvedSrc = path.resolve(src);
+            const resolvedDest = path.resolve(dest);
+            fs.mkdirSync(path.dirname(resolvedDest), { recursive: true });
+            if (fs.existsSync(resolvedSrc)) {
+              fs.copyFileSync(resolvedSrc, resolvedDest);
+              return null;
+            }
+            return { error: `Source screenshot not found: ${resolvedSrc}` };
+          } catch (err: any) {
+            return { error: String(err && err.message ? err.message : err) };
+          }
+        },
+      });
       let server: http.Server | undefined;
 
       // If a baseUrl is provided, skip starting the embedded server.

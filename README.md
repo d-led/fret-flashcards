@@ -2,7 +2,7 @@
 
 A compact browser tool to practice and memorize notes on a 3- to 12-string guitar-style fretboard.
 
-![screenshot](./docs/img/app-screenshot.png)
+![screenshot](./docs/img/app-screenshot-auto.png)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards?ref=badge_shield)
 
 ## Features

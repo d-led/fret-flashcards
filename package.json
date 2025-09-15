@@ -5,13 +5,14 @@
   "main": "src/dist/index.html",
   "scripts": {
     "test": "mkdir -p test-results && vitest run",
-    "e2e": "cypress run --e2e --browser chrome",
+    "e2e": "cypress run --e2e --browser chrome --spec 'cypress/e2e/!(screenshot).cy.js'",
     "cy": "cypress open --e2e --browser chrome",
     "test:e2e": "npm run build && npm run e2e",
     "prettier": "prettier -w .",
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "serve": "npx -y http-server ./dist -c-1"
+    "serve": "npx -y http-server ./dist -c-1",
+    "screenshot": "npm run build && cypress run --e2e --browser chrome --spec cypress/e2e/screenshot.cy.js"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.33",

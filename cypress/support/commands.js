@@ -399,6 +399,21 @@ Cypress.Commands.add("clickResetTuning", () => {
   cy.get("#reset-tuning").click();
 });
 
+Cypress.Commands.add("appScreenshot", () => {
+  const name = "app-screenshot-auto";
+  const viewportWidth = 800;
+  const viewportHeight = 1000;
+
+  cy.viewport(viewportWidth, viewportHeight);
+
+  cy.screenshot(name, { 
+    overwrite: true, 
+    clip: { x: 0, y: 75, height: 680, width: 800 } 
+  });
+
+  cy.wait(500); // Wait a bit to ensure screenshot is saved
+});
+
 // Settings verification commands
 Cypress.Commands.add("shouldHaveExtendedRange", (expected) => {
   const value = expected ? "24" : "11";
