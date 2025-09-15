@@ -11,6 +11,8 @@ export default defineConfig({
   reporterOptions: {
     mochaFile: "test-results/junit-[hash].xml",
   },
+  video: true,
+  videoCompression: true, 
   e2e: {
     setupNodeEvents(on, config) {
       // Reference 'on' to satisfy strict compiler settings (it's unused by this config)
