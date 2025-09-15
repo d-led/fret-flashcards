@@ -261,3 +261,4 @@ fabric.properties
 
 .DS_Store
 test-results/
+cypress/downloads/
