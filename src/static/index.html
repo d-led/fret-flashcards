@@ -7,7 +7,7 @@
     <script src="./vendor/jquery.min.js"></script>
     <script src="./vendor/vexflow.js"></script>
     <link rel="stylesheet" href="./main.css" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   </head>
   <body>
     <div class="container">
@@ -15,9 +15,10 @@
       <div class="flashcard">
         <div class="flashcard-instruction">Find the note</div>
         <div class="note-row">
-          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">?
+          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">
+            ?
             <span class="note-meter" id="note-meter" aria-hidden="true">
-              <span class="note-meter-fill" id="note-meter-fill" style="width:0%"></span>
+              <span class="note-meter-fill" id="note-meter-fill" style="width: 0%"></span>
             </span>
           </button>
           <div class="string" id="flashcard-string">?</div>
@@ -33,19 +34,24 @@
         </div>
       </div>
       <div class="fret-buttons" id="fret-buttons"></div>
-      <div id="mic-controls" style="margin-top:12px;">
+      <div id="mic-controls" style="margin-top: 12px">
         <button id="mic-toggle">🎤 Enable Mic</button>
-        <span id="mic-status" style="margin-left:8px;font-weight:600;display:none"></span>
-        <span id="mic-meter" style="display:none;vertical-align:middle;margin-left:8px;width:160px;height:12px;border:1px solid #777;background:#222;">
-          <span id="mic-meter-fill" style="display:block;height:100%;width:0;background:#4caf50;"></span>
+        <span id="mic-status" style="margin-left: 8px; font-weight: 600; display: none"></span>
+        <span id="mic-meter" style="display: none; vertical-align: middle; margin-left: 8px; width: 160px; height: 12px; border: 1px solid #777; background: #222">
+          <span id="mic-meter-fill" style="display: block; height: 100%; width: 0; background: #4caf50"></span>
         </span>
-        <span id="mic-feedback" style="margin-left:8px;font-size:0.85em;color:#999;font-style:italic;display:none;"></span>
+        <span id="mic-feedback" style="margin-left: 8px; font-size: 0.85em; color: #999; font-style: italic; display: none"></span>
       </div>
       <div class="options">
-        <label>
-          <input type="checkbox" id="extended-range" />
-          24 frets (2-3 notes to find)
-        </label>
+        <div class="config">
+          <label for="fret-count">Number of frets:</label>
+          <select id="fret-count">
+            <option value="11">12 (0-11)</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="24">24</option>
+          </select>
+        </div>
         <label>
           <input type="checkbox" id="accidentals" />
           Include accidentals: sharps (♯) and flats (♭)
@@ -139,7 +145,9 @@
           </table>
         </div>
       </div>
-      <div class="small-comment-text">Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard".</div>
+      <div class="small-comment-text">
+        Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard". I wish I had this app 30 years ago!
+      </div>
       <div class="small-comment-text">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
     </div>
     <div id="build-info"></div>

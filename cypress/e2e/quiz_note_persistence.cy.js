@@ -1,11 +1,11 @@
-describe('Quiz note persistence with score notation', () => {
+describe("Quiz note persistence with score notation", () => {
   beforeEach(() => {
     cy.clearLocalStorage();
     cy.visitApp();
     cy.setTimeoutSeconds(0);
   });
 
-  it('keeps textual quiz note visible after reload when score notation is enabled', () => {
+  it("keeps textual quiz note visible after reload when score notation is enabled", () => {
     // Enable score notation and ensure related UI becomes visible
     cy.setScoreNotation(true);
     cy.shouldHaveScoreNotation(true);

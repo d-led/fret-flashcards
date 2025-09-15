@@ -24,6 +24,59 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+// Helper functions to reduce duplication
+
+// Helper for checkbox settings (enable/disable pattern)
+function setCheckboxSetting(selector, enabled) {
+  if (enabled) {
+    cy.get(selector).check();
+  } else {
+    cy.get(selector).uncheck();
+  }
+}
+
+// Helper for select settings (choose from dropdown)
+function setSelectSetting(selector, value) {
+  cy.get(selector).select(value.toString());
+}
+
+// Helper for verifying checkbox state
+function shouldHaveCheckboxState(selector, expected) {
+  if (expected) {
+    cy.get(selector).should("be.checked");
+  } else {
+    cy.get(selector).should("not.be.checked");
+  }
+}
+
+// Helper for verifying select value
+function shouldHaveSelectValue(selector, expected) {
+  cy.get(selector).should("have.value", expected.toString());
+}
+
+// Helper for clicking correct frets (parameterized by click function)
+function clickCorrectFrets(clickFn) {
+  cy.withCurrentQuizState(({ correctFrets, fretCount, stringIdx }) => {
+    correctFrets.forEach((fret) => {
+      if (fret < fretCount) {
+        clickFn(stringIdx, fret);
+      }
+    });
+  });
+}
+
+// Helper for clicking wrong frets (parameterized by click function)
+function clickWrongFret(clickFn) {
+  cy.withCurrentQuizState(({ correctFrets, fretCount, stringIdx }) => {
+    cy.findWrongFret(correctFrets, fretCount).then((wrongFret) => {
+      if (wrongFret >= 0 && wrongFret < fretCount) {
+        clickFn(stringIdx, wrongFret);
+        cy.wait(100);
+      }
+    });
+  });
+}
+
 Cypress.Commands.add("visitApp", () => {
   const base = Cypress.config("baseUrl") || Cypress.env("baseUrl");
   if (base) {
@@ -46,9 +99,7 @@ Cypress.Commands.add("visitApp", () => {
   }
 
   // If we don't have a baseUrl or a port, fail fast with a helpful message
-  throw new Error(
-    "visitApp: no baseUrl provided and Cypress.env('port') is not set — start the dev server or provide baseUrl"
-  );
+  throw new Error("visitApp: no baseUrl provided and Cypress.env('port') is not set — start the dev server or provide baseUrl");
 });
 
 Cypress.Commands.add("shouldHaveMainElementsVisible", () => {
@@ -65,7 +116,7 @@ Cypress.Commands.add("shouldHaveInitialState", () => {
 });
 
 Cypress.Commands.add("enableExtendedRange", () => {
-  cy.get("#extended-range").check();
+  cy.get("#fret-count").select("24");
 });
 
 Cypress.Commands.add("shouldHaveSessionStarted", () => {
@@ -234,73 +285,54 @@ Cypress.Commands.add("getCurrentFretCount", () => {
   return cy.get(".fret-btn").its("length");
 });
 
-Cypress.Commands.add("clickCorrectFretsForFretBtns", () => {
+// Helper command to execute callback with current quiz state (note, stringIdx, fretCount, correctFrets)
+Cypress.Commands.add("withCurrentQuizState", (callback) => {
   cy.getCurrentNote().then((note) => {
     cy.getCurrentStringIndex().then((stringIdx) => {
       cy.getCurrentFretCount().then((fretCount) => {
         cy.calculateCorrectFrets(note, stringIdx, fretCount).then((correctFrets) => {
-          correctFrets.forEach((fret) => {
-            if (fret < fretCount) {
-              cy.clickFretBtn(fret);
-            }
-          });
+          callback({ note, stringIdx, fretCount, correctFrets });
         });
       });
     });
+  });
+});
+
+Cypress.Commands.add("clickCorrectFretsForFretBtns", () => {
+  clickCorrectFrets((stringIdx, fret) => {
+    cy.clickFretBtn(fret);
   });
 });
 
 Cypress.Commands.add("clickWrongFretForFretBtns", () => {
-  cy.getCurrentNote().then((note) => {
-    cy.getCurrentStringIndex().then((stringIdx) => {
-      cy.getCurrentFretCount().then((fretCount) => {
-        cy.calculateCorrectFrets(note, stringIdx, fretCount).then((correctFrets) => {
-          cy.findWrongFret(correctFrets, fretCount).then((wrongFret) => {
-            if (wrongFret >= 0 && wrongFret < fretCount) {
-              cy.clickFretBtn(wrongFret);
-              cy.wait(100);
-              cy.shouldHaveFretBtnWrong(wrongFret);
-            }
-          });
-        });
-      });
-    });
+  clickWrongFret((stringIdx, wrongFret) => {
+    cy.clickFretBtn(wrongFret);
+    cy.shouldHaveFretBtnWrong(wrongFret);
   });
 });
 
 Cypress.Commands.add("clickCorrectFretsForFretCells", () => {
-  cy.getQuizNote().then((note) => {
-    cy.getActiveStringIndex().then((stringIdx) => {
-      cy.getCurrentFretCount().then((fretCount) => {
-        cy.calculateCorrectFrets(note, stringIdx, fretCount).then((correctFrets) => {
-          correctFrets.forEach((fret) => {
-            if (fret < fretCount) {
-              cy.clickFretCell(stringIdx, fret);
-            }
-          });
-        });
-      });
-    });
+  clickCorrectFrets((stringIdx, fret) => {
+    cy.clickFretCell(stringIdx, fret);
   });
 });
 
 Cypress.Commands.add("clickWrongFretForFretCells", () => {
-  cy.getQuizNote().then((note) => {
-    cy.getActiveStringIndex().then((stringIdx) => {
-      cy.getCurrentFretCount().then((fretCount) => {
-        cy.calculateCorrectFrets(note, stringIdx, fretCount).then((correctFrets) => {
-          cy.findWrongFret(correctFrets, fretCount).then((wrongFret) => {
-            if (wrongFret >= 0 && wrongFret < fretCount) {
-              cy.clickFretCell(stringIdx, wrongFret);
-              cy.wait(100);
-              cy.shouldHaveFretCellWrong(stringIdx, wrongFret);
-            }
-          });
-        });
-      });
-    });
+  clickWrongFret((stringIdx, wrongFret) => {
+    cy.clickFretCell(stringIdx, wrongFret);
+    cy.shouldHaveFretCellWrong(stringIdx, wrongFret);
   });
 });
+
+// Helper for table structure verification
+function verifyTableStructure(columns, strings) {
+  // total fret-cells = strings * columns
+  cy.get(".fret-cell").should("have.length", strings * columns);
+  // header labels count == columns
+  cy.get(".fret-label").should("have.length", columns);
+  // dot-cells count == columns
+  cy.get(".fret-dot-cell").should("have.length", columns);
+}
 
 Cypress.Commands.add("gameShouldBePlayable", () => {
   // Fret buttons rounds
@@ -319,32 +351,30 @@ Cypress.Commands.add("gameShouldBePlayable", () => {
 
 // Settings manipulation commands
 Cypress.Commands.add("setExtendedRange", (enabled) => {
-  if (enabled) {
-    cy.get("#extended-range").check();
-  } else {
-    cy.get("#extended-range").uncheck();
-  }
+  const value = enabled ? "24" : "11";
+  setSelectSetting("#fret-count", value);
 });
 
 Cypress.Commands.add("setAccidentals", (enabled) => {
-  if (enabled) {
-    cy.get("#accidentals").check();
-  } else {
-    cy.get("#accidentals").uncheck();
-  }
+  setCheckboxSetting("#accidentals", enabled);
 });
 
 Cypress.Commands.add("setTimeoutSeconds", (seconds) => {
-  cy.get("#timeout-seconds").select(seconds.toString());
+  setSelectSetting("#timeout-seconds", seconds);
+});
+
+// Fret count commands
+Cypress.Commands.add("setFretCount", (fretCount) => {
+  setSelectSetting("#fret-count", fretCount);
+});
+
+Cypress.Commands.add("shouldHaveFretCount", (expected) => {
+  shouldHaveSelectValue("#fret-count", expected);
 });
 
 // Score notation helpers
 Cypress.Commands.add("setScoreNotation", (enabled) => {
-  if (enabled) {
-    cy.get("#show-score-notation").check();
-  } else {
-    cy.get("#show-score-notation").uncheck();
-  }
+  setCheckboxSetting("#show-score-notation", enabled);
 });
 
 Cypress.Commands.add("shouldHaveScoreNotation", (expected) => {
@@ -357,12 +387,12 @@ Cypress.Commands.add("shouldHaveScoreNotation", (expected) => {
 });
 
 Cypress.Commands.add("setNumStrings", (num) => {
-  cy.get("#num-strings").select(num.toString());
+  setSelectSetting("#num-strings", num);
 });
 
 Cypress.Commands.add("setStringTuning", (stringIndex, note) => {
   const zeroBasedIndex = stringIndex - 1;
-  cy.get(`.tuning-select[data-string="${zeroBasedIndex}"]`).select(note);
+  setSelectSetting(`.tuning-select[data-string="${zeroBasedIndex}"]`, note);
 });
 
 Cypress.Commands.add("clickResetTuning", () => {
@@ -371,27 +401,20 @@ Cypress.Commands.add("clickResetTuning", () => {
 
 // Settings verification commands
 Cypress.Commands.add("shouldHaveExtendedRange", (expected) => {
-  if (expected) {
-    cy.get("#extended-range").should("be.checked");
-  } else {
-    cy.get("#extended-range").should("not.be.checked");
-  }
+  const value = expected ? "24" : "11";
+  shouldHaveSelectValue("#fret-count", value);
 });
 
 Cypress.Commands.add("shouldHaveAccidentals", (expected) => {
-  if (expected) {
-    cy.get("#accidentals").should("be.checked");
-  } else {
-    cy.get("#accidentals").should("not.be.checked");
-  }
+  shouldHaveCheckboxState("#accidentals", expected);
 });
 
 Cypress.Commands.add("shouldHaveTimeoutSeconds", (expected) => {
-  cy.get("#timeout-seconds").should("have.value", expected.toString());
+  shouldHaveSelectValue("#timeout-seconds", expected);
 });
 
 Cypress.Commands.add("shouldHaveNumStrings", (expected) => {
-  cy.get("#num-strings").should("have.value", expected.toString());
+  shouldHaveSelectValue("#num-strings", expected);
 });
 
 Cypress.Commands.add("shouldHaveStringTuning", (stringIndex, expectedNote) => {
@@ -440,12 +463,7 @@ Cypress.Commands.add("shouldHaveCorrectTableStructureInDefault", () => {
   // columns = fretCount + extraFret => 12 + 1 = 13
   const columnsDefault = 13;
   const stringsDefault = 6;
-  // total fret-cells = strings * columns
-  cy.get(".fret-cell").should("have.length", stringsDefault * columnsDefault);
-  // header labels count == columns
-  cy.get(".fret-label").should("have.length", columnsDefault);
-  // dot-cells count == columns
-  cy.get(".fret-dot-cell").should("have.length", columnsDefault);
+  verifyTableStructure(columnsDefault, stringsDefault);
 });
 
 // Verify table structure in extended mode
@@ -453,10 +471,34 @@ Cypress.Commands.add("shouldHaveCorrectTableStructureInExtended", () => {
   // columns = fretCount (25) in extended mode
   const columnsExtended = 25;
   const stringsExtended = 6;
-  // total fret-cells = strings * columns
-  cy.get(".fret-cell").should("have.length", stringsExtended * columnsExtended);
-  // header labels count == columns
-  cy.get(".fret-label").should("have.length", columnsExtended);
-  // dot-cells count == columns
-  cy.get(".fret-dot-cell").should("have.length", columnsExtended);
+  verifyTableStructure(columnsExtended, stringsExtended);
+});
+
+// Validate that the current quiz produces the expected number of notes for a given fret mode
+Cypress.Commands.add("shouldHaveExpectedNoteCount", (minNotes, maxNotes, fretMode) => {
+  cy.withCurrentQuizState(({ correctFrets }) => {
+    expect(correctFrets.length).to.be.at.least(minNotes, `Expected at least ${minNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`);
+    expect(correctFrets.length).to.be.at.most(maxNotes, `Expected at most ${maxNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`);
+  });
+});
+
+// Test multiple rounds of quiz to ensure note count expectations are consistent
+Cypress.Commands.add("shouldConsistentlyHaveExpectedNoteCount", (minNotes, maxNotes, fretMode, rounds = 5) => {
+  for (let i = 0; i < rounds; i++) {
+    cy.clickQuizButton();
+    cy.shouldHaveExpectedNoteCount(minNotes, maxNotes, fretMode);
+  }
+});
+
+// UI element verification commands
+Cypress.Commands.add("shouldHaveFretButtonCount", (expectedCount) => {
+  cy.get(".fret-btn").should("have.length", expectedCount);
+});
+
+Cypress.Commands.add("shouldHaveFretMarkerAtPosition", (position) => {
+  cy.get(".fret-dot-cell").eq(position).find(".fret-dot.double").should("exist");
+});
+
+Cypress.Commands.add("shouldHaveLastFretCellHidden", () => {
+  cy.get(".fret-cell").last().should("have.css", "visibility", "hidden");
 });

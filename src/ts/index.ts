@@ -1,4 +1,4 @@
-import { PitchDetector } from 'pitchy';
+import { PitchDetector } from "pitchy";
 
 const buildInfo = "Build: unknown";
 
@@ -226,18 +226,21 @@ $(async function () {
 
             // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
             (async () => {
-              const trebleSvgEl = trebleContainer?.querySelector('svg');
+              const trebleSvgEl = trebleContainer?.querySelector("svg");
               if (trebleSvgEl) {
                 try {
-                  console.log('Applying smart SVG optimization to treble clef...');
-                  
+                  console.log("Applying smart SVG optimization to treble clef...");
+
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                  
+                  let minX = Infinity,
+                    minY = Infinity,
+                    maxX = -Infinity,
+                    maxY = -Infinity;
+
                   // Get bounds from staff lines (these are the core visual structure)
-                  const paths = trebleSvgEl.querySelectorAll('path');
-                  paths.forEach(path => {
+                  const paths = trebleSvgEl.querySelectorAll("path");
+                  paths.forEach((path) => {
                     try {
                       const pathBBox = (path as SVGPathElement).getBBox();
                       minX = Math.min(minX, pathBBox.x);
@@ -248,10 +251,10 @@ $(async function () {
                       // Skip paths that can't be measured
                     }
                   });
-                  
+
                   // Get bounds from circles (note heads)
-                  const circles = trebleSvgEl.querySelectorAll('circle');
-                  circles.forEach(circle => {
+                  const circles = trebleSvgEl.querySelectorAll("circle");
+                  circles.forEach((circle) => {
                     try {
                       const circleBBox = (circle as SVGCircleElement).getBBox();
                       minX = Math.min(minX, circleBBox.x);
@@ -262,31 +265,31 @@ $(async function () {
                       // Skip circles that can't be measured
                     }
                   });
-                  
+
                   // If we found valid bounds, use them with minimal margin
                   if (minX !== Infinity && minY !== Infinity) {
                     const margin = 5; // Smaller margin for tighter cropping
                     const cropX = minX - margin;
                     const cropY = minY - margin;
-                    const cropWidth = (maxX - minX) + (2 * margin);
-                    const cropHeight = (maxY - minY) + (2 * margin);
-                    
-                    trebleSvgEl.setAttribute('viewBox', `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
-                    trebleSvgEl.setAttribute('width', '100%');
-                    trebleSvgEl.setAttribute('height', '100%');
-                    
+                    const cropWidth = maxX - minX + 2 * margin;
+                    const cropHeight = maxY - minY + 2 * margin;
+
+                    trebleSvgEl.setAttribute("viewBox", `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
+                    trebleSvgEl.setAttribute("width", "100%");
+                    trebleSvgEl.setAttribute("height", "100%");
+
                     console.log(`Treble clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
                   } else {
                     // Fallback to getBBox if smart cropping fails
                     const bbox = trebleSvgEl.getBBox();
                     const margin = 10;
-                    trebleSvgEl.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2*margin} ${bbox.height + 2*margin}`);
-                    trebleSvgEl.setAttribute('width', '100%');
-                    trebleSvgEl.setAttribute('height', '100%');
-                    console.log('Treble clef: Fallback to getBBox cropping');
+                    trebleSvgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
+                    trebleSvgEl.setAttribute("width", "100%");
+                    trebleSvgEl.setAttribute("height", "100%");
+                    console.log("Treble clef: Fallback to getBBox cropping");
                   }
                 } catch (error) {
-                  console.error('Error optimizing treble SVG:', error);
+                  console.error("Error optimizing treble SVG:", error);
                 }
               }
             })();
@@ -348,18 +351,21 @@ $(async function () {
 
             // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
             (async () => {
-              const bassSvgEl = bassContainer?.querySelector('svg');
+              const bassSvgEl = bassContainer?.querySelector("svg");
               if (bassSvgEl) {
                 try {
-                  console.log('Applying smart SVG optimization to bass clef...');
-                  
+                  console.log("Applying smart SVG optimization to bass clef...");
+
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                  
+                  let minX = Infinity,
+                    minY = Infinity,
+                    maxX = -Infinity,
+                    maxY = -Infinity;
+
                   // Get bounds from staff lines (these are the core visual structure)
-                  const paths = bassSvgEl.querySelectorAll('path');
-                  paths.forEach(path => {
+                  const paths = bassSvgEl.querySelectorAll("path");
+                  paths.forEach((path) => {
                     try {
                       const pathBBox = (path as SVGPathElement).getBBox();
                       minX = Math.min(minX, pathBBox.x);
@@ -370,10 +376,10 @@ $(async function () {
                       // Skip paths that can't be measured
                     }
                   });
-                  
+
                   // Get bounds from circles (note heads)
-                  const circles = bassSvgEl.querySelectorAll('circle');
-                  circles.forEach(circle => {
+                  const circles = bassSvgEl.querySelectorAll("circle");
+                  circles.forEach((circle) => {
                     try {
                       const circleBBox = (circle as SVGCircleElement).getBBox();
                       minX = Math.min(minX, circleBBox.x);
@@ -384,31 +390,31 @@ $(async function () {
                       // Skip circles that can't be measured
                     }
                   });
-                  
+
                   // If we found valid bounds, use them with minimal margin
                   if (minX !== Infinity && minY !== Infinity) {
                     const margin = 5; // Smaller margin for tighter cropping
                     const cropX = minX - margin;
                     const cropY = minY - margin;
-                    const cropWidth = (maxX - minX) + (2 * margin);
-                    const cropHeight = (maxY - minY) + (2 * margin);
-                    
-                    bassSvgEl.setAttribute('viewBox', `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
-                    bassSvgEl.setAttribute('width', '100%');
-                    bassSvgEl.setAttribute('height', '100%');
-                    
+                    const cropWidth = maxX - minX + 2 * margin;
+                    const cropHeight = maxY - minY + 2 * margin;
+
+                    bassSvgEl.setAttribute("viewBox", `${cropX} ${cropY} ${cropWidth} ${cropHeight}`);
+                    bassSvgEl.setAttribute("width", "100%");
+                    bassSvgEl.setAttribute("height", "100%");
+
                     console.log(`Bass clef: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
                   } else {
                     // Fallback to getBBox if smart cropping fails
                     const bbox = bassSvgEl.getBBox();
                     const margin = 10;
-                    bassSvgEl.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2*margin} ${bbox.height + 2*margin}`);
-                    bassSvgEl.setAttribute('width', '100%');
-                    bassSvgEl.setAttribute('height', '100%');
-                    console.log('Bass clef: Fallback to getBBox cropping');
+                    bassSvgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
+                    bassSvgEl.setAttribute("width", "100%");
+                    bassSvgEl.setAttribute("height", "100%");
+                    console.log("Bass clef: Fallback to getBBox cropping");
                   }
                 } catch (error) {
-                  console.error('Error optimizing bass SVG:', error);
+                  console.error("Error optimizing bass SVG:", error);
                 }
               }
             })();
@@ -424,7 +430,7 @@ $(async function () {
   const doubleFretMarkers = [12, 24];
 
   let currentCard = null;
-  let extendedRange = false;
+  let fretCountSetting = 11; // User's selected fret count (11 = basic mode with 0-11 positions)
   let showAccidentals = false;
   let timeoutSeconds = 2;
   let pendingTimeout = null;
@@ -433,7 +439,7 @@ $(async function () {
   let foundFrets = [];
   let countdownInterval = null;
   let countdownValue = 0;
-  let fretCount = 12; // default: 0th + frets 1-11
+  let fretCount = 12; // calculated based on fretCountSetting (0th fret + selected count)
 
   // Declare stringNames as an empty array (was missing, causing UI breakage)
   let stringNames = [];
@@ -694,7 +700,7 @@ $(async function () {
   // Update saveSettings to include new config
   function saveSettings() {
     const settings = {
-      extendedRange: !!extendedRange,
+      fretCount: Number(fretCountSetting),
       showAccidentals: !!showAccidentals,
       timeoutSeconds: Number(timeoutSeconds),
       numStrings: Number(numStrings),
@@ -714,10 +720,21 @@ $(async function () {
       if (!raw) return;
       const settings = JSON.parse(raw);
       if (typeof settings !== "object") return;
+
+      // Handle backward compatibility with extendedRange
       if ("extendedRange" in settings) {
-        extendedRange = !!settings.extendedRange;
-        $("#extended-range").prop("checked", extendedRange);
+        fretCountSetting = settings.extendedRange ? 24 : 11; // 11 frets for basics mode
+        $("#fret-count").val(fretCountSetting);
+      } else if ("fretCount" in settings) {
+        let val = Number(settings.fretCount);
+        // Accept both old (12) and new (11) values for basics mode for compatibility
+        if (val === 12) val = 11; // Convert old 12 to new 11
+        if (val === 11 || val === 21 || val === 22 || val === 24) {
+          fretCountSetting = val;
+          $("#fret-count").val(fretCountSetting);
+        }
       }
+
       if ("showAccidentals" in settings) {
         showAccidentals = !!settings.showAccidentals;
         $("#accidentals").prop("checked", showAccidentals);
@@ -839,8 +856,8 @@ $(async function () {
   }
 
   function makeSession() {
-    // Set correct fret count: open string + 11 frets in default, +24 in extended
-    fretCount = extendedRange ? 25 : 12;
+    // Set correct fret count based on user setting: includes 0th fret + selected count
+    fretCount = fretCountSetting + 1;
     // Dynamically build stringNames based on numStrings and tuning
     stringNames.length = 0; // Clear existing
     for (let i = 0; i < numStrings; i++) {
@@ -875,7 +892,7 @@ $(async function () {
       }
     }
     session = shuffle(session);
-    
+
     // Always use weighted shuffle, but bias only affects mistake amplification
     if (statistics.answers.length > 0) {
       const currentTuningStr = JSON.stringify(tuning);
@@ -887,24 +904,24 @@ $(async function () {
           totalMistakes++;
         }
       });
-      
+
       // Calculate weights: base weight = 1, mistakes add bias when enabled
       const biasStrength = enableBias ? 1 : 0; // Only apply bias if enabled
       const baseWeights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
-      
+
       // Normalize by average and cap the difference to 3:1 ratio
       const avgWeight = baseWeights.reduce((sum, w) => sum + w, 0) / baseWeights.length;
       const maxWeight = avgWeight * 3;
       const minWeight = avgWeight / 3;
-      
-      const weights = baseWeights.map(w => Math.max(minWeight, Math.min(maxWeight, w)));
+
+      const weights = baseWeights.map((w) => Math.max(minWeight, Math.min(maxWeight, w)));
       session = weightedShuffle(session, weights);
     } else {
       // No statistics yet, use equal weights (all 1.0)
       const weights = session.map(() => 1);
       session = weightedShuffle(session, weights);
     }
-    
+
     // Recompute string error counts for the current tuning/session so UI tooltips are correct
     computeStringErrorCounts();
     sessionIdx = 0;
@@ -991,7 +1008,8 @@ $(async function () {
     $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
     $("#flashcard-string").text(
       // show as a readable sentence: "on the ... string"
-      (extendedRange ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)") : stringNames[currentCard.string].name) + " string",
+      // Show note count for higher fret counts (21+ frets typically have 2-3 notes)
+      (fretCountSetting > 11 ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)") : stringNames[currentCard.string].name) + " string",
     );
 
     drawFretboardTable(currentCard.string, foundFrets);
@@ -1030,7 +1048,7 @@ $(async function () {
   }
 
   function drawFretboardTable(highlightStringIdx, foundFretsArr) {
-    let extraFret = extendedRange ? 0 : 1; // Add extra column for 12th fret marker in default mode (visual only)
+    let extraFret = fretCountSetting > 11 ? 0 : 1; // Add extra column for 12th fret marker in default mode (visual only)
     let fretRows = "";
     for (let s = 0; s < stringNames.length; s++) {
       fretRows += `<tr>`;
@@ -1062,7 +1080,7 @@ $(async function () {
     for (let f = 0; f < fretCount + extraFret; f++) {
       let marker = "";
       let fretNum = f; // 0 = open, 1 = 1st fret, etc.
-      if (extendedRange) {
+      if (fretCountSetting > 11) {
         if (typicalFretMarks.includes(fretNum)) {
           if (doubleFretMarkers.includes(fretNum)) {
             marker = `<span class="fret-dot double">
@@ -1117,34 +1135,37 @@ $(async function () {
       makeSession();
     }
     // Clear mic feedback and status when moving to new question
-    const feedbackEl = document.getElementById('mic-feedback');
+    const feedbackEl = document.getElementById("mic-feedback");
     if (feedbackEl) {
-      feedbackEl.textContent = '';
+      feedbackEl.textContent = "";
     }
-    const statusEl = document.getElementById('mic-status');
+    const statusEl = document.getElementById("mic-status");
     if (statusEl) {
-      statusEl.textContent = '';
+      statusEl.textContent = "";
     }
+    // Reset mic detection state to allow fresh submissions for the new card
+    displayedNoteId = null;
     showCard();
   }
 
   // Centralized answer submission for both UI and mic sources.
   // `source` is a string like 'ui' or 'mic' to allow source-specific behavior later.
   // Can accept either a fret number OR a note name (string will be empty if note is provided)
+  // Returns false if the answer was rejected (e.g., wrong octave), true/undefined otherwise
   function submitAnswer(stringIdx, fret, source, detectedNote) {
-    if (!currentCard) return;
-    
+    if (!currentCard) return false;
+
     // Clear mic feedback when an answer is submitted
-    const feedbackEl = document.getElementById('mic-feedback');
-    if (feedbackEl && source !== 'mic') {
-      feedbackEl.textContent = '';
+    const feedbackEl = document.getElementById("mic-feedback");
+    if (feedbackEl && source !== "mic") {
+      feedbackEl.textContent = "";
     }
     // Clear detected note status when a manual answer is submitted
-    const statusEl = document.getElementById('mic-status');
-    if (statusEl && source !== 'mic') {
-      statusEl.textContent = '';
+    const statusEl = document.getElementById("mic-status");
+    if (statusEl && source !== "mic") {
+      statusEl.textContent = "";
     }
-    
+
     // If a note name was provided, convert it to the appropriate fret on the current string
     if (detectedNote) {
       // detectedNote may be either "NAME" or "NAME/OCTAVE" (we pass octave from mic)
@@ -1161,12 +1182,12 @@ $(async function () {
       const variant = noteVariants.find((v) => v.name === namePart);
       if (!variant) {
         console.warn(`Unknown detected note name: ${detectedNote}`);
-        const feedbackEl = document.getElementById('mic-feedback');
+        const feedbackEl = document.getElementById("mic-feedback");
         if (feedbackEl) {
           feedbackEl.textContent = `Unknown note: ${detectedNote}`;
-          feedbackEl.style.color = '#f44336';
+          feedbackEl.style.color = "#f44336";
         }
-        return;
+        return false;
       }
 
       // Try to compute MIDI using provided octave first (if any), otherwise search plausible octaves
@@ -1180,28 +1201,29 @@ $(async function () {
         } else {
           // When octave is explicitly provided (from mic), don't fall back to searching other octaves
           console.log(`Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`);
-          const feedbackEl = document.getElementById('mic-feedback');
+          const feedbackEl = document.getElementById("mic-feedback");
           if (feedbackEl) {
             // Calculate octave difference: remove note difference (mod 12) and focus on octave steps
             const octaveDiff = Math.floor(fretDiff / 12);
-            const hint = octaveDiff < 0 ? 'try octave higher' : 'try octave lower';
-            
+            const hint = octaveDiff < 0 ? "try octave higher" : "try octave lower";
+
             // Calculate expected octave for this note on this string
             const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
             const expectedMidi = openMidi + currentCard.frets[0]; // Use first valid fret position
             const expectedOctave = Math.floor(expectedMidi / 12) - 1;
-            
+
             feedbackEl.textContent = `${namePart}${octavePart} - ${hint} (need ~${expectedOctave})`;
-            feedbackEl.style.color = '#f44336';
+            feedbackEl.style.color = "#f44336";
           }
-          return;
+          return false;
         }
       } else {
         // Only search different octaves when no specific octave was provided
         for (let octave = 1; octave <= 8; octave++) {
           const candidateMidi = getMidi(variant.name, octave);
           const fretDiff = candidateMidi - openMidi;
-          if (fretDiff >= 0 && fretDiff <= 24) { // Within reasonable fret range
+          if (fretDiff >= 0 && fretDiff <= 24) {
+            // Within reasonable fret range
             detectedMidi = candidateMidi;
             break;
           }
@@ -1211,45 +1233,45 @@ $(async function () {
       if (detectedMidi !== null) {
         fret = detectedMidi - openMidi;
         stringIdx = currentCard.string; // Force to current quiz string
-        
+
         // Check for approximate octave feedback - if detected note is roughly an octave off from expected
-        const feedbackEl = document.getElementById('mic-feedback');
-        if (feedbackEl && source === 'mic') {
+        const feedbackEl = document.getElementById("mic-feedback");
+        if (feedbackEl && source === "mic") {
           // Calculate expected MIDI range for the current quiz note
           const expectedMidiValues = currentCard.frets.map((f: number) => openMidi + f);
           const minExpected = Math.min(...expectedMidiValues);
           const maxExpected = Math.max(...expectedMidiValues);
-          
+
           // Check if detected note is approximately an octave off (10-14 semitones to account for different notes)
           const lowerOctaveMin = detectedMidi - 14;
           const lowerOctaveMax = detectedMidi - 10;
-          const higherOctaveMin = detectedMidi + 10; 
+          const higherOctaveMin = detectedMidi + 10;
           const higherOctaveMax = detectedMidi + 14;
-          
+
           // Check if the expected range falls within an octave of the detected note
-          const isExpectedOctaveLower = (minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax);
-          const isExpectedOctaveHigher = (minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax);
-          
+          const isExpectedOctaveLower = minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax;
+          const isExpectedOctaveHigher = minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax;
+
           if (isExpectedOctaveLower) {
-            feedbackEl.textContent = `${namePart}${octavePart || ''} - try octave lower`;
-            feedbackEl.style.color = '#f44336';
-            return; // Don't process as valid answer
+            feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave lower`;
+            feedbackEl.style.color = "#f44336";
+            return false; // Don't process as valid answer
           } else if (isExpectedOctaveHigher) {
-            feedbackEl.textContent = `${namePart}${octavePart || ''} - try octave higher`;  
-            feedbackEl.style.color = '#f44336';
-            return; // Don't process as valid answer
+            feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave higher`;
+            feedbackEl.style.color = "#f44336";
+            return false; // Don't process as valid answer
           } else if (octavePart !== null) {
             // Show normal detection feedback only if no octave issue detected
             feedbackEl.textContent = `detected ${namePart}${octavePart} → fret ${fret}`;
-            feedbackEl.style.color = '#4caf50';
+            feedbackEl.style.color = "#4caf50";
           }
         }
       } else {
         console.warn(`Could not convert detected note ${detectedNote} to fret`);
-        return;
+        return false;
       }
     }
-    
+
     playAnsweredNote(stringIdx, fret);
     const isCorrect = currentCard.frets.includes(fret);
     // Record the answer event
@@ -1267,7 +1289,7 @@ $(async function () {
     drawFretboardTable(currentCard.string, foundFrets);
 
     if (isCorrect) {
-      if (extendedRange) {
+      if (fretCountSetting > 11) {
         if (!foundFrets.includes(fret)) {
           foundFrets.push(fret);
           currentCard.found = foundFrets.slice();
@@ -1288,12 +1310,13 @@ $(async function () {
       highlightFretOnFretboard(currentCard.string, fret, false);
       playDesiredNote(currentCard.string, currentCard.frets[0]);
       // If this came from the mic, avoid advancing and suppress any countdown
-      if (source === 'mic') {
+      if (source === "mic") {
         clearTimeout(pendingTimeout);
         clearInterval(countdownInterval);
         countdownValue = 0;
       }
     }
+    return true; // Successfully processed the answer
   }
 
   function markButton(btn, correct) {
@@ -1304,14 +1327,14 @@ $(async function () {
   function handleFretClick(e) {
     if (!currentCard) return;
     let fret = parseInt($(this).attr("data-fret"));
-    submitAnswer(currentCard.string, fret, 'ui', null);
+    submitAnswer(currentCard.string, fret, "ui", null);
   }
 
   function handleFretboardClick(e) {
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
-    submitAnswer(s, f, 'ui', null);
+    submitAnswer(s, f, "ui", null);
   }
 
   function playAnsweredNote(stringIdx, fretIdx) {
@@ -1466,7 +1489,7 @@ $(async function () {
 
       // Set audio playing flag to prevent microphone feedback
       audioCurrentlyPlaying = true;
-      
+
       // Clear any existing resume timeout
       if (resumeMicTimeout) {
         clearTimeout(resumeMicTimeout);
@@ -1505,10 +1528,13 @@ $(async function () {
           .then(() => {
             console.log("Audio played successfully");
             // Set up timeout to resume microphone after audio finishes
-            resumeMicTimeout = setTimeout(() => {
-              audioCurrentlyPlaying = false;
-              resumeMicTimeout = null;
-            }, (duration * 1000) + 200); // Add 200ms buffer
+            resumeMicTimeout = setTimeout(
+              () => {
+                audioCurrentlyPlaying = false;
+                resumeMicTimeout = null;
+              },
+              duration * 1000 + 200,
+            ); // Add 200ms buffer
           })
           .catch((err) => {
             console.error("Error playing audio:", err);
@@ -1520,10 +1546,13 @@ $(async function () {
           });
       } else {
         // Fallback for older browsers - use duration timeout
-        resumeMicTimeout = setTimeout(() => {
-          audioCurrentlyPlaying = false;
-          resumeMicTimeout = null;
-        }, (duration * 1000) + 200);
+        resumeMicTimeout = setTimeout(
+          () => {
+            audioCurrentlyPlaying = false;
+            resumeMicTimeout = null;
+          },
+          duration * 1000 + 200,
+        );
       }
     } catch (err) {
       console.error("Error playing tone:", err);
@@ -1619,45 +1648,45 @@ $(async function () {
   // Start microphone and pitch detection using pitchy
   async function startMic() {
     if (pitchDetecting) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('getUserMedia not supported');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("getUserMedia not supported");
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-  audioContextForPitch = new AC();
+    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+    audioContextForPitch = new AC();
     const src = audioContextForPitch.createMediaStreamSource(micStream);
-  analyserForPitch = audioContextForPitch.createAnalyser();
+    analyserForPitch = audioContextForPitch.createAnalyser();
     analyserForPitch.fftSize = 2048;
     src.connect(analyserForPitch);
-  detector = PitchDetector.forFloat32Array(analyserForPitch.fftSize);
+    detector = PitchDetector.forFloat32Array(analyserForPitch.fftSize);
     pitchBuffer = new Float32Array(analyserForPitch.fftSize);
-  pitchDetecting = true;
-  smoothedLevel = 0;
-  lastMeterUpdate = 0;
-  micBaselineRms = 0;
-  baselineSamplesCount = 0;
-  collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
-  const statusEl = document.getElementById('mic-status');
-  const meterEl = document.getElementById('mic-meter');
-  const feedbackEl = document.getElementById('mic-feedback');
-  if (statusEl) statusEl.style.display = 'inline';
-  if (meterEl) meterEl.style.display = 'inline-block';
-  if (feedbackEl) feedbackEl.style.display = 'inline';
+    pitchDetecting = true;
+    smoothedLevel = 0;
+    lastMeterUpdate = 0;
+    micBaselineRms = 0;
+    baselineSamplesCount = 0;
+    collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
+    const statusEl = document.getElementById("mic-status");
+    const meterEl = document.getElementById("mic-meter");
+    const feedbackEl = document.getElementById("mic-feedback");
+    if (statusEl) statusEl.style.display = "inline";
+    if (meterEl) meterEl.style.display = "inline-block";
+    if (feedbackEl) feedbackEl.style.display = "inline";
 
-  // statusEl already declared above
+    // statusEl already declared above
 
     // Ensure AudioContext is running (user gesture should have started it)
-    if (audioContextForPitch && audioContextForPitch.state === 'suspended') {
+    if (audioContextForPitch && audioContextForPitch.state === "suspended") {
       audioContextForPitch.resume().catch(() => {});
     }
 
     const loop = () => {
       if (!pitchDetecting) return;
-      
+
       // Skip processing if audio is currently playing to prevent feedback
       if (audioCurrentlyPlaying) {
         pitchAnimFrame = requestAnimationFrame(loop);
         return;
       }
-      
+
       analyserForPitch.getFloatTimeDomainData(pitchBuffer);
       // Compute simple RMS to detect whether the mic is receiving any signal
       let sum = 0;
@@ -1666,9 +1695,9 @@ $(async function () {
       }
       const rms = Math.sqrt(sum / pitchBuffer.length);
 
-  // Use pitchy correctly: pass sampleRate as second arg
-  const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
-      const meterFill = document.getElementById('mic-meter-fill');
+      // Use pitchy correctly: pass sampleRate as second arg
+      const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
+      const meterFill = document.getElementById("mic-meter-fill");
       // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;
@@ -1706,48 +1735,48 @@ $(async function () {
       if (rms < 0.0005) {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
-        const meterFillSilent = document.getElementById('mic-meter-fill');
-        const noteMeterFillSilent = document.getElementById('note-meter-fill');
-        const meterEl = document.getElementById('mic-meter');
+        const meterFillSilent = document.getElementById("mic-meter-fill");
+        const noteMeterFillSilent = document.getElementById("note-meter-fill");
+        const meterEl = document.getElementById("mic-meter");
         if (meterFillSilent) {
           meterFillSilent.style.width = `0%`;
-          meterFillSilent.style.background = '#4caf50';
+          meterFillSilent.style.background = "#4caf50";
         }
         if (noteMeterFillSilent) {
           noteMeterFillSilent.style.width = `0%`;
-          noteMeterFillSilent.style.background = '#4caf50';
+          noteMeterFillSilent.style.background = "#4caf50";
         }
         // Change meter border to indicate no input
         if (meterEl) {
-          meterEl.style.borderColor = '#555';
+          meterEl.style.borderColor = "#555";
         }
       } else if (stable && currentNoteId !== null) {
         // Show note and update meter when stable
         const midiRound = currentNoteId;
-        const noteName = allNotes[(midiRound % 12 + 12) % 12];
+        const noteName = allNotes[((midiRound % 12) + 12) % 12];
         const octave = Math.floor(midiRound / 12) - 1;
         if (statusEl) statusEl.textContent = `${noteName}${octave}`;
         // Update meter immediately when stable (use smoothedLevel)
-        const meterFillStable = document.getElementById('mic-meter-fill');
-        const noteMeterFill = document.getElementById('note-meter-fill');
-        const meterEl = document.getElementById('mic-meter');
+        const meterFillStable = document.getElementById("mic-meter-fill");
+        const noteMeterFill = document.getElementById("note-meter-fill");
+        const meterEl = document.getElementById("mic-meter");
         if (meterFillStable) {
           const pct = Math.round(smoothedLevel * 100);
           meterFillStable.style.width = `${pct}%`;
-          if (smoothedLevel < 0.4) meterFillStable.style.background = '#4caf50';
-          else if (smoothedLevel < 0.8) meterFillStable.style.background = '#ffeb3b';
-          else meterFillStable.style.background = '#f44336';
+          if (smoothedLevel < 0.4) meterFillStable.style.background = "#4caf50";
+          else if (smoothedLevel < 0.8) meterFillStable.style.background = "#ffeb3b";
+          else meterFillStable.style.background = "#f44336";
         }
         if (noteMeterFill) {
           const pct = Math.round(smoothedLevel * 100);
           noteMeterFill.style.width = `${pct}%`;
-          if (smoothedLevel < 0.4) noteMeterFill.style.background = '#4caf50';
-          else if (smoothedLevel < 0.8) noteMeterFill.style.background = '#ffeb3b';
-          else noteMeterFill.style.background = '#f44336';
+          if (smoothedLevel < 0.4) noteMeterFill.style.background = "#4caf50";
+          else if (smoothedLevel < 0.8) noteMeterFill.style.background = "#ffeb3b";
+          else noteMeterFill.style.background = "#f44336";
         }
         // Change meter border to indicate stable note detection
         if (meterEl) {
-          meterEl.style.borderColor = '#4caf50';
+          meterEl.style.borderColor = "#4caf50";
         }
         // Submit this stable detected note to the quiz flow once
         if (displayedNoteId !== currentNoteId) {
@@ -1757,14 +1786,14 @@ $(async function () {
             const ok = submitDetectedNote(midiRound);
             if (ok) displayedNoteId = currentNoteId;
           } catch (e) {
-            console.error('submitDetectedNote error', e);
+            console.error("submitDetectedNote error", e);
           }
         }
       } else {
         // Change meter border to indicate detecting/unstable
-        const meterEl = document.getElementById('mic-meter');
+        const meterEl = document.getElementById("mic-meter");
         if (meterEl) {
-          meterEl.style.borderColor = '#ffeb3b';
+          meterEl.style.borderColor = "#ffeb3b";
         }
       }
       pitchAnimFrame = requestAnimationFrame(loop);
@@ -1797,29 +1826,29 @@ $(async function () {
       } catch (e) {}
       micStream = null;
     }
-    const statusEl = document.getElementById('mic-status');
+    const statusEl = document.getElementById("mic-status");
     if (statusEl) {
-      statusEl.textContent = '';
-      statusEl.style.display = 'none';
+      statusEl.textContent = "";
+      statusEl.style.display = "none";
     }
-  const meterEl = document.getElementById('mic-meter');
+    const meterEl = document.getElementById("mic-meter");
     if (meterEl) {
-      meterEl.style.display = 'none';
-      meterEl.style.borderColor = '#777'; // Reset border color
+      meterEl.style.display = "none";
+      meterEl.style.borderColor = "#777"; // Reset border color
     }
-    const feedbackEl = document.getElementById('mic-feedback');
-    if (feedbackEl) feedbackEl.style.display = 'none';
+    const feedbackEl = document.getElementById("mic-feedback");
+    if (feedbackEl) feedbackEl.style.display = "none";
     // clear meter
-    const meterFill = document.getElementById('mic-meter-fill');
-    if (meterFill) meterFill.style.width = '0%';
-  micBaselineRms = 0;
-  baselineSamplesCount = 0;
-  collectBaselineUntil = 0;
-  const noteMeterFill = document.getElementById('note-meter-fill');
-  if (noteMeterFill) noteMeterFill.style.width = '0%';
+    const meterFill = document.getElementById("mic-meter-fill");
+    if (meterFill) meterFill.style.width = "0%";
+    micBaselineRms = 0;
+    baselineSamplesCount = 0;
+    collectBaselineUntil = 0;
+    const noteMeterFill = document.getElementById("note-meter-fill");
+    if (noteMeterFill) noteMeterFill.style.width = "0%";
     detector = null;
     pitchBuffer = null;
-    
+
     // Clear any pending resume timeout when stopping mic
     if (resumeMicTimeout) {
       clearTimeout(resumeMicTimeout);
@@ -1832,15 +1861,15 @@ $(async function () {
   function submitDetectedNote(midiRound) {
     // Convert MIDI to note name and delegate to unified submitAnswer
     try {
-      if (!currentCard) return;
-      const noteName = allNotes[(midiRound % 12 + 12) % 12];
+      if (!currentCard) return false;
+      const noteName = allNotes[((midiRound % 12) + 12) % 12];
       const octave = Math.floor(midiRound / 12) - 1;
       console.log(`Detected note: ${noteName}${octave} (MIDI ${midiRound})`);
       // Pass both name and octave (format: NAME/OCTAVE) so submitAnswer can use exact octave
-      submitAnswer(null, null, 'mic', `${noteName}/${octave}`);
-      return true;
+      const submitted = submitAnswer(null, null, "mic", `${noteName}/${octave}`);
+      return submitted !== false; // Return false if submitAnswer explicitly rejected the note
     } catch (e) {
-      console.error('submitDetectedNote failed', e);
+      console.error("submitDetectedNote failed", e);
       return false;
     }
   }
@@ -1879,11 +1908,14 @@ $(async function () {
       playNoteCard();
     });
 
-    $("#extended-range").on("change", function () {
-      extendedRange = this.checked;
-      saveSettings();
-      makeSession();
-      showCard();
+    $("#fret-count").on("change", function () {
+      let val = Number(this.value);
+      if (val === 11 || val === 21 || val === 22 || val === 24) {
+        fretCountSetting = val;
+        saveSettings();
+        makeSession();
+        showCard();
+      }
     });
     $("#accidentals").on("change", function () {
       showAccidentals = this.checked;
