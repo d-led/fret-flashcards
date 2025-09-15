@@ -1131,7 +1131,7 @@ $(async function () {
   function nextCard() {
     sessionIdx++;
     if (sessionIdx >= session.length) {
-      alert("Session complete!");
+      console.log("Session complete!");
       makeSession();
     }
     // Clear mic feedback and status when moving to new question
