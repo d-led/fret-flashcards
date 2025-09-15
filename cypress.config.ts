@@ -12,7 +12,7 @@ export default defineConfig({
     mochaFile: "test-results/junit-[hash].xml",
   },
   video: true,
-  videoCompression: true, 
+  videoCompression: true,
   e2e: {
     setupNodeEvents(on, config) {
       // Reference 'on' to satisfy strict compiler settings (it's unused by this config)

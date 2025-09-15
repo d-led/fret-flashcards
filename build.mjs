@@ -38,7 +38,10 @@ function replaceBuildInfo() {
 
     // build timestamp in UTC
     const now = new Date();
-    const utcDate = now.toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC");
+    const utcDate = now
+      .toISOString()
+      .replace("T", " ")
+      .replace(/\.\d+Z$/, " UTC");
 
     // try to get short git hash
     let gitHash = "";
@@ -67,12 +70,7 @@ function replaceBuildInfo() {
 
 async function buildJS(watch = false) {
   const options = {
-    entryPoints: [
-      path.join("src", "ts", "index.ts"),
-      path.join("src", "css", "main.css"),
-      path.join("src", "static", "index.html"),
-      path.join("src", "logo", "logo.svg")
-    ],
+    entryPoints: [path.join("src", "ts", "index.ts"), path.join("src", "css", "main.css"), path.join("src", "static", "index.html"), path.join("src", "logo", "logo.svg")],
     bundle: true,
     sourcemap: true,
     outdir: outdir,
@@ -82,43 +80,43 @@ async function buildJS(watch = false) {
     minify: false,
     logLevel: "info",
     loader: {
-      '.html': 'copy',
-      '.css': 'copy',
-      '.svg': 'copy'
+      ".html": "copy",
+      ".css": "copy",
+      ".svg": "copy",
     },
-    assetNames: '[name]',
-    entryNames: '[name]'
+    assetNames: "[name]",
+    entryNames: "[name]",
   };
 
   if (watch) {
     // Use esbuild's context API for watch mode
-    const { context } = await import('esbuild');
-    
+    const { context } = await import("esbuild");
+
     const ctx = await context({
       ...options,
       plugins: [
         {
-          name: 'copy-vendor-assets',
+          name: "copy-vendor-assets",
           setup(build) {
             build.onStart(() => {
-              console.log('Build starting...');
+              console.log("Build starting...");
               copyVendorAssets();
             });
             build.onEnd(() => {
-              console.log('Build complete');
+              console.log("Build complete");
               replaceBuildInfo();
             });
           },
         },
       ],
     });
-    
+
     await ctx.watch();
-    console.log('Watching for changes...');
-    
+    console.log("Watching for changes...");
+
     // Keep the process alive
-    process.on('SIGINT', async () => {
-      console.log('\nStopping watch mode...');
+    process.on("SIGINT", async () => {
+      console.log("\nStopping watch mode...");
       await ctx.dispose();
       process.exit(0);
     });
