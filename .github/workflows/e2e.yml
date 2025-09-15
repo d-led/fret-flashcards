@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       deploy_pages:
-        description: 'Set to true to deploy to GitHub Pages after E2E'
+        description: "Set to true to deploy to GitHub Pages after E2E"
         required: false
-        default: 'false'
+        default: "false"
 
 permissions:
   contents: read

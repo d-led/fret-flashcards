@@ -1,7 +1,7 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    reporters: ['default', ['junit', { outputFile: 'test-results/junit-vitest.xml' }]],
+    reporters: ["default", ["junit", { outputFile: "test-results/junit-vitest.xml" }]],
   },
-})
+});
