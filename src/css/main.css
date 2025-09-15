@@ -93,7 +93,7 @@ body {
 .note-meter-fill {
   display: block;
   height: 100%;
-  width: 0%;
+  width: 0;
   background: #4caf50;
   transition:
     width 120ms linear,

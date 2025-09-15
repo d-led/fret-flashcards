@@ -43,9 +43,9 @@ $(async function () {
   let trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
   let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
 
-  function renderNoteScore(note, stringIndex, frets) {
-    const trebleContainer = document.getElementById("treble-score");
-    const bassContainer = document.getElementById("bass-score");
+  function renderNoteScore(note: string, stringIndex: number, frets: number[]) {
+    const trebleContainer = document.getElementById("treble-score")!;
+    const bassContainer = document.getElementById("bass-score")!;
 
     // Completely clear and reset containers
     trebleContainer.innerHTML = "";
@@ -69,8 +69,8 @@ $(async function () {
     const BASS_MIN = 0; // Open downwards for low notes
     const BASS_MAX = 91; // ~G6 (written 3 octaves up from G3)
 
-    const trebleNotes = [];
-    const bassNotes = [];
+    const trebleNotes: Array<{note: string, octave: number}> = [];
+    const bassNotes: Array<{note: string, octave: number}> = [];
 
     for (let f of frets) {
       const midi = openMidi + f; // sounding midi
@@ -120,7 +120,7 @@ $(async function () {
         if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
       } else {
         // Fallback: choose the clef that minimizes ledger lines
-        const distToRange = (m, min, max) => {
+        const distToRange = (m: number, min: number, max: number): number => {
           if (m >= min && m <= max) return 0;
           if (m < min) return min - m;
           return m - max;
@@ -429,20 +429,20 @@ $(async function () {
   const typicalFretMarks = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
   const doubleFretMarkers = [12, 24];
 
-  let currentCard = null;
+  let currentCard: any = null;
   let fretCountSetting = 11; // User's selected fret count (11 = basic mode with 0-11 positions)
   let showAccidentals = false;
   let timeoutSeconds = 2;
-  let pendingTimeout = null;
-  let session = [];
+  let pendingTimeout: any = null;
+  let session: any[] = [];
   let sessionIdx = 0;
-  let foundFrets = [];
-  let countdownInterval = null;
+  let foundFrets: any[] = [];
+  let countdownInterval: any = null;
   let countdownValue = 0;
   let fretCount = 12; // calculated based on fretCountSetting (0th fret + selected count)
 
   // Declare stringNames as an empty array (was missing, causing UI breakage)
-  let stringNames = [];
+  let stringNames: any[] = [];
 
   // Add new variables for configurable strings and tuning
   let numStrings = 6;
@@ -578,7 +578,7 @@ $(async function () {
 
   let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
 
-  let statistics = {
+  let statistics: { answers: any[] } = {
     answers: [],
   }; // Object to hold answer events in 'answers' array
 
@@ -591,7 +591,7 @@ $(async function () {
   // Removed: now combined into defaultTunings
 
   // Function to calculate MIDI from note and octave
-  function getMidi(note, octave) {
+  function getMidi(note: string, octave: number) {
     const baseMidi = {
       C: 0,
       "C#": 1,
@@ -611,11 +611,11 @@ $(async function () {
       Bb: 10,
       B: 11,
     };
-    return 12 * (octave + 1) + baseMidi[note];
+    return 12 * (octave + 1) + baseMidi[note as keyof typeof baseMidi];
   }
 
   // Helper function to get the correct enharmonic spelling for a note based on key signature
-  function getEnharmonicForKey(noteIndex, keySignature) {
+  function getEnharmonicForKey(noteIndex: number, keySignature: string) {
     // Define key signature preferences for enharmonic spellings
     const keyPreferences = {
       // Sharp keys prefer sharps
@@ -638,7 +638,7 @@ $(async function () {
       C: [],
     };
 
-    const preferences = keyPreferences[keySignature] || [];
+    const preferences = keyPreferences[keySignature as keyof typeof keyPreferences] || [];
 
     // Find all possible note names for this MIDI note index
     const possibleNames = noteVariants.filter((nv) => nv.idx === noteIndex).map((nv) => nv.name);
@@ -661,7 +661,7 @@ $(async function () {
   }
 
   // Function to convert MIDI back to note name and octave, preserving the quiz note preference
-  function midiToNoteAndOctave(midi, quizNote) {
+  function midiToNoteAndOctave(midi: number, quizNote: string) {
     const octave = Math.floor(midi / 12) - 1;
     const noteIndex = midi % 12;
 
@@ -755,13 +755,13 @@ $(async function () {
       }
       if ("tuning" in settings && Array.isArray(settings.tuning) && settings.tuning.length === numStrings) {
         // Validate that each tuning element has note and octave
-        if (settings.tuning.every((t) => t && typeof t.note === "string" && typeof t.octave === "number")) {
+        if (settings.tuning.every((t: unknown) => t && typeof (t as any).note === "string" && typeof (t as any).octave === "number")) {
           tuning = settings.tuning.slice();
         } else {
-          tuning = defaultTunings[numStrings].strings.slice();
+          tuning = defaultTunings[numStrings as keyof typeof defaultTunings].strings.slice();
         }
       } else {
-        tuning = defaultTunings[numStrings].strings.slice();
+        tuning = defaultTunings[numStrings as keyof typeof defaultTunings].strings.slice();
       }
       if ("enableBias" in settings) {
         enableBias = !!settings.enableBias;
@@ -824,21 +824,8 @@ $(async function () {
     $("#reset-stats").text(`Reset stats (${count})`);
   }
 
-  function midiToFreq(midi) {
+  function midiToFreq(midi: number) {
     return 440 * Math.pow(2, (midi - 69) / 12);
-  }
-
-  function getNoteIdxAtFret(stringIdx, fretIdx) {
-    const openIdx = allNotes.indexOf(stringNames[stringIdx].openNote);
-    return (openIdx + fretIdx) % 12;
-  }
-
-  // Convert string index and fret number to note name
-  function fretToNote(stringIdx, fretIdx) {
-    const openMidi = getMidi(tuning[stringIdx].note, tuning[stringIdx].octave);
-    const fretMidi = openMidi + fretIdx;
-    const { note } = midiToNoteAndOctave(fretMidi, currentCard?.note);
-    return note;
   }
 
   function notesToSet() {
@@ -849,7 +836,7 @@ $(async function () {
   }
 
   // Return English ordinal for a positive integer (1 -> "1st", 2 -> "2nd", 11 -> "11th", etc.)
-  function getOrdinal(n) {
+  function getOrdinal(n: number) {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -907,14 +894,14 @@ $(async function () {
 
       // Calculate weights: base weight = 1, mistakes add bias when enabled
       const biasStrength = enableBias ? 1 : 0; // Only apply bias if enabled
-      const baseWeights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
+      const baseWeights = session.map((card: any) => 1 + mistakeCounts[card.string] * biasStrength);
 
       // Normalize by average and cap the difference to 3:1 ratio
-      const avgWeight = baseWeights.reduce((sum, w) => sum + w, 0) / baseWeights.length;
+      const avgWeight = baseWeights.reduce((sum: number, w: number) => sum + w, 0) / baseWeights.length;
       const maxWeight = avgWeight * 3;
       const minWeight = avgWeight / 3;
 
-      const weights = baseWeights.map((w) => Math.max(minWeight, Math.min(maxWeight, w)));
+      const weights = baseWeights.map((w: number) => Math.max(minWeight, Math.min(maxWeight, w)));
       session = weightedShuffle(session, weights);
     } else {
       // No statistics yet, use equal weights (all 1.0)
@@ -928,9 +915,9 @@ $(async function () {
   }
 
   // Add weighted shuffle function
-  function weightedShuffle(arr, weights) {
+  function weightedShuffle(arr: any[], weights: number[]) {
     const result = [];
-    let totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let totalWeight = weights.reduce((sum: number, w: number) => sum + w, 0);
     while (arr.length > 0) {
       let rand = Math.random() * totalWeight;
       let cumWeight = 0;
@@ -948,7 +935,7 @@ $(async function () {
     return result;
   }
 
-  function shuffle(a) {
+  function shuffle(a: any[]) {
     for (let i = a.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
@@ -1024,7 +1011,7 @@ $(async function () {
     $("#fret-buttons").html(btns);
   }
 
-  let stringErrorCounts = []; // Array to hold error counts per string for current tuning
+  let stringErrorCounts: any[] = []; // Array to hold error counts per string for current tuning
 
   // Function to compute error counts per string for the current tuning
   function computeStringErrorCounts() {
