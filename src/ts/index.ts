@@ -666,17 +666,22 @@ $(async function () {
       const settings = JSON.parse(raw);
       if (typeof settings !== "object") return;
 
+      // Cache frequently used selectors
+      const $fretCount = $("#fret-count");
+      const $enableBias = $("#enable-bias");
+      const $hideQuizNote = $("#hide-quiz-note");
+
       // Handle backward compatibility with extendedRange
       if ("extendedRange" in settings) {
         fretCountSetting = settings.extendedRange ? 24 : 11; // 11 frets for basics mode
-        $("#fret-count").val(fretCountSetting);
+        $fretCount.val(fretCountSetting);
       } else if ("fretCount" in settings) {
         let val = Number(settings.fretCount);
         // Accept both old (12) and new (11) values for basics mode for compatibility
         if (val === 12) val = 11; // Convert old 12 to new 11
         if (val === 11 || val === 21 || val === 22 || val === 24) {
           fretCountSetting = val;
-          $("#fret-count").val(fretCountSetting);
+          $fretCount.val(fretCountSetting);
         }
       }
 
@@ -710,9 +715,9 @@ $(async function () {
       }
       if ("enableBias" in settings) {
         enableBias = settings.enableBias;
-        $("#enable-bias").prop("checked", enableBias);
+        $enableBias.prop("checked", enableBias);
       } else {
-        $("#enable-bias").prop("checked", enableBias); // Ensure default true is reflected
+        $enableBias.prop("checked", enableBias); // Ensure default true is reflected
       }
       if ("showScoreNotation" in settings) {
         showScoreNotation = settings.showScoreNotation;
@@ -721,7 +726,7 @@ $(async function () {
         $("#hide-quiz-note-label").toggle(showScoreNotation);
         if (!showScoreNotation) {
           hideQuizNote = false;
-          $("#hide-quiz-note").prop("checked", false);
+          $hideQuizNote.prop("checked", false);
         }
       }
       if ("scoreKey" in settings) {
@@ -731,7 +736,7 @@ $(async function () {
       if ("hideQuizNote" in settings) {
         hideQuizNote = settings.hideQuizNote;
       }
-      $("#hide-quiz-note").prop("checked", hideQuizNote);
+      $hideQuizNote.prop("checked", hideQuizNote);
     } catch (e) {}
   }
 
@@ -890,24 +895,29 @@ $(async function () {
 
   function updateQuizNoteDisplay() {
     if (!currentCard) return;
+
+    // Cache frequently used selectors
+    const $quizNoteBtn = $("#quiz-note-btn");
+    const $noteScore = $("#note-score");
+
     if (hideQuizNote) {
-      $("#quiz-note-btn").hide();
+      $quizNoteBtn.hide();
       if (showScoreNotation) {
-        $("#note-score").show();
+        $noteScore.show();
         renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
       } else {
-        $("#note-score").hide();
+        $noteScore.hide();
       }
     } else {
       // Always ensure the quiz note button is visible and shows the note text
-      $("#quiz-note-btn").show();
+      $quizNoteBtn.show();
       // Update the button text so the textual hint is available even when notation is shown
-      $("#quiz-note-btn").text(currentCard.note);
+      $quizNoteBtn.text(currentCard.note);
       if (showScoreNotation) {
-        $("#note-score").show();
+        $noteScore.show();
         renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
       } else {
-        $("#note-score").hide();
+        $noteScore.hide();
       }
     }
   }
@@ -918,27 +928,34 @@ $(async function () {
     $("#countdown").text("");
     // Ensure error counts match current tuning/session before rendering
     computeStringErrorCounts();
+
+    // Cache frequently used selectors
+    const $quizNoteBtn = $("#quiz-note-btn");
+    const $flashcardString = $("#flashcard-string");
+    const $fretButtons = $("#fret-buttons");
+    const $fretboardArea = $("#fretboard-area");
+    const $noteScore = $("#note-score");
+
     if (session.length === 0) {
-      $("#quiz-note-btn").show();
-      $("#quiz-note-btn").text("?");
+      $quizNoteBtn.show();
+      $quizNoteBtn.text("?");
       // clear machine-readable attributes when no session
-      $("#quiz-note-btn").removeAttr("data-note");
-      $("#flashcard-string").removeAttr("data-string-index data-string-name data-frets-count");
-      $("#flashcard-string").text("Start!");
-      $("#fret-buttons").empty();
-      $("#fretboard-area").empty();
-      $("#note-score").hide();
+      $quizNoteBtn.removeAttr("data-note");
+      $flashcardString.removeAttr("data-string-index data-string-name data-frets-count");
+      $flashcardString.text("Start!");
+      $fretButtons.empty();
+      $fretboardArea.empty();
+      $noteScore.hide();
       return;
     }
     currentCard = session[sessionIdx];
     currentCard.shownTime = Date.now(); // Track when the card is shown
     foundFrets = currentCard.found.slice();
     // expose stable attributes for tests (and other tooling)
-    $("#quiz-note-btn").attr("data-note", currentCard.note);
+    $quizNoteBtn.attr("data-note", currentCard.note);
     updateQuizNoteDisplay();
-    $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
-    $("#flashcard-string").attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
-    $("#flashcard-string").text(
+    $flashcardString.attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
+    $flashcardString.text(
       // show as a readable sentence: "on the ... string"
       // Show note count for higher fret counts (21+ frets typically have 2-3 notes)
       (fretCountSetting > 11 ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)") : stringNames[currentCard.string].name) + " string",
@@ -953,7 +970,7 @@ $(async function () {
       if (foundFrets.includes(f)) btnClass += " correct";
       btns += `<button class="${btnClass}" data-fret="${f}">${f}</button>`;
     }
-    $("#fret-buttons").html(btns);
+    $fretButtons.html(btns);
   }
 
   let stringErrorCounts: any[] = []; // Array to hold error counts per string for current tuning
