@@ -679,6 +679,18 @@ $(async function () {
     addToTTSQueue(message, 10); // High priority for status messages
   }
 
+  function speakSystemMessage(message: string) {
+    if (!("speechSynthesis" in window)) return;
+
+    // Initialize TTS if not already initialized
+    if (!ttsInitialized) {
+      initializeTTS();
+    }
+
+    // Always speak system messages regardless of TTS setting
+    addToTTSQueue(message, 5); // High priority for system messages
+  }
+
   // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
   function speakStatusImmediate(message: string) {
     if (!("speechSynthesis" in window)) return;
@@ -2160,8 +2172,8 @@ $(async function () {
           .then(() => {
             audioEnabled = true;
             if (isIOS) {
-              updateSoundBanner();
-              speakTTSStatusMessage("Audio enabled");
+              updateUnifiedBanner();
+              speakSystemMessage("Audio enabled");
               // Queue and speak the quiz note after audio is enabled
               if (enableTTS && currentCard) {
                 queueQuizNoteAnnouncement();
@@ -2422,26 +2434,19 @@ $(async function () {
     }
   }
 
-  let $sound = $("#sound-banner");
-  let $ttsBanner = $("#tts-banner");
+  let $unifiedBanner = $("#unified-banner");
 
-  function updateSoundBanner() {
-    const banner = $sound;
-    if (audioEnabled) {
-      banner.addClass("enabled").text("🔊 Sound enabled!");
+  function updateUnifiedBanner() {
+    const banner = $unifiedBanner;
+    if (audioEnabled && ttsInitialized) {
+      banner.addClass("enabled").text("🔊🎤 Audio and voice enabled!");
       setTimeout(() => banner.hide(), 2000);
+    } else if (audioEnabled) {
+      banner.removeClass("enabled").text("🎤 Click here to enable voice").show();
+    } else if (ttsInitialized) {
+      banner.removeClass("enabled").text("🔊 Click here to enable audio").show();
     } else {
-      banner.removeClass("enabled").text("🔊 Click here to enable sound").show();
-    }
-  }
-
-  function updateTTSBanner() {
-    const banner = $ttsBanner;
-    if (ttsInitialized) {
-      banner.addClass("enabled").text("🎤 Voice enabled!");
-      setTimeout(() => banner.hide(), 2000);
-    } else {
-      banner.removeClass("enabled").text("🎤 Click here to enable voice hints").show();
+      banner.removeClass("enabled").text("🔊🎤 Click here to enable audio and voice").show();
     }
   }
 
@@ -2449,7 +2454,6 @@ $(async function () {
     // Detect iOS and show banner if needed
     isIOS = detectIOS();
     if (isIOS) {
-      $sound.show();
       // Don't auto-initialize on iOS - require user action
     } else {
       // On non-iOS devices, initialize audio automatically
@@ -2460,10 +2464,9 @@ $(async function () {
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
 
-    // Show TTS banner ONLY if TTS is enabled in settings on page load
+    // Show unified banner ONLY if TTS is enabled in settings on page load
     if (enableTTS) {
-      $ttsBanner.show();
-      // Don't queue quiz note here - let the banner click handle it
+      updateUnifiedBanner();
     }
 
     // Check TTS support and conditionally show/hide the option
@@ -2581,36 +2584,32 @@ $(async function () {
       saveStatistics();
     });
 
-    // Sound banner click handler (only needed on iOS)
-    $sound.on("click", function () {
-      initAudioContext();
-        // Also initialize TTS immediately on sound enable gesture for iOS
-        if ("speechSynthesis" in window) {
-          if (!ttsInitialized) initializeTTS();
-          // Speak confirmation regardless of enableTTS state, since user clicked the banner
-          speakStatusImmediate("Audio enabled");
-          // Don't queue quiz note here - let the TTS banner handle it
-        }
-    });
-
-    // TTS banner click handler - simplified like the example
-    $ttsBanner.on("click", function () {
-      if ("speechSynthesis" in window) {
-        // Initialize TTS like the example
-        speechSynthesis.cancel(); // removes anything 'stuck'
-        speechSynthesis.getVoices();
-        ttsInitialized = true;
-        
-        // Hide the banner after clicking
-        $ttsBanner.hide();
-        
-        // Speak confirmation
-        speakStatusImmediate("Voice enabled");
-        
-        // Queue and speak the quiz note after TTS is enabled
-        if (currentCard) {
-          queueQuizNoteAnnouncement();
-        }
+    // Unified banner click handler
+    $unifiedBanner.on("click", function () {
+      // Initialize audio if not already enabled
+      if (!audioEnabled) {
+        initAudioContext();
+      }
+      
+      // Initialize TTS for system messages (but don't enable TTS globally)
+      if ("speechSynthesis" in window && !ttsInitialized) {
+        initializeTTS();
+      }
+      
+      // Update banner state
+      updateUnifiedBanner();
+      
+      // Speak appropriate confirmation messages
+      if (!audioEnabled) {
+        speakSystemMessage("Audio enabled");
+      }
+      if (!ttsInitialized) {
+        speakSystemMessage("Voice enabled");
+      }
+      
+      // Queue and speak the quiz note if TTS is enabled
+      if (enableTTS && currentCard) {
+        queueQuizNoteAnnouncement();
       }
     });
 
@@ -2667,18 +2666,16 @@ $(async function () {
       saveSettings();
 
       // Hide banner when toggling via checkbox (user is already interacting)
-      $ttsBanner.hide();
+      $unifiedBanner.hide();
 
       // Speak status message when enabling TTS
       if (enableTTS) {
         // Initialize TTS immediately when enabling (this is a user interaction)
         if (!ttsInitialized && "speechSynthesis" in window) {
-          speechSynthesis.cancel(); // removes anything 'stuck'
-          speechSynthesis.getVoices();
-          ttsInitialized = true;
+          initializeTTS();
         }
         // Speak confirmation
-        speakStatusImmediate("Voice enabled");
+        speakSystemMessage("Voice enabled");
         // Queue and speak the quiz note after voice is enabled
         if (currentCard) {
           queueQuizNoteAnnouncement();
