@@ -2600,9 +2600,7 @@ $(async function () {
       updateUnifiedBanner();
       
       // Speak appropriate confirmation messages
-      if (!audioEnabled) {
-        speakSystemMessage("Audio enabled");
-      }
+      // Audio enabled message is handled in initAudioContext success callback
       if (!ttsInitialized) {
         speakSystemMessage("Voice enabled");
       }
