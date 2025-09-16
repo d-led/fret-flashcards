@@ -547,6 +547,7 @@ $(async function () {
     rate?: number;
     volume?: number;
     pitch?: number;
+    retryAttempt?: boolean;
   }
 
   let ttsQueue: TTSQueueItem[] = [];
@@ -589,57 +590,104 @@ $(async function () {
       utterance.volume = item.volume ?? 0.9; // Higher default volume for better clarity against MIDI
       utterance.pitch = item.pitch ?? 1.0;
 
-      // Ensure voices are loaded before proceeding
-      const voices = speechSynthesis.getVoices();
+      // Force voice loading and wait for voices to be available
+      let voices = speechSynthesis.getVoices();
 
-      // If voices aren't loaded yet, wait for them
+      // If voices aren't loaded yet, wait for them with a timeout
       if (voices.length === 0) {
         console.log("Waiting for voices to load...");
+        let voiceLoadTimeout = setTimeout(() => {
+          console.log("Voice loading timeout, proceeding without voice selection");
+          speakUtterance(utterance, item);
+        }, 2000); // 2 second timeout
+
         speechSynthesis.addEventListener(
           "voiceschanged",
           function voiceHandler() {
+            clearTimeout(voiceLoadTimeout);
             speechSynthesis.removeEventListener("voiceschanged", voiceHandler);
-            processTTSQueue(); // Retry with loaded voices
+            voices = speechSynthesis.getVoices();
+            setBestVoice(utterance, voices, selectedVoice || undefined);
+            speakUtterance(utterance, item);
           },
           { once: true },
         );
-
-        // Put the item back at the front of the queue
-        ttsQueue.unshift(item);
-        ttsCurrentlyPlaying = false;
         return;
       }
 
-      // Set the selected voice if one is chosen
-      if (selectedVoice && "speechSynthesis" in window) {
-        const voice = voices.find((v) => v.name === selectedVoice);
-        if (voice) {
-          utterance.voice = voice;
-        }
-      }
+      // Set the best available voice
+      setBestVoice(utterance, voices, selectedVoice || undefined);
+      speakUtterance(utterance, item);
 
-      utterance.onend = () => {
-        // Check if there are more TTS items in the queue
-        if (ttsQueue.length === 0) {
-          // No more TTS items, so we're done with TTS hints
-          ttsCurrentlyPlaying = false;
-        }
-        // Small delay between TTS items for better pacing
-        setTimeout(() => {
-          processTTSQueue();
-        }, 250);
-      };
-
-      utterance.onerror = () => {
-        console.error("TTS error for:", item.text);
-        processTTSQueue(); // Continue with next item
-      };
-
-      speechSynthesis.speak(utterance);
-      console.log("TTS Speaking:", item.text);
     } catch (err) {
       console.error("Error with TTS queue processing:", err);
       processTTSQueue(); // Continue with next item
+    }
+  }
+
+  function setBestVoice(utterance: SpeechSynthesisUtterance, voices: SpeechSynthesisVoice[], selectedVoiceName?: string) {
+    // If a specific voice was selected, try to use it
+    if (selectedVoiceName) {
+      const selectedVoice = voices.find((v) => v.name === selectedVoiceName);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        return;
+      }
+    }
+
+    // Otherwise, prefer local English voices over network voices
+    const englishVoices = voices.filter((v) => v.lang.startsWith("en"));
+    const localEnglishVoices = englishVoices.filter((v) => v.localService);
+
+    if (localEnglishVoices.length > 0) {
+      // Use the first local English voice
+      utterance.voice = localEnglishVoices[0];
+    } else if (englishVoices.length > 0) {
+      // Fallback to any English voice
+      utterance.voice = englishVoices[0];
+    }
+    // If no English voices, let the browser choose the default
+  }
+
+  function speakUtterance(utterance: SpeechSynthesisUtterance, item: TTSQueueItem) {
+    utterance.onstart = () => {
+      console.log("TTS started:", item.text);
+    };
+
+    utterance.onend = () => {
+      console.log("TTS ended:", item.text);
+      // Check if there are more TTS items in the queue
+      if (ttsQueue.length === 0) {
+        // No more TTS items, so we're done with TTS hints
+        ttsCurrentlyPlaying = false;
+      }
+      // Small delay between TTS items for better pacing
+      setTimeout(() => {
+        processTTSQueue();
+      }, 250);
+    };
+
+    utterance.onerror = (event) => {
+      console.error("TTS error for:", item.text, event.error);
+      // Retry once on error
+      if (!item.retryAttempt) {
+        item.retryAttempt = true;
+        console.log("Retrying TTS for:", item.text);
+        setTimeout(() => {
+          ttsQueue.unshift(item); // Put back at front
+          processTTSQueue();
+        }, 500);
+        return;
+      }
+      // If retry failed, continue with next item
+      processTTSQueue();
+    };
+
+    try {
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error("Failed to speak utterance:", error);
+      processTTSQueue();
     }
   }
 
@@ -1877,22 +1925,7 @@ $(async function () {
   // Check if text-to-speech should be available based on browser/OS combination
   function isTTSSupported() {
     // Check if speechSynthesis is available at all
-    if (!("speechSynthesis" in window)) {
-      return false;
-    }
-
-    // Only Chrome on macOS has known TTS issues (silent audio, voice loading problems)
-    if (detectMacOS()) {
-      const browser = detectBrowser();
-      if (browser === "chrome") {
-        return false; // Chrome on macOS has documented TTS issues
-      }
-      // Safari and Firefox on macOS work fine
-      return true;
-    }
-
-    // Default to supported for other combinations
-    return true;
+    return "speechSynthesis" in window;
   }
 
   // Generate a WAV data URL for a given frequency
@@ -2384,8 +2417,12 @@ $(async function () {
       populateVoiceSelection();
       updateVoiceSelectionVisibility();
 
-      // Voices might load asynchronously, so listen for changes
+      // Force early voice loading for better cross-browser compatibility
       if ("speechSynthesis" in window) {
+        // Call getVoices() immediately to trigger loading
+        speechSynthesis.getVoices();
+
+        // Listen for voice changes
         speechSynthesis.addEventListener("voiceschanged", () => {
           populateVoiceSelection();
         });
