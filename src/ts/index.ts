@@ -867,34 +867,12 @@ $(async function () {
     if ("speechSynthesis" in window) {
       const voices = speechSynthesis.getVoices();
 
-      // Group voices by language and quality
-      const englishVoices: SpeechSynthesisVoice[] = [];
-      const otherVoices: SpeechSynthesisVoice[] = [];
+      // Filter to English only
+      const englishVoices: SpeechSynthesisVoice[] = voices.filter((v) => v && typeof v.lang === "string" && v.lang.toLowerCase().startsWith("en"));
 
-      voices.forEach((voice) => {
-        if (voice.lang.startsWith("en")) {
-          englishVoices.push(voice);
-        } else {
-          otherVoices.push(voice);
-        }
-      });
-
-      // Add English voices first (preferred for musical note names)
       englishVoices.forEach((voice) => {
         const quality = voice.localService ? " (Device)" : " (Network)";
         const option = `<option value="${voice.name}">${voice.name}${quality}</option>`;
-        voiceSelect.append(option);
-      });
-
-      // Add separator if we have both English and other voices
-      if (englishVoices.length > 0 && otherVoices.length > 0) {
-        voiceSelect.append("<option disabled>──────────</option>");
-      }
-
-      // Add other voices
-      otherVoices.forEach((voice) => {
-        const quality = voice.localService ? " (Device)" : " (Network)";
-        const option = `<option value="${voice.name}">${voice.name} [${voice.lang}]${quality}</option>`;
         voiceSelect.append(option);
       });
     }
