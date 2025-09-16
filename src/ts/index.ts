@@ -541,6 +541,37 @@ $(async function () {
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
   let hintsCurrentlyPlaying = false; // Track if hints (TTS or sound) are still playing during transition
 
+  // Test state tracking
+  let utteranceLog: string[] = []; // Track all utterances for testing
+
+  // Test state update functions
+  function updateTestState() {
+    const audioEnabledEl = document.getElementById("audio-enabled");
+    const ttsEnabledEl = document.getElementById("tts-enabled");
+    const ttsInitializedEl = document.getElementById("tts-initialized");
+    const selectedVoiceEl = document.getElementById("selected-voice");
+    const ttsQueueLengthEl = document.getElementById("tts-queue-length");
+    const ttsCurrentlyPlayingEl = document.getElementById("tts-currently-playing");
+    const utteranceLogEl = document.getElementById("utterance-log");
+
+    if (audioEnabledEl) audioEnabledEl.setAttribute("data-enabled", audioEnabled.toString());
+    if (ttsEnabledEl) ttsEnabledEl.setAttribute("data-enabled", enableTTS.toString());
+    if (ttsInitializedEl) ttsInitializedEl.setAttribute("data-initialized", ttsInitialized.toString());
+    if (selectedVoiceEl) selectedVoiceEl.setAttribute("data-voice", selectedVoice || "");
+    if (ttsQueueLengthEl) ttsQueueLengthEl.setAttribute("data-length", ttsQueue.length.toString());
+    if (ttsCurrentlyPlayingEl) ttsCurrentlyPlayingEl.setAttribute("data-playing", ttsCurrentlyPlaying.toString());
+    if (utteranceLogEl) utteranceLogEl.setAttribute("data-log", JSON.stringify(utteranceLog));
+  }
+
+  function logUtterance(text: string) {
+    utteranceLog.push(text);
+    // Keep only last 50 utterances to prevent memory issues
+    if (utteranceLog.length > 50) {
+      utteranceLog = utteranceLog.slice(-50);
+    }
+    updateTestState();
+  }
+
   // Simple TTS system with queuing
   interface TTSQueueItem {
     text: string;
@@ -553,16 +584,17 @@ $(async function () {
   // Simple TTS functions
   function initializeTTS() {
     if (!("speechSynthesis" in window)) return false;
-    
+
     speechSynthesis.cancel(); // removes anything 'stuck'
     speechSynthesis.getVoices();
     ttsInitialized = true;
+    updateTestState();
     return true;
   }
 
-  function addToTTSQueue(text: string, priority: number = 50) {
+  function addToTTSQueue(text: string, priority: number = 50, shouldLog: boolean = true) {
     if (!enableTTS || !("speechSynthesis" in window)) return;
-    
+
     // Insert item in priority order (lower number = higher priority)
     let insertIndex = ttsQueue.length;
     for (let i = 0; i < ttsQueue.length; i++) {
@@ -572,7 +604,15 @@ $(async function () {
       }
     }
     ttsQueue.splice(insertIndex, 0, { text, priority });
-    
+
+    // Log utterance for testing (only when TTS is enabled and shouldLog is true)
+    if (shouldLog) {
+      logUtterance(text);
+    }
+
+    // Update test state
+    updateTestState();
+
     // Process queue if not already playing
     if (!ttsCurrentlyPlaying) {
       processTTSQueue();
@@ -582,43 +622,58 @@ $(async function () {
   function processTTSQueue() {
     if (!enableTTS || ttsQueue.length === 0 || !("speechSynthesis" in window) || !ttsInitialized) {
       ttsCurrentlyPlaying = false;
+      updateTestState();
       return;
     }
-    
+
     ttsCurrentlyPlaying = true;
+    updateTestState();
     const item = ttsQueue.shift()!;
-    
+
     const utterance = new SpeechSynthesisUtterance(item.text);
-    
+
     // Set voice if available
     const voices = speechSynthesis.getVoices();
     if (voices && voices.length > 0) {
       setBestVoice(utterance, voices, selectedVoice || undefined);
     }
-    
+
     utterance.onend = () => {
       ttsCurrentlyPlaying = false;
+      updateTestState();
       // Process next item in queue
       if (ttsQueue.length > 0) {
         setTimeout(() => processTTSQueue(), 100); // Small delay between items
       }
     };
-    
+
     utterance.onerror = () => {
       ttsCurrentlyPlaying = false;
+      updateTestState();
       // Process next item in queue even on error
       if (ttsQueue.length > 0) {
         setTimeout(() => processTTSQueue(), 100);
       }
     };
-    
-    speechSynthesis.speak(utterance);
+
+    try {
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      // Handle synchronous errors
+      ttsCurrentlyPlaying = false;
+      updateTestState();
+      // Process next item in queue even on error
+      if (ttsQueue.length > 0) {
+        setTimeout(() => processTTSQueue(), 100);
+      }
+    }
   }
 
   function clearTTSQueue() {
     ttsQueue = [];
     speechSynthesis.cancel();
     ttsCurrentlyPlaying = false;
+    updateTestState();
   }
 
   function setBestVoice(utterance: SpeechSynthesisUtterance, voices: SpeechSynthesisVoice[], selectedVoiceName?: string) {
@@ -664,8 +719,6 @@ $(async function () {
     // If no English voices, let the browser choose the default
   }
 
-
-
   function speakTTSStatusMessage(message: string, force: boolean = false) {
     if (!("speechSynthesis" in window)) return;
     if (!enableTTS && !force) return;
@@ -688,7 +741,8 @@ $(async function () {
     }
 
     // Always speak system messages regardless of TTS setting
-    addToTTSQueue(message, 5); // High priority for system messages
+    // Use addToTTSQueue but don't log for testing purposes
+    addToTTSQueue(message, 5, false); // High priority for system messages, don't log
   }
 
   // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
@@ -707,7 +761,7 @@ $(async function () {
   // Load voices when available - based on Stack Overflow solution
   function loadVoicesWhenAvailable(onComplete = () => {}) {
     const voices = speechSynthesis.getVoices();
-    
+
     if (voices.length !== 0) {
       onComplete();
     } else {
@@ -717,7 +771,7 @@ $(async function () {
         onComplete();
       };
       speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
-      
+
       // Fallback timeout
       setTimeout(() => {
         speechSynthesis.removeEventListener("voiceschanged", handler);
@@ -742,7 +796,7 @@ $(async function () {
 
     const text = `Note ${spokenNote}, ${ordinalString} string`;
     console.log("Speaking quiz note immediately:", text);
-    
+
     // Speak directly without using the queue system to ensure it happens during user interaction
     try {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -1059,6 +1113,12 @@ $(async function () {
 
       // Update voice selection visibility after loading all settings
       updateVoiceSelectionVisibility();
+
+      // Update unified banner after loading settings
+      updateUnifiedBanner();
+
+      // For testing: expose updateUnifiedBanner globally so tests can call it
+      (window as any).updateUnifiedBanner = updateUnifiedBanner;
     } catch (e) {}
   }
 
@@ -1933,6 +1993,12 @@ $(async function () {
 
   // Detect iOS devices
   function detectIOS() {
+    // Check for static iOS mock configuration in localStorage first
+    const iosMockConfig = localStorage.getItem("ios-mock-config");
+    if (iosMockConfig === "true") {
+      return true;
+    }
+
     // noinspection JSDeprecatedSymbols
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
@@ -1964,13 +2030,19 @@ $(async function () {
     const hasBraveProperty = !!(navigator as any).brave;
     const isChromeBased = navigator.userAgent.indexOf("Chrome") > -1 && navigator.userAgent.indexOf("Edg") === -1;
     const isBrave = hasBraveProperty || (isChromeBased && (navigator as any).brave !== undefined);
-    
+
     console.log("Brave detection - hasBraveProperty:", hasBraveProperty, "isChromeBased:", isChromeBased, "userAgent:", navigator.userAgent);
     return isBrave;
   }
 
   // Check if text-to-speech should be available based on browser/OS combination
   function isTTSSupported() {
+    // Check for static speechSynthesis mock configuration in localStorage first
+    const speechSynthesisMock = localStorage.getItem("speech-synthesis-mock");
+    if (speechSynthesisMock === "false") {
+      return false;
+    }
+
     // Check if speechSynthesis is available at all
     return "speechSynthesis" in window;
   }
@@ -2171,6 +2243,7 @@ $(async function () {
         playPromise
           .then(() => {
             audioEnabled = true;
+            updateTestState();
             if (isIOS) {
               updateUnifiedBanner();
               speakSystemMessage("Audio enabled");
@@ -2192,10 +2265,12 @@ $(async function () {
               console.error("Failed to enable audio:", err);
               audioEnabled = !isIOS;
             }
+            updateTestState();
           });
       } else {
         // Fallback for older browsers
         audioEnabled = true;
+        updateTestState();
       }
     } catch (err) {
       console.error("Failed to initialize audio:", err);
@@ -2203,6 +2278,7 @@ $(async function () {
         // On non-iOS, assume audio will work
         audioEnabled = true;
       }
+      updateTestState();
     }
   }
 
@@ -2438,15 +2514,18 @@ $(async function () {
 
   function updateUnifiedBanner() {
     const banner = $unifiedBanner;
+
     if (audioEnabled && ttsInitialized) {
       banner.addClass("enabled").text("🔊🎤 Audio and voice enabled!");
       setTimeout(() => banner.hide(), 2000);
-    } else if (audioEnabled) {
-      banner.removeClass("enabled").text("🎤 Click here to enable voice").show();
-    } else if (ttsInitialized) {
-      banner.removeClass("enabled").text("🔊 Click here to enable audio").show();
-    } else {
+    } else if (enableTTS) {
+      // When TTS is enabled in settings, show the unified banner
       banner.removeClass("enabled").text("🔊🎤 Click here to enable audio and voice").show();
+    } else if (isIOS && !audioEnabled) {
+      // On iOS, show banner even when TTS is disabled to enable audio
+      banner.removeClass("enabled").text("🔊🎤 Click here to enable audio and voice").show();
+    } else {
+      banner.hide();
     }
   }
 
@@ -2455,14 +2534,22 @@ $(async function () {
     isIOS = detectIOS();
     if (isIOS) {
       // Don't auto-initialize on iOS - require user action
+      updateUnifiedBanner();
     } else {
       // On non-iOS devices, initialize audio automatically
-      audioEnabled = true;
       initAudioContext();
     }
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
+
+    // Initialize TTS if enabled in settings
+    if (enableTTS && isTTSSupported()) {
+      initializeTTS();
+    }
+
+    // Update test state after all initialization is complete
+    updateTestState();
 
     // Show unified banner ONLY if TTS is enabled in settings on page load
     if (enableTTS) {
@@ -2502,6 +2589,12 @@ $(async function () {
     updateTuningUI(); // Initialize tuning UI
     makeSession();
     showCard();
+
+    // Initialize test state
+    updateTestState();
+
+    // Expose functions for testing
+    (window as any).updateUnifiedBanner = updateUnifiedBanner;
 
     $("#fret-buttons").on("click", ".fret-btn", handleFretClick);
 
@@ -2590,21 +2683,21 @@ $(async function () {
       if (!audioEnabled) {
         initAudioContext();
       }
-      
+
       // Initialize TTS for system messages (but don't enable TTS globally)
       if ("speechSynthesis" in window && !ttsInitialized) {
         initializeTTS();
       }
-      
+
       // Update banner state
       updateUnifiedBanner();
-      
+
       // Speak appropriate confirmation messages
       // Audio enabled message is handled in initAudioContext success callback
       if (!ttsInitialized) {
         speakSystemMessage("Voice enabled");
       }
-      
+
       // Queue and speak the quiz note if TTS is enabled
       if (enableTTS && currentCard) {
         queueQuizNoteAnnouncement();
@@ -2662,6 +2755,7 @@ $(async function () {
       enableTTS = this.checked;
       updateVoiceSelectionVisibility();
       saveSettings();
+      updateTestState();
 
       // Hide banner when toggling via checkbox (user is already interacting)
       $unifiedBanner.hide();
@@ -2683,12 +2777,16 @@ $(async function () {
         clearTTSQueue();
         ttsInitialized = false;
         ttsCurrentlyPlaying = false;
+        // Clear utterance log when disabling TTS
+        utteranceLog = [];
+        updateTestState();
       }
     });
 
     $("#voice-select").on("change", function () {
       selectedVoice = (this as HTMLSelectElement).value || null;
       saveSettings();
+      updateTestState();
     });
 
     // Add event handler for skip button

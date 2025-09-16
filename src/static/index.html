@@ -11,7 +11,17 @@
   </head>
   <body>
     <div class="container">
-      <div id="unified-banner" class="unified-enable-banner" style="display: none;">🔊🎤 Click here to enable audio and voice</div>
+      <div id="unified-banner" class="unified-enable-banner" style="display: none">🔊🎤 Click here to enable audio and voice</div>
+      <!-- Test state tracking elements -->
+      <div id="test-state" style="display: none">
+        <span id="audio-enabled" data-enabled="false"></span>
+        <span id="tts-enabled" data-enabled="false"></span>
+        <span id="tts-initialized" data-initialized="false"></span>
+        <span id="selected-voice" data-voice=""></span>
+        <span id="tts-queue-length" data-length="0"></span>
+        <span id="tts-currently-playing" data-playing="false"></span>
+        <span id="utterance-log" data-log="[]"></span>
+      </div>
       <div class="flashcard">
         <div class="flashcard-instruction">Find the note</div>
         <div class="note-row">
@@ -68,9 +78,9 @@
           <input type="checkbox" id="enable-tts" />
           Voice hints
         </label>
-        <div id="voice-selection" style="display: none; margin-left: 20px; margin-top: 5px;">
-          <label for="voice-select" style="font-size: 0.9em;">Voice:</label>
-          <select id="voice-select" style="margin-left: 5px;">
+        <div id="voice-selection" style="display: none; margin-left: 20px; margin-top: 5px">
+          <label for="voice-select" style="font-size: 0.9em">Voice:</label>
+          <select id="voice-select" style="margin-left: 5px">
             <option value="">Default</option>
           </select>
         </div>
@@ -167,8 +177,9 @@
     </div>
     <div id="build-info"></div>
     <div class="copyright">
-      Copyright &copy; 2025 GitHub copilot and Dmitry Ledentsov |
+      Copyright &copy; 2025 GitHub Dmitry Ledentsov |
       <a href="https://github.com/d-led/fret-flashcards" target="_blank">GitHub</a>
+      | Made withe the help of GitHub copilot and Cursor
     </div>
     <script src="./index.js"></script>
   </body>

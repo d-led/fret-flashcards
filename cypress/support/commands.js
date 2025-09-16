@@ -517,3 +517,104 @@ Cypress.Commands.add("shouldHaveFretMarkerAtPosition", (position) => {
 Cypress.Commands.add("shouldHaveLastFretCellHidden", () => {
   cy.get(".fret-cell").last().should("have.css", "visibility", "hidden");
 });
+
+// Audio/TTS test commands
+Cypress.Commands.add("getTestState", () => {
+  return cy.get("#test-state").then(($state) => {
+    const audioEnabled = $state.find("#audio-enabled").attr("data-enabled");
+    const ttsEnabled = $state.find("#tts-enabled").attr("data-enabled");
+    const ttsInitialized = $state.find("#tts-initialized").attr("data-initialized");
+    const selectedVoice = $state.find("#selected-voice").attr("data-voice");
+    const ttsQueueLength = $state.find("#tts-queue-length").attr("data-length");
+    const ttsCurrentlyPlaying = $state.find("#tts-currently-playing").attr("data-playing");
+    const utteranceLog = JSON.parse($state.find("#utterance-log").attr("data-log") || "[]");
+
+    return cy.wrap({
+      audioEnabled,
+      ttsEnabled,
+      ttsInitialized,
+      selectedVoice,
+      ttsQueueLength,
+      ttsCurrentlyPlaying,
+      utteranceLog,
+    });
+  });
+});
+
+Cypress.Commands.add("enableTTS", () => {
+  cy.get("#enable-tts").check();
+});
+
+Cypress.Commands.add("disableTTS", () => {
+  cy.get("#enable-tts").uncheck();
+});
+
+Cypress.Commands.add("selectVoice", (voiceName) => {
+  cy.get("#voice-select").select(voiceName);
+});
+
+Cypress.Commands.add("shouldHaveTTSEnabled", (enabled) => {
+  cy.getTestState().then((state) => {
+    expect(state.ttsEnabled).to.equal(enabled.toString());
+  });
+});
+
+Cypress.Commands.add("shouldHaveAudioEnabled", (enabled) => {
+  cy.getTestState().then((state) => {
+    expect(state.audioEnabled).to.equal(enabled.toString());
+  });
+});
+
+Cypress.Commands.add("shouldHaveTTSInitialized", (initialized) => {
+  cy.getTestState().then((state) => {
+    expect(state.ttsInitialized).to.equal(initialized.toString());
+  });
+});
+
+Cypress.Commands.add("shouldHaveSelectedVoice", (voice) => {
+  cy.getTestState().then((state) => {
+    expect(state.selectedVoice).to.equal(voice);
+  });
+});
+
+Cypress.Commands.add("shouldHaveTTSQueueLength", (length) => {
+  cy.getTestState().then((state) => {
+    expect(parseInt(state.ttsQueueLength)).to.equal(length);
+  });
+});
+
+Cypress.Commands.add("shouldHaveUtteranceLogLength", (length) => {
+  cy.getTestState().then((state) => {
+    expect(state.utteranceLog).to.have.length(length);
+  });
+});
+
+Cypress.Commands.add("shouldHaveUtteranceInLog", (expectedText) => {
+  cy.getTestState().then((state) => {
+    expect(state.utteranceLog).to.include(expectedText);
+  });
+});
+
+Cypress.Commands.add("shouldHaveUtteranceMatching", (pattern) => {
+  cy.getTestState().then((state) => {
+    expect(state.utteranceLog.some((utterance) => new RegExp(pattern).test(utterance))).to.be.true;
+  });
+});
+
+Cypress.Commands.add("waitForTTSQueueToEmpty", () => {
+  cy.getTestState().then((state) => {
+    if (parseInt(state.ttsQueueLength) > 0) {
+      cy.wait(100);
+      cy.waitForTTSQueueToEmpty();
+    }
+  });
+});
+
+Cypress.Commands.add("waitForTTSQueueToHaveLength", (expectedLength) => {
+  cy.getTestState().then((state) => {
+    if (parseInt(state.ttsQueueLength) !== expectedLength) {
+      cy.wait(100);
+      cy.waitForTTSQueueToHaveLength(expectedLength);
+    }
+  });
+});
