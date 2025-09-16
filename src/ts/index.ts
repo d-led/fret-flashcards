@@ -541,129 +541,84 @@ $(async function () {
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
   let hintsCurrentlyPlaying = false; // Track if hints (TTS or sound) are still playing during transition
 
-  // TTS Queue System
+  // Simple TTS system with queuing
   interface TTSQueueItem {
     text: string;
-    priority: number; // Higher number = higher priority
-    rate?: number;
-    volume?: number;
-    pitch?: number;
-    retryAttempt?: boolean;
+    priority: number; // Lower numbers = higher priority
   }
 
   let ttsQueue: TTSQueueItem[] = [];
   let ttsCurrentlyPlaying = false;
-  let ttsGestureHooked = false; // Attach a one-time user-gesture initializer for iOS
-  let ttsGestureHandler: (() => void) | null = null; // Store the gesture handler for cleanup
 
-  function hookTTSGestureOnce() {
-    if (ttsGestureHooked || !("speechSynthesis" in window)) return;
-    const onFirstGesture = () => {
-      console.log("TTS gesture detected, enableTTS:", enableTTS, "ttsInitialized:", ttsInitialized);
-      if (enableTTS) {
-        // Always try to initialize TTS on first gesture for iOS
-        if (!ttsInitialized) {
-          initializeTTSOnFirstInteraction();
-        }
-        // Always try to process the queue on gesture, even if already initialized
-        if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-          console.log("Processing TTS queue on gesture, queue length:", ttsQueue.length);
-          processTTSQueue();
-        }
-      }
-    };
-    // Store the handler for cleanup
-    ttsGestureHandler = onFirstGesture;
-    // Use capture phase to maximize chance of being within the gesture
-    document.addEventListener("click", onFirstGesture, true);
-    document.addEventListener("touchstart", onFirstGesture, true);
-    document.addEventListener("touchend", onFirstGesture, true);
-    // Also listen for keydown events for keyboard users
-    document.addEventListener("keydown", onFirstGesture, true);
-    ttsGestureHooked = true;
+  // Simple TTS functions
+  function initializeTTS() {
+    if (!("speechSynthesis" in window)) return false;
+    
+    speechSynthesis.cancel(); // removes anything 'stuck'
+    speechSynthesis.getVoices();
+    ttsInitialized = true;
+    return true;
   }
 
-  function cleanupTTSGestureHandlers() {
-    if (ttsGestureHandler) {
-      document.removeEventListener("click", ttsGestureHandler, true);
-      document.removeEventListener("touchstart", ttsGestureHandler, true);
-      document.removeEventListener("touchend", ttsGestureHandler, true);
-      document.removeEventListener("keydown", ttsGestureHandler, true);
-      ttsGestureHandler = null;
-      ttsGestureHooked = false;
-    }
-  }
-
-  function addToTTSQueue(item: TTSQueueItem) {
+  function addToTTSQueue(text: string, priority: number = 50) {
     if (!enableTTS || !("speechSynthesis" in window)) return;
-
-    // Insert by priority (higher priority first)
+    
+    // Insert item in priority order (lower number = higher priority)
     let insertIndex = ttsQueue.length;
     for (let i = 0; i < ttsQueue.length; i++) {
-      if (ttsQueue[i].priority < item.priority) {
+      if (ttsQueue[i].priority > priority) {
         insertIndex = i;
         break;
       }
     }
-    ttsQueue.splice(insertIndex, 0, item);
-
-    // Ensure iOS has a gesture hook ready so speech can initialize on first tap
-    hookTTSGestureOnce();
-
-    // Start processing if not already playing
+    ttsQueue.splice(insertIndex, 0, { text, priority });
+    
+    // Process queue if not already playing
     if (!ttsCurrentlyPlaying) {
       processTTSQueue();
-    }
-
-    // Fallback: if TTS isn't initialized and we have items in queue, 
-    // try to process after a short delay (for cases where gesture doesn't work immediately)
-    if (!ttsInitialized && ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-      setTimeout(() => {
-        if (!ttsInitialized && ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-          initializeTTSOnFirstInteraction();
-          // The initialization will trigger queue processing via onend callback
-        }
-      }, 1000);
     }
   }
 
   function processTTSQueue() {
-    if (!enableTTS || ttsQueue.length === 0 || !("speechSynthesis" in window)) {
+    if (!enableTTS || ttsQueue.length === 0 || !("speechSynthesis" in window) || !ttsInitialized) {
       ttsCurrentlyPlaying = false;
       return;
     }
-
-    // On iOS, if TTS isn't initialized yet, wait for gesture
-    if (!ttsInitialized) {
-      ttsCurrentlyPlaying = false;
-      return;
-    }
-
+    
     ttsCurrentlyPlaying = true;
     const item = ttsQueue.shift()!;
-
-    try {
-      // Cancel any ongoing speech
-      speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(item.text);
-      utterance.rate = item.rate ?? 0.7;
-      utterance.volume = item.volume ?? 0.9; // Higher default volume for better clarity against MIDI
-      utterance.pitch = item.pitch ?? 1.0;
-
-      // Load voices when available - based on Stack Overflow solution
-      loadVoicesWhenAvailable(() => {
-        const voices = speechSynthesis.getVoices();
-        if (voices && voices.length > 0) {
-          setBestVoice(utterance, voices, selectedVoice || undefined);
-        }
-        speakUtterance(utterance, item);
-      });
-
-    } catch (err) {
-      console.error("Error with TTS queue processing:", err);
-      processTTSQueue(); // Continue with next item
+    
+    const utterance = new SpeechSynthesisUtterance(item.text);
+    
+    // Set voice if available
+    const voices = speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      setBestVoice(utterance, voices, selectedVoice || undefined);
     }
+    
+    utterance.onend = () => {
+      ttsCurrentlyPlaying = false;
+      // Process next item in queue
+      if (ttsQueue.length > 0) {
+        setTimeout(() => processTTSQueue(), 100); // Small delay between items
+      }
+    };
+    
+    utterance.onerror = () => {
+      ttsCurrentlyPlaying = false;
+      // Process next item in queue even on error
+      if (ttsQueue.length > 0) {
+        setTimeout(() => processTTSQueue(), 100);
+      }
+    };
+    
+    speechSynthesis.speak(utterance);
+  }
+
+  function clearTTSQueue() {
+    ttsQueue = [];
+    speechSynthesis.cancel();
+    ttsCurrentlyPlaying = false;
   }
 
   function setBestVoice(utterance: SpeechSynthesisUtterance, voices: SpeechSynthesisVoice[], selectedVoiceName?: string) {
@@ -709,158 +664,32 @@ $(async function () {
     // If no English voices, let the browser choose the default
   }
 
-  function speakUtterance(utterance: SpeechSynthesisUtterance, item: TTSQueueItem) {
-    utterance.onstart = () => {
-      console.log("TTS started:", item.text);
-      // Clean up gesture handlers once TTS is actually working
-      cleanupTTSGestureHandlers();
-    };
 
-    utterance.onend = () => {
-      console.log("TTS ended:", item.text);
-      // Check if there are more TTS items in the queue
-      if (ttsQueue.length === 0) {
-        // No more TTS items, so we're done with TTS hints
-        ttsCurrentlyPlaying = false;
-      }
-      // Small delay between TTS items for better pacing
-      setTimeout(() => {
-        processTTSQueue();
-      }, 250);
-    };
-
-    utterance.onerror = (event) => {
-      console.error("TTS error for:", item.text, event.error);
-      // Retry once on error
-      if (!item.retryAttempt) {
-        item.retryAttempt = true;
-        console.log("Retrying TTS for:", item.text);
-        setTimeout(() => {
-          ttsQueue.unshift(item); // Put back at front
-          processTTSQueue();
-        }, 500);
-        return;
-      }
-      // If retry failed, continue with next item
-      processTTSQueue();
-    };
-
-    try {
-      // iOS Safari can start paused; resume proactively before speaking
-      if (typeof (speechSynthesis as any).resume === "function") {
-        try { (speechSynthesis as any).resume(); } catch {}
-      }
-      speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.error("Failed to speak utterance:", error);
-      processTTSQueue();
-    }
-  }
-
-  function clearTTSQueue() {
-    ttsQueue = [];
-    speechSynthesis.cancel();
-    ttsCurrentlyPlaying = false;
-  }
-
-  // TTS Initialization functions
-  function initializeTTSOnFirstInteraction() {
-    if (ttsInitialized || !("speechSynthesis" in window)) return;
-
-    console.log("Initializing TTS with empty utterance");
-    ttsInitialized = true;
-
-    // Mobile Safari requires an utterance (even a blank one) during user interaction
-    // to enable utterances during timeouts/intervals - based on Stack Overflow solution
-    const initUtterance = new SpeechSynthesisUtterance("");
-    initUtterance.volume = 0.01; // Very quiet, almost silent
-    initUtterance.rate = 1.1;
-    initUtterance.pitch = 1.0;
-
-    initUtterance.onend = () => {
-      console.log("TTS initialization utterance ended");
-      if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-        processTTSQueue();
-      }
-    };
-    initUtterance.onerror = (event) => {
-      console.warn("TTS initialization utterance error:", event.error);
-      if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-        processTTSQueue();
-      }
-    };
-
-    try {
-      // Proactively resume and cancel any stale speech before speaking
-      if (typeof (speechSynthesis as any).resume === "function") {
-        try { (speechSynthesis as any).resume(); } catch {}
-      }
-      speechSynthesis.cancel();
-      speechSynthesis.speak(initUtterance);
-      
-      // Fallback nudge in case onend doesn't fire on some iOS versions
-      setTimeout(() => {
-        if (!ttsCurrentlyPlaying && ttsQueue.length > 0) {
-          console.log("TTS initialization fallback - processing queue");
-          processTTSQueue();
-        }
-      }, 500);
-    } catch (error) {
-      console.warn("TTS initialization failed:", error);
-      // Even if initialization fails, try to process the queue
-      if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-        processTTSQueue();
-      }
-    }
-  }
 
   function speakTTSStatusMessage(message: string, force: boolean = false) {
     if (!("speechSynthesis" in window)) return;
     if (!enableTTS && !force) return;
 
-    // Ensure TTS is initialized first
+    // Initialize TTS if not already initialized
     if (!ttsInitialized) {
-      initializeTTSOnFirstInteraction();
+      initializeTTS();
     }
 
     // Add status message to TTS queue with high priority
-    addToTTSQueue({
-      text: message,
-      priority: 100, // High priority for status messages
-      rate: 0.8,
-      volume: 0.7,
-      pitch: 1.1
-    });
+    addToTTSQueue(message, 10); // High priority for status messages
   }
 
   // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
   function speakStatusImmediate(message: string) {
     if (!("speechSynthesis" in window)) return;
 
-    // Ensure TTS is initialized first
+    // Initialize TTS if not already initialized
     if (!ttsInitialized) {
-      initializeTTSOnFirstInteraction();
+      initializeTTS();
     }
 
-    try {
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = "en-US";
-      utterance.rate = 0.85;
-      utterance.volume = 0.75;
-      utterance.pitch = 1.05;
-
-      // Load voices when available - based on Stack Overflow solution
-      loadVoicesWhenAvailable(() => {
-        const voices = speechSynthesis.getVoices();
-        if (voices && voices.length > 0) {
-          setBestVoice(utterance, voices, selectedVoice || undefined);
-        }
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      });
-    } catch (e) {
-      console.warn("speakStatusImmediate failed:", e);
-    }
+    // Add to queue with highest priority
+    addToTTSQueue(message, 1);
   }
 
   // Load voices when available - based on Stack Overflow solution
@@ -882,6 +711,45 @@ $(async function () {
         speechSynthesis.removeEventListener("voiceschanged", handler);
         onComplete();
       }, 2000);
+    }
+  }
+
+  // Speak quiz note immediately during user interaction (for iOS compatibility)
+  function speakQuizNoteImmediately() {
+    if (!currentCard || !enableTTS || !("speechSynthesis" in window)) return;
+
+    const ordinalString = getOrdinal(currentCard.string + 1);
+    let spokenNote = currentCard.note;
+
+    // Spell out accidentals for clarity
+    if (spokenNote.includes("#")) {
+      spokenNote = spokenNote.replace("#", " sharp");
+    } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
+      spokenNote = spokenNote.replace(/[b♭]/, " flat");
+    }
+
+    const text = `Note ${spokenNote}, ${ordinalString} string`;
+    console.log("Speaking quiz note immediately:", text);
+    
+    // Speak directly without using the queue system to ensure it happens during user interaction
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.7;
+      utterance.volume = 0.9;
+      utterance.pitch = 1.0;
+
+      // Load voices when available
+      loadVoicesWhenAvailable(() => {
+        const voices = speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          setBestVoice(utterance, voices, selectedVoice || undefined);
+        }
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      });
+    } catch (e) {
+      console.warn("speakQuizNoteImmediately failed:", e);
     }
   }
 
@@ -1169,10 +1037,7 @@ $(async function () {
       if ("enableTTS" in settings) {
         enableTTS = settings.enableTTS;
         $("#enable-tts").prop("checked", enableTTS);
-        // If TTS is enabled on page load, set up gesture hook for iOS
-        if (enableTTS) {
-          hookTTSGestureOnce();
-        }
+        // TTS is now handled by banner clicks and checkbox changes
       }
       if ("selectedVoice" in settings && typeof settings.selectedVoice === "string") {
         selectedVoice = settings.selectedVoice;
@@ -1426,7 +1291,10 @@ $(async function () {
     $fretButtons.html(btns);
 
     // Speak the quiz note if TTS is enabled - use queue with high priority for initial quiz
-    queueQuizNoteAnnouncement();
+    // Only queue if TTS is already initialized (not during banner interactions)
+    if (ttsInitialized) {
+      queueQuizNoteAnnouncement();
+    }
   }
 
   let stringErrorCounts: any[] = []; // Array to hold error counts per string for current tuning
@@ -1622,13 +1490,7 @@ $(async function () {
 
     const text = `Note ${spokenNote}, ${ordinalString} string`;
 
-    addToTTSQueue({
-      text: text,
-      priority: 2, // Normal priority for quiz repeats
-      rate: 0.7,
-      volume: 0.9, // Louder for better clarity against MIDI
-      pitch: 1.0,
-    });
+    addToTTSQueue(text, 2); // Normal priority for quiz repeats
   }
 
   // Queue TTS for initial quiz note announcement (highest priority)
@@ -1647,26 +1509,7 @@ $(async function () {
 
     const text = `Note ${spokenNote}, ${ordinalString} string`;
 
-    addToTTSQueue({
-      text: text,
-      priority: 5, // Highest priority for new quiz announcements
-      rate: 0.7,
-      volume: 0.9, // Louder for better clarity against MIDI
-      pitch: 1.0,
-    });
-
-    // For iOS Safari, also try immediate speech as a fallback during user interaction
-    // This ensures the first utterance happens during user interaction as required by mobile Safari
-    if (!ttsInitialized || ttsQueue.length === 1) {
-      console.log("Attempting immediate quiz note announcement for iOS compatibility");
-      // Try immediate speech after a short delay to allow queue processing
-      setTimeout(() => {
-        if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-          console.log("Fallback: speaking quiz note immediately");
-          speakStatusImmediate(text);
-        }
-      }, 100);
-    }
+    addToTTSQueue(text, 5); // High priority for new quiz announcements
   }
 
   // Queue TTS for octave hint (separated from error handling)
@@ -1683,13 +1526,7 @@ $(async function () {
     lastOctaveHintTime = now;
     const text = "Another octave";
 
-    addToTTSQueue({
-      text: text,
-      priority: 3, // Higher priority for immediate feedback
-      rate: 0.8,
-      volume: 0.7, // Softer than quiz hints (0.9) but louder than before
-      pitch: 1.1,
-    });
+    addToTTSQueue(text, 3); // Higher priority for immediate feedback
   }
 
   // Centralized answer submission for both UI and mic sources.
@@ -1888,15 +1725,7 @@ $(async function () {
   }
 
   function handleFretClick() {
-    // Initialize TTS on first interaction if needed
-    if (!ttsInitialized && enableTTS && "speechSynthesis" in window) {
-      initializeTTSOnFirstInteraction();
-    }
-    
-    // Also try to process any queued TTS items on user interaction
-    if (enableTTS && ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-      processTTSQueue();
-    }
+    // TTS initialization and processing is handled by the gesture handler
 
     if (!currentCard) return;
     if (areHintsPlayingForMicMode()) {
@@ -1908,15 +1737,7 @@ $(async function () {
   }
 
   function handleFretboardClick() {
-    // Initialize TTS on first interaction if needed
-    if (!ttsInitialized && enableTTS && "speechSynthesis" in window) {
-      initializeTTSOnFirstInteraction();
-    }
-    
-    // Also try to process any queued TTS items on user interaction
-    if (enableTTS && ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
-      processTTSQueue();
-    }
+    // TTS initialization and processing is handled by the gesture handler
 
     if (areHintsPlayingForMicMode()) {
       console.log("Ignoring fretboard click - hints still playing during mic mode");
@@ -2123,6 +1944,17 @@ $(async function () {
       return "edge";
     }
     return "unknown";
+  }
+
+  // Detect Brave browser
+  function detectBrave() {
+    // Brave browser detection - check for Brave-specific properties
+    const hasBraveProperty = !!(navigator as any).brave;
+    const isChromeBased = navigator.userAgent.indexOf("Chrome") > -1 && navigator.userAgent.indexOf("Edg") === -1;
+    const isBrave = hasBraveProperty || (isChromeBased && (navigator as any).brave !== undefined);
+    
+    console.log("Brave detection - hasBraveProperty:", hasBraveProperty, "isChromeBased:", isChromeBased, "userAgent:", navigator.userAgent);
+    return isBrave;
   }
 
   // Check if text-to-speech should be available based on browser/OS combination
@@ -2591,6 +2423,7 @@ $(async function () {
   }
 
   let $sound = $("#sound-banner");
+  let $ttsBanner = $("#tts-banner");
 
   function updateSoundBanner() {
     const banner = $sound;
@@ -2599,6 +2432,16 @@ $(async function () {
       setTimeout(() => banner.hide(), 2000);
     } else {
       banner.removeClass("enabled").text("🔊 Click here to enable sound").show();
+    }
+  }
+
+  function updateTTSBanner() {
+    const banner = $ttsBanner;
+    if (ttsInitialized) {
+      banner.addClass("enabled").text("🎤 Voice enabled!");
+      setTimeout(() => banner.hide(), 2000);
+    } else {
+      banner.removeClass("enabled").text("🎤 Click here to enable voice hints").show();
     }
   }
 
@@ -2616,6 +2459,12 @@ $(async function () {
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
+
+    // Show TTS banner ONLY if TTS is enabled in settings on page load
+    if (enableTTS) {
+      $ttsBanner.show();
+      // Don't queue quiz note here - let the banner click handle it
+    }
 
     // Check TTS support and conditionally show/hide the option
     const $ttsOption = $("#enable-tts").closest("label");
@@ -2735,13 +2584,31 @@ $(async function () {
     // Sound banner click handler (only needed on iOS)
     $sound.on("click", function () {
       initAudioContext();
-      // Also initialize TTS immediately on sound enable gesture for iOS
+        // Also initialize TTS immediately on sound enable gesture for iOS
+        if ("speechSynthesis" in window) {
+          if (!ttsInitialized) initializeTTS();
+          // Speak confirmation regardless of enableTTS state, since user clicked the banner
+          speakStatusImmediate("Audio enabled");
+          // Don't queue quiz note here - let the TTS banner handle it
+        }
+    });
+
+    // TTS banner click handler - simplified like the example
+    $ttsBanner.on("click", function () {
       if ("speechSynthesis" in window) {
-        if (!ttsInitialized) initializeTTSOnFirstInteraction();
-        // Speak confirmation regardless of enableTTS state, since user clicked the banner
-        speakStatusImmediate("Audio enabled");
-        // Queue and speak the quiz note after audio is enabled
-        if (enableTTS && currentCard) {
+        // Initialize TTS like the example
+        speechSynthesis.cancel(); // removes anything 'stuck'
+        speechSynthesis.getVoices();
+        ttsInitialized = true;
+        
+        // Hide the banner after clicking
+        $ttsBanner.hide();
+        
+        // Speak confirmation
+        speakStatusImmediate("Voice enabled");
+        
+        // Queue and speak the quiz note after TTS is enabled
+        if (currentCard) {
           queueQuizNoteAnnouncement();
         }
       }
@@ -2799,22 +2666,28 @@ $(async function () {
       updateVoiceSelectionVisibility();
       saveSettings();
 
+      // Hide banner when toggling via checkbox (user is already interacting)
+      $ttsBanner.hide();
+
       // Speak status message when enabling TTS
       if (enableTTS) {
-        // Reset gesture hook state so it can be re-attached for mid-quiz enabling
-        ttsGestureHooked = false;
-        // Proactively hook gesture so first tap initializes voices on iOS
-        hookTTSGestureOnce();
-        // If this toggle itself is a gesture, try to initialize immediately
+        // Initialize TTS immediately when enabling (this is a user interaction)
         if (!ttsInitialized && "speechSynthesis" in window) {
-          initializeTTSOnFirstInteraction();
+          speechSynthesis.cancel(); // removes anything 'stuck'
+          speechSynthesis.getVoices();
+          ttsInitialized = true;
         }
-        // Force the status utterance so it plays on iOS immediately after init
+        // Speak confirmation
         speakStatusImmediate("Voice enabled");
         // Queue and speak the quiz note after voice is enabled
         if (currentCard) {
           queueQuizNoteAnnouncement();
         }
+      } else {
+        // When disabling TTS, clear the queue and reset state
+        clearTTSQueue();
+        ttsInitialized = false;
+        ttsCurrentlyPlaying = false;
       }
     });
 
