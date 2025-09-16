@@ -553,6 +553,26 @@ $(async function () {
 
   let ttsQueue: TTSQueueItem[] = [];
   let ttsCurrentlyPlaying = false;
+  let ttsGestureHooked = false; // Attach a one-time user-gesture initializer for iOS
+
+  function hookTTSGestureOnce() {
+    if (ttsGestureHooked || !("speechSynthesis" in window)) return;
+    const onFirstGesture = () => {
+      if (enableTTS && !ttsInitialized) {
+        initializeTTSOnFirstInteraction();
+        // If there is queued speech waiting, start it now
+        if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
+          processTTSQueue();
+        }
+      }
+      document.removeEventListener("click", onFirstGesture, true);
+      document.removeEventListener("touchend", onFirstGesture, true);
+    };
+    // Use capture phase to maximize chance of being within the gesture
+    document.addEventListener("click", onFirstGesture, true);
+    document.addEventListener("touchend", onFirstGesture, true);
+    ttsGestureHooked = true;
+  }
 
   function addToTTSQueue(item: TTSQueueItem) {
     if (!enableTTS || !("speechSynthesis" in window)) return;
@@ -566,6 +586,9 @@ $(async function () {
       }
     }
     ttsQueue.splice(insertIndex, 0, item);
+
+    // Ensure iOS has a gesture hook ready so speech can initialize on first tap
+    hookTTSGestureOnce();
 
     // Start processing if not already playing
     if (!ttsCurrentlyPlaying) {
@@ -639,6 +662,25 @@ $(async function () {
     // Otherwise, prefer local English voices over network voices
     const englishVoices = voices.filter((v) => v.lang.startsWith("en"));
     const localEnglishVoices = englishVoices.filter((v) => v.localService);
+
+    // iOS-specific: try to pick a consistent Siri US English voice if available
+    try {
+      const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (isiOS && englishVoices.length > 0) {
+        // Prefer local Siri English; among Siri voices, try to pick a stable male voice variant when present
+        const siriEnglish = englishVoices.filter((v) => /siri/i.test(v.name));
+        const siriLocal = siriEnglish.filter((v) => v.localService);
+        const candidates = (siriLocal.length ? siriLocal : siriEnglish).filter((v) => /en/i.test(v.lang));
+        if (candidates.length > 0) {
+          // Heuristic: pick a voice whose name suggests a lower-numbered variant (often male), else first
+          const preferred = candidates.find((v) => /(voice\s*2|voice\s*4)/i.test(v.name)) || candidates[0];
+          utterance.voice = preferred;
+          return;
+        }
+      }
+    } catch (e) {
+      // ignore UA parsing issues
+    }
 
     if (localEnglishVoices.length > 0) {
       // Use the first local English voice
@@ -722,10 +764,16 @@ $(async function () {
     } catch (error) {
       console.warn("TTS initialization failed:", error);
     }
+
+    // Kick the queue if something was waiting
+    if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
+      processTTSQueue();
+    }
   }
 
-  function speakTTSStatusMessage(message: string) {
-    if (!enableTTS || !("speechSynthesis" in window)) return;
+  function speakTTSStatusMessage(message: string, force: boolean = false) {
+    if (!("speechSynthesis" in window)) return;
+    if (!enableTTS && !force) return;
 
     // Ensure TTS is initialized first
     if (!ttsInitialized) {
@@ -740,6 +788,44 @@ $(async function () {
       volume: 0.7,
       pitch: 1.1
     });
+  }
+
+  // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
+  function speakStatusImmediate(message: string) {
+    if (!("speechSynthesis" in window)) return;
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = "en-US";
+      utterance.rate = 0.85;
+      utterance.volume = 0.75;
+      utterance.pitch = 1.05;
+
+      let voices = speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        setBestVoice(utterance, voices, selectedVoice || undefined);
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+        return;
+      }
+
+      // Wait briefly for voices if not yet loaded
+      const timeout = setTimeout(() => {
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      }, 500);
+      const handler = () => {
+        clearTimeout(timeout);
+        speechSynthesis.removeEventListener("voiceschanged", handler);
+        voices = speechSynthesis.getVoices();
+        if (voices && voices.length > 0) setBestVoice(utterance, voices, selectedVoice || undefined);
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      };
+      speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
+    } catch (e) {
+      // Fallback silently
+    }
   }
 
   // Functions to manage hint state during transitions
@@ -2575,6 +2661,12 @@ $(async function () {
     // Sound banner click handler (only needed on iOS)
     $sound.on("click", function () {
       initAudioContext();
+      // Also initialize TTS immediately on sound enable gesture for iOS
+      if ("speechSynthesis" in window) {
+        if (!ttsInitialized) initializeTTSOnFirstInteraction();
+        // Speak confirmation regardless of enableTTS state, since user clicked the banner
+        speakStatusImmediate("Audio enabled");
+      }
     });
 
     // Mic toggle handler
@@ -2631,7 +2723,14 @@ $(async function () {
 
       // Speak status message when enabling TTS
       if (enableTTS) {
-        speakTTSStatusMessage("Enabled this voice");
+        // Proactively hook gesture so first tap initializes voices on iOS
+        hookTTSGestureOnce();
+        // If this toggle itself is a gesture, try to initialize immediately
+        if (!ttsInitialized && "speechSynthesis" in window) {
+          initializeTTSOnFirstInteraction();
+        }
+        // Force the status utterance so it plays on iOS immediately after init
+        speakStatusImmediate("Voice enabled");
       }
     });
 
