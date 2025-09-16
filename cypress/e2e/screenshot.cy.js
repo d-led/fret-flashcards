@@ -10,11 +10,11 @@ describe("Auto screenshot", () => {
     cy.appScreenshot();
 
     cy.then(() => {
-        const src = `cypress/screenshots/screenshot.cy.js/app-screenshot-auto.png`;
-        const dest = `docs/img/app-screenshot-auto.png`;
-        cy.task('copyScreenshot', { src, dest }).then((res) => {
-          if (res && res.error) throw new Error(res.error);
-        });
+      const src = `cypress/screenshots/screenshot.cy.js/app-screenshot-auto.png`;
+      const dest = `docs/img/app-screenshot-auto.png`;
+      cy.task("copyScreenshot", { src, dest }).then((res) => {
+        if (res && res.error) throw new Error(res.error);
+      });
     });
   });
 });

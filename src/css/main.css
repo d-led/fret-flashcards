@@ -31,6 +31,11 @@ body {
   padding: 0;
 }
 
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
 .container {
   max-width: 540px;
   margin: 3em auto 0;
@@ -342,6 +347,38 @@ body {
 
 #mic-toggle {
   margin-bottom: var(--margin);
+}
+
+#mic-controls {
+  margin-top: 12px;
+}
+
+#mic-status {
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+#mic-meter {
+  vertical-align: middle;
+  margin-left: 8px;
+  width: 160px;
+  height: 12px;
+  border: 1px solid #777;
+  background: #222;
+}
+
+#mic-meter-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #4caf50;
+}
+
+#mic-feedback {
+  margin-left: 8px;
+  font-size: 0.85em;
+  color: #999;
+  font-style: italic;
 }
 
 .config {

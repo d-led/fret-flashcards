@@ -44,7 +44,7 @@ $(async function () {
   let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
 
   // Helper function to process and add treble notes
-  function addTrebleNote(tName: string, tOct: number, trebleNotes: Array<{note: string, octave: number}>) {
+  function addTrebleNote(tName: string, tOct: number, trebleNotes: Array<{ note: string; octave: number }>) {
     let vexT = tName.toLowerCase();
     if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
     else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
@@ -53,7 +53,7 @@ $(async function () {
   }
 
   // Helper function to update bounds from SVG elements
-  function updateBoundsFromElements(elements: NodeListOf<Element>, bounds: { minX: number, minY: number, maxX: number, maxY: number }) {
+  function updateBoundsFromElements(elements: NodeListOf<Element>, bounds: { minX: number; minY: number; maxX: number; maxY: number }) {
     elements.forEach((element) => {
       try {
         const bbox = (element as SVGGraphicsElement).getBBox();
@@ -68,7 +68,7 @@ $(async function () {
   }
 
   // Helper function to apply cropping to SVG element
-  function applySvgCropping(svgEl: SVGSVGElement, bounds: { minX: number, minY: number, maxX: number, maxY: number }, clefName: string) {
+  function applySvgCropping(svgEl: SVGSVGElement, bounds: { minX: number; minY: number; maxX: number; maxY: number }, clefName: string) {
     if (bounds.minX !== Infinity && bounds.minY !== Infinity) {
       const margin = 5; // Smaller margin for tighter cropping
       const cropX = bounds.minX - margin;
@@ -118,8 +118,8 @@ $(async function () {
     const BASS_MIN = 0; // Open downwards for low notes
     const BASS_MAX = 91; // ~G6 (written 3 octaves up from G3)
 
-    const trebleNotes: Array<{note: string, octave: number}> = [];
-    const bassNotes: Array<{note: string, octave: number}> = [];
+    const trebleNotes: Array<{ note: string; octave: number }> = [];
+    const bassNotes: Array<{ note: string; octave: number }> = [];
 
     for (let f of frets) {
       const midi = openMidi + f; // sounding midi
@@ -533,6 +533,209 @@ $(async function () {
   let showScoreNotation = false; // Default to false, to hide score by default
   let scoreKey = "C"; // Default key for score notation
   let hideQuizNote = false; // Default to false, to show quiz note by default
+  let enableTTS = false; // Default to false, text-to-speech for quiz notes
+  let selectedVoice: string | null = null; // Selected voice for TTS, null means use default
+  let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
+  let consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint
+  let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
+  let hintsCurrentlyPlaying = false; // Track if hints (TTS or sound) are still playing during transition
+
+  // TTS Queue System
+  interface TTSQueueItem {
+    text: string;
+    priority: number; // Higher number = higher priority
+    rate?: number;
+    volume?: number;
+    pitch?: number;
+  }
+
+  let ttsQueue: TTSQueueItem[] = [];
+  let ttsCurrentlyPlaying = false;
+
+  function addToTTSQueue(item: TTSQueueItem) {
+    if (!enableTTS || !("speechSynthesis" in window)) return;
+
+    // Insert by priority (higher priority first)
+    let insertIndex = ttsQueue.length;
+    for (let i = 0; i < ttsQueue.length; i++) {
+      if (ttsQueue[i].priority < item.priority) {
+        insertIndex = i;
+        break;
+      }
+    }
+    ttsQueue.splice(insertIndex, 0, item);
+
+    // Start processing if not already playing
+    if (!ttsCurrentlyPlaying) {
+      processTTSQueue();
+    }
+  }
+
+  function processTTSQueue() {
+    if (!enableTTS || ttsQueue.length === 0 || !("speechSynthesis" in window)) {
+      ttsCurrentlyPlaying = false;
+      return;
+    }
+
+    ttsCurrentlyPlaying = true;
+    const item = ttsQueue.shift()!;
+
+    try {
+      // Cancel any ongoing speech
+      speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(item.text);
+      utterance.rate = item.rate ?? 0.7;
+      utterance.volume = item.volume ?? 0.9; // Higher default volume for better clarity against MIDI
+      utterance.pitch = item.pitch ?? 1.0;
+
+      // Ensure voices are loaded before proceeding
+      const voices = speechSynthesis.getVoices();
+
+      // If voices aren't loaded yet, wait for them
+      if (voices.length === 0) {
+        console.log("Waiting for voices to load...");
+        speechSynthesis.addEventListener(
+          "voiceschanged",
+          function voiceHandler() {
+            speechSynthesis.removeEventListener("voiceschanged", voiceHandler);
+            processTTSQueue(); // Retry with loaded voices
+          },
+          { once: true },
+        );
+
+        // Put the item back at the front of the queue
+        ttsQueue.unshift(item);
+        ttsCurrentlyPlaying = false;
+        return;
+      }
+
+      // Set the selected voice if one is chosen
+      if (selectedVoice && "speechSynthesis" in window) {
+        const voice = voices.find((v) => v.name === selectedVoice);
+        if (voice) {
+          utterance.voice = voice;
+        }
+      }
+
+      utterance.onend = () => {
+        // Check if there are more TTS items in the queue
+        if (ttsQueue.length === 0) {
+          // No more TTS items, so we're done with TTS hints
+          ttsCurrentlyPlaying = false;
+        }
+        // Small delay between TTS items for better pacing
+        setTimeout(() => {
+          processTTSQueue();
+        }, 250);
+      };
+
+      utterance.onerror = () => {
+        console.error("TTS error for:", item.text);
+        processTTSQueue(); // Continue with next item
+      };
+
+      speechSynthesis.speak(utterance);
+      console.log("TTS Speaking:", item.text);
+    } catch (err) {
+      console.error("Error with TTS queue processing:", err);
+      processTTSQueue(); // Continue with next item
+    }
+  }
+
+  function clearTTSQueue() {
+    ttsQueue = [];
+    speechSynthesis.cancel();
+    ttsCurrentlyPlaying = false;
+  }
+
+  // Functions to manage hint state during transitions
+  function areHintsPlaying() {
+    return ttsCurrentlyPlaying || audioCurrentlyPlaying || hintsCurrentlyPlaying;
+  }
+
+  function areHintsPlayingForMicMode() {
+    // Only block input during hints if microphone is being used AND we're actively processing mic input
+    // This prevents button clicks from interfering with microphone pitch detection feedback,
+    // but allows button input during general hint playback (like transition sounds)
+    return pitchDetecting && hintsCurrentlyPlaying;
+  }
+
+  function setHintsPlaying(playing: boolean) {
+    hintsCurrentlyPlaying = playing;
+  }
+
+  function waitForHintsToComplete(callback: () => void) {
+    if (!areHintsPlaying()) {
+      callback();
+      return;
+    }
+
+    const checkInterval = setInterval(() => {
+      if (!areHintsPlaying()) {
+        clearInterval(checkInterval);
+        callback();
+      }
+    }, 100); // Check every 100ms
+  }
+
+  // Voice management functions
+  function populateVoiceSelection() {
+    const voiceSelect = $("#voice-select");
+    voiceSelect.empty();
+    voiceSelect.append('<option value="">Default</option>');
+
+    if ("speechSynthesis" in window) {
+      const voices = speechSynthesis.getVoices();
+
+      // Group voices by language and quality
+      const englishVoices: SpeechSynthesisVoice[] = [];
+      const otherVoices: SpeechSynthesisVoice[] = [];
+
+      voices.forEach((voice) => {
+        if (voice.lang.startsWith("en")) {
+          englishVoices.push(voice);
+        } else {
+          otherVoices.push(voice);
+        }
+      });
+
+      // Add English voices first (preferred for musical note names)
+      englishVoices.forEach((voice) => {
+        const quality = voice.localService ? " (Device)" : " (Network)";
+        const option = `<option value="${voice.name}">${voice.name}${quality}</option>`;
+        voiceSelect.append(option);
+      });
+
+      // Add separator if we have both English and other voices
+      if (englishVoices.length > 0 && otherVoices.length > 0) {
+        voiceSelect.append("<option disabled>──────────</option>");
+      }
+
+      // Add other voices
+      otherVoices.forEach((voice) => {
+        const quality = voice.localService ? " (Device)" : " (Network)";
+        const option = `<option value="${voice.name}">${voice.name} [${voice.lang}]${quality}</option>`;
+        voiceSelect.append(option);
+      });
+    }
+
+    // Set the selected voice if one was previously chosen
+    if (selectedVoice) {
+      voiceSelect.val(selectedVoice);
+    }
+  }
+
+  function updateVoiceSelectionVisibility() {
+    const $voiceSelection = $("#voice-selection");
+    const $enableTTS = $("#enable-tts");
+
+    if ($enableTTS.is(":checked") && isTTSSupported()) {
+      $voiceSelection.show();
+    } else {
+      $voiceSelection.hide();
+    }
+  }
 
   // Octaves for MIDI calculation based on string count (expanded to 3-12)
   // Removed: now combined into defaultTunings
@@ -559,6 +762,14 @@ $(async function () {
       B: 11,
     };
     return 12 * (octave + 1) + baseMidi[note as keyof typeof baseMidi];
+  }
+
+  // Helper function to check if two notes are enharmonically equivalent (e.g., C# and Db)
+  function areNotesEquivalent(note1: string, note2: string) {
+    // Find the pitch class index for both notes using the static noteVariants
+    const idx1 = noteVariants.find((nv) => nv.name === note1)?.idx;
+    const idx2 = noteVariants.find((nv) => nv.name === note2)?.idx;
+    return idx1 !== undefined && idx2 !== undefined && idx1 === idx2;
   }
 
   // Helper function to get the correct enharmonic spelling for a note based on key signature
@@ -654,6 +865,8 @@ $(async function () {
       showScoreNotation: showScoreNotation,
       scoreKey: scoreKey,
       hideQuizNote: hideQuizNote,
+      enableTTS: enableTTS,
+      selectedVoice: selectedVoice,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
@@ -739,6 +952,18 @@ $(async function () {
         hideQuizNote = settings.hideQuizNote;
       }
       $hideQuizNote.prop("checked", hideQuizNote);
+      if ("enableTTS" in settings) {
+        enableTTS = settings.enableTTS;
+        $("#enable-tts").prop("checked", enableTTS);
+      }
+      if ("selectedVoice" in settings && typeof settings.selectedVoice === "string") {
+        selectedVoice = settings.selectedVoice;
+        // Update the voice dropdown selection
+        $("#voice-select").val(selectedVoice || "");
+      }
+
+      // Update voice selection visibility after loading all settings
+      updateVoiceSelectionVisibility();
     } catch (e) {}
   }
 
@@ -797,6 +1022,11 @@ $(async function () {
   function makeSession() {
     // Set correct fret count based on user setting: includes 0th fret + selected count
     fretCount = fretCountSetting + 1;
+    // Reset consecutive mistakes counter for new session
+    consecutiveMistakes = 0;
+    consecutiveOctaveMistakes = 0;
+    // Clear TTS queue when starting a new session to prevent old announcements
+    clearTTSQueue();
     // Dynamically build stringNames based on numStrings and tuning
     stringNames.length = 0; // Clear existing
     for (let i = 0; i < numStrings; i++) {
@@ -816,7 +1046,8 @@ $(async function () {
         for (let f of frets) {
           let noteIdx = (openIdx + f) % 12;
           let noteOnFret = allNotes[noteIdx];
-          if (noteOnFret === n || (showAccidentals && ((sharpNotes.includes(n) && noteOnFret === n) || (flatNotes.includes(n) && allNotes[noteIdx] === n)))) {
+          // Check if the note matches exactly or if they are enharmonically equivalent
+          if (noteOnFret === n || (showAccidentals && areNotesEquivalent(noteOnFret, n))) {
             idxs.push(f);
           }
         }
@@ -975,6 +1206,9 @@ $(async function () {
       btns += `<button class="${btnClass}" data-fret="${f}">${f}</button>`;
     }
     $fretButtons.html(btns);
+
+    // Speak the quiz note if TTS is enabled - use queue with high priority for initial quiz
+    queueQuizNoteAnnouncement();
   }
 
   let stringErrorCounts: any[] = []; // Array to hold error counts per string for current tuning
@@ -1098,7 +1332,133 @@ $(async function () {
     }
     // Reset mic detection state to allow fresh submissions for the new card
     displayedNoteId = null;
-    showCard();
+    // Reset consecutive mistakes counter for new card
+    consecutiveMistakes = 0;
+    consecutiveOctaveMistakes = 0;
+    // Reset octave hint debounce timer for fresh octave feedback on new card
+    lastOctaveHintTime = 0;
+    // Clear TTS queue when moving to new card to prevent old announcements
+    clearTTSQueue();
+
+    // Only apply transition delay and Next sound when microphone is active
+    if (pitchDetecting) {
+      if (areHintsPlaying()) {
+        // Wait for all hints to complete before starting the new quiz
+        waitForHintsToComplete(() => {
+          playNextSound();
+          // Small delay after the "Next" sound before showing the card
+          setTimeout(() => {
+            showCard();
+          }, 300);
+        });
+      } else {
+        // No hints playing, but still play the Next sound for microphone users
+        playNextSound();
+        setTimeout(() => {
+          showCard();
+        }, 300);
+      }
+    } else {
+      // Immediate transition for UI-only mode (tests and manual clicking)
+      showCard();
+    }
+  }
+
+  // Track mistakes and handle TTS repeat logic
+  function trackMistakeAndHandleTTS(isCorrect: boolean, source: string, isOctaveError: boolean = false) {
+    if (isCorrect) {
+      consecutiveMistakes = 0; // Reset counter on correct answer
+      consecutiveOctaveMistakes = 0; // Reset octave counter on correct answer
+    } else {
+      consecutiveMistakes++;
+      console.log(`Consecutive mistakes: ${consecutiveMistakes} (source: ${source})`);
+
+      // For octave errors, give immediate feedback
+      if (isOctaveError) {
+        queueOctaveHint();
+        // Don't increment consecutiveOctaveMistakes here since it's already incremented at call site
+      }
+
+      // After 3 consecutive mistakes, repeat the quiz note
+      if (consecutiveMistakes === 3) {
+        queueQuizNoteRepeat();
+        // Reset counter after giving hint so it can trigger again
+        consecutiveMistakes = 0;
+      }
+    }
+  }
+
+  // Queue TTS for quiz note repeat (separated from error handling)
+  function queueQuizNoteRepeat() {
+    if (!enableTTS || !currentCard) return;
+
+    const ordinalString = getOrdinal(currentCard.string + 1);
+    let spokenNote = currentCard.note;
+
+    // Spell out accidentals for clarity
+    if (spokenNote.includes("#")) {
+      spokenNote = spokenNote.replace("#", " sharp");
+    } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
+      spokenNote = spokenNote.replace(/[b♭]/, " flat");
+    }
+
+    const text = `Note ${spokenNote}, ${ordinalString} string`;
+
+    addToTTSQueue({
+      text: text,
+      priority: 2, // Normal priority for quiz repeats
+      rate: 0.7,
+      volume: 0.9, // Louder for better clarity against MIDI
+      pitch: 1.0,
+    });
+  }
+
+  // Queue TTS for initial quiz note announcement (highest priority)
+  function queueQuizNoteAnnouncement() {
+    if (!enableTTS || !currentCard) return;
+
+    const ordinalString = getOrdinal(currentCard.string + 1);
+    let spokenNote = currentCard.note;
+
+    // Spell out accidentals for clarity
+    if (spokenNote.includes("#")) {
+      spokenNote = spokenNote.replace("#", " sharp");
+    } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
+      spokenNote = spokenNote.replace(/[b♭]/, " flat");
+    }
+
+    const text = `Note ${spokenNote}, ${ordinalString} string`;
+
+    addToTTSQueue({
+      text: text,
+      priority: 5, // Highest priority for new quiz announcements
+      rate: 0.7,
+      volume: 0.9, // Louder for better clarity against MIDI
+      pitch: 1.0,
+    });
+  }
+
+  // Queue TTS for octave hint (separated from error handling)
+  function queueOctaveHint() {
+    if (!enableTTS || !currentCard) return;
+
+    // Debounce: don't repeat octave hint more than once every 5 seconds
+    const now = Date.now();
+    if (now - lastOctaveHintTime < 5000) {
+      console.log("Octave hint debounced - too soon since last hint");
+      return;
+    }
+
+    lastOctaveHintTime = now;
+    const text = "Another octave";
+
+    addToTTSQueue({
+      text: text,
+      priority: 3, // Higher priority for immediate feedback
+      rate: 0.8,
+      volume: 0.7, // Softer than quiz hints (0.9) but louder than before
+      pitch: 1.1,
+    });
   }
 
   // Centralized answer submission for both UI and mic sources.
@@ -1135,6 +1495,7 @@ $(async function () {
       const variant = noteVariants.find((v) => v.name === namePart);
       if (!variant) {
         console.warn(`Unknown detected note name: ${detectedNote}`);
+        trackMistakeAndHandleTTS(false, source);
         const feedbackEl = document.getElementById("mic-feedback");
         if (feedbackEl) {
           feedbackEl.textContent = `Unknown note: ${detectedNote}`;
@@ -1154,6 +1515,11 @@ $(async function () {
         } else {
           // When octave is explicitly provided (from mic), don't fall back to searching other octaves
           console.log(`Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`);
+
+          // Track octave mistake
+          consecutiveOctaveMistakes++;
+          trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
+
           const feedbackEl = document.getElementById("mic-feedback");
           if (feedbackEl) {
             // Calculate octave difference: remove note difference (mod 12) and focus on octave steps
@@ -1206,10 +1572,18 @@ $(async function () {
           const isExpectedOctaveHigher = minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax;
 
           if (isExpectedOctaveLower) {
+            // Track octave mistake
+            consecutiveOctaveMistakes++;
+            trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
+
             feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave lower`;
             feedbackEl.style.color = "#f44336";
             return false; // Don't process as valid answer
           } else if (isExpectedOctaveHigher) {
+            // Track octave mistake
+            consecutiveOctaveMistakes++;
+            trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
+
             feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave higher`;
             feedbackEl.style.color = "#f44336";
             return false; // Don't process as valid answer
@@ -1221,12 +1595,17 @@ $(async function () {
         }
       } else {
         console.warn(`Could not convert detected note ${detectedNote} to fret`);
+        trackMistakeAndHandleTTS(false, source);
         return false;
       }
     }
 
     playAnsweredNote(stringIdx, fret);
     const isCorrect = currentCard.frets.includes(fret);
+
+    // Track consecutive mistakes for TTS repeat functionality using unified function
+    trackMistakeAndHandleTTS(isCorrect, source);
+
     // Record the answer event
     statistics.answers.push({
       tuning: tuning.slice(),
@@ -1279,11 +1658,19 @@ $(async function () {
 
   function handleFretClick() {
     if (!currentCard) return;
+    if (areHintsPlayingForMicMode()) {
+      console.log("Ignoring fret button input - hints still playing during mic mode");
+      return;
+    }
     let fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
   }
 
   function handleFretboardClick() {
+    if (areHintsPlayingForMicMode()) {
+      console.log("Ignoring fretboard click - hints still playing during mic mode");
+      return;
+    }
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
@@ -1299,7 +1686,97 @@ $(async function () {
   function playDesiredNote(stringIdx, fretIdx) {
     let midi = stringNames[stringIdx].midi + fretIdx;
     let freq = midiToFreq(midi);
-    setTimeout(() => playTone(freq, 0.7), 250);
+
+    // Only set hint playing state if microphone is active
+    if (pitchDetecting) {
+      setHintsPlaying(true);
+    }
+
+    setTimeout(() => {
+      playTone(freq, 0.7);
+      // Clear hint state after the tone finishes (only if we set it)
+      if (pitchDetecting) {
+        setTimeout(() => setHintsPlaying(false), 700);
+      }
+    }, 250);
+  }
+
+  function playNextSound() {
+    // Play a brief atonal click to signal the next question is ready
+    playAtonalClick();
+  }
+
+  function playAtonalClick() {
+    try {
+      const audio = new Audio();
+      audio.src = generateClickDataURL();
+      audio.volume = 1.0;
+      audio.play().catch((err) => console.warn("Click play failed:", err));
+    } catch (err) {
+      console.warn("Click creation failed:", err);
+    }
+  }
+
+  // Generate a brief "clack" sound
+  function generateClickDataURL(duration = 0.05, sampleRate = 44100) {
+    const length = Math.floor(sampleRate * duration);
+    const buffer = new ArrayBuffer(44 + length * 2);
+    const view = new DataView(buffer);
+
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + length * 2, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, length * 2, true);
+
+    // Generate "clack" sound: sharp attack with mixed frequencies for woody/clicky sound
+    for (let i = 0; i < length; i++) {
+      // Mix of high and mid frequencies for "clack" character
+      const t = i / sampleRate;
+
+      // High frequency component (sharp attack)
+      const highFreq = Math.sin(2 * Math.PI * 2000 * t) * 0.6;
+      // Mid frequency component (body of the sound)
+      const midFreq = Math.sin(2 * Math.PI * 800 * t) * 0.4;
+      // Low frequency thump
+      const lowFreq = Math.sin(2 * Math.PI * 200 * t) * 0.2;
+
+      // Combine frequencies
+      let sample = highFreq + midFreq + lowFreq;
+
+      // Very sharp exponential decay for percussive "clack"
+      const decay = Math.exp(-i / (length * 0.05));
+
+      // Additional sharp attack envelope
+      const attack = i < length * 0.02 ? i / (length * 0.02) : 1;
+
+      // Scale to 16-bit range with twice the volume
+      const amplification = 0.24;
+      sample = sample * decay * attack * amplification * 32767;
+
+      const offset = 44 + i * 2;
+      if (offset + 1 < buffer.byteLength) {
+        view.setInt16(offset, sample, true);
+      }
+    }
+
+    const blob = new Blob([buffer], { type: "audio/wav" });
+    return URL.createObjectURL(blob);
   }
 
   function highlightFretOnFretboard(stringIdx, fretIdx, correct) {
@@ -1366,12 +1843,56 @@ $(async function () {
   let lastDetectedNoteId: number | null = null;
   let noteStableSince: number | null = null;
   let displayedNoteId: number | null = null;
+  let lastSubmissionTime: number = 0;
   const NOTE_STABLE_MS = 300;
+  const MIN_RESUBMISSION_DELAY_MS = 1000; // Allow resubmission of same note after 1 second
 
   // Detect iOS devices
   function detectIOS() {
     // noinspection JSDeprecatedSymbols
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  // Detect macOS (excluding iOS)
+  function detectMacOS() {
+    return navigator.platform.indexOf("Mac") > -1 && !detectIOS();
+  }
+
+  // Detect browser type
+  function detectBrowser() {
+    const userAgent = navigator.userAgent;
+
+    if (userAgent.indexOf("Firefox") > -1) {
+      return "firefox";
+    } else if (userAgent.indexOf("Chrome") > -1 && userAgent.indexOf("Edg") === -1) {
+      return "chrome";
+    } else if (userAgent.indexOf("Safari") > -1 && userAgent.indexOf("Chrome") === -1) {
+      return "safari";
+    } else if (userAgent.indexOf("Edg") > -1) {
+      return "edge";
+    }
+    return "unknown";
+  }
+
+  // Check if text-to-speech should be available based on browser/OS combination
+  function isTTSSupported() {
+    // Check if speechSynthesis is available at all
+    if (!("speechSynthesis" in window)) {
+      return false;
+    }
+
+    // Only Chrome on macOS has known TTS issues (silent audio, voice loading problems)
+    if (detectMacOS()) {
+      const browser = detectBrowser();
+      if (browser === "chrome") {
+        return false; // Chrome on macOS has documented TTS issues
+      }
+      // Safari and Firefox on macOS work fine
+      return true;
+    }
+
+    // Default to supported for other combinations
+    return true;
   }
 
   // Generate a WAV data URL for a given frequency
@@ -1647,7 +2168,7 @@ $(async function () {
 
       // Use pitchy correctly: pass sampleRate as second arg
       const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
-// Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
+      // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;
         baselineSamplesCount++;
@@ -1728,12 +2249,13 @@ $(async function () {
           meterEl.style.borderColor = "#4caf50";
         }
         // Submit this stable detected note to the quiz flow once
-        if (displayedNoteId !== currentNoteId) {
+        const now = Date.now();
+        if (displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) {
           try {
-            // Map to nearest fret and submit via unified handler. Only mark displayedNoteId
-            // when submission succeeded to avoid a spurious guard that blocks future tries.
-            const ok = submitDetectedNote(midiRound);
-            if (ok) displayedNoteId = currentNoteId;
+            // Map to nearest fret and submit via unified handler
+            submitDetectedNote(midiRound);
+            displayedNoteId = currentNoteId;
+            lastSubmissionTime = now;
           } catch (e) {
             console.error("submitDetectedNote error", e);
           }
@@ -1849,6 +2371,32 @@ $(async function () {
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
+
+    // Check TTS support and conditionally show/hide the option
+    const $ttsOption = $("#enable-tts").closest("label");
+    const $ttsUnavailable = $("#tts-unavailable");
+
+    if (isTTSSupported()) {
+      $ttsOption.show();
+      $ttsUnavailable.hide();
+
+      // Initialize voice selection
+      populateVoiceSelection();
+      updateVoiceSelectionVisibility();
+
+      // Voices might load asynchronously, so listen for changes
+      if ("speechSynthesis" in window) {
+        speechSynthesis.addEventListener("voiceschanged", () => {
+          populateVoiceSelection();
+        });
+      }
+    } else {
+      $ttsOption.hide();
+      $ttsUnavailable.show();
+      enableTTS = false; // Force disable TTS on unsupported browsers
+      $("#enable-tts").prop("checked", false);
+    }
+
     updateTuningUI(); // Initialize tuning UI
     makeSession();
     showCard();
@@ -1984,6 +2532,17 @@ $(async function () {
       hideQuizNote = this.checked;
       saveSettings();
       if (currentCard) updateQuizNoteDisplay();
+    });
+
+    $("#enable-tts").on("change", function () {
+      enableTTS = this.checked;
+      updateVoiceSelectionVisibility();
+      saveSettings();
+    });
+
+    $("#voice-select").on("change", function () {
+      selectedVoice = (this as HTMLSelectElement).value || null;
+      saveSettings();
     });
 
     // Add event handler for skip button

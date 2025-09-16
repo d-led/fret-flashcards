@@ -34,13 +34,13 @@
         </div>
       </div>
       <div class="fret-buttons" id="fret-buttons"></div>
-      <div id="mic-controls" style="margin-top: 12px">
+      <div id="mic-controls">
         <button id="mic-toggle">🎤 Enable Mic</button>
-        <span id="mic-status" style="margin-left: 8px; font-weight: 600; display: none"></span>
-        <span id="mic-meter" style="display: none; vertical-align: middle; margin-left: 8px; width: 160px; height: 12px; border: 1px solid #777; background: #222">
-          <span id="mic-meter-fill" style="display: block; height: 100%; width: 0; background: #4caf50"></span>
+        <span id="mic-status" style="display: none"></span>
+        <span id="mic-meter" style="display: none">
+          <span id="mic-meter-fill"></span>
         </span>
-        <span id="mic-feedback" style="margin-left: 8px; font-size: 0.85em; color: #999; font-style: italic; display: none"></span>
+        <span id="mic-feedback" style="display: none"></span>
       </div>
       <div class="options">
         <div class="config">
@@ -64,6 +64,16 @@
           <input type="checkbox" id="show-score-notation" />
           Show score notation
         </label>
+        <label>
+          <input type="checkbox" id="enable-tts" />
+          Voice hints
+        </label>
+        <!-- <div id="voice-selection" style="display: none; margin-left: 20px; margin-top: 5px;">
+          <label for="voice-select" style="font-size: 0.9em;">Voice:</label>
+          <select id="voice-select" style="margin-left: 5px;">
+            <option value="">Default</option>
+          </select>
+        </div> -->
         <label id="hide-quiz-note-label" style="display: none">
           <input type="checkbox" id="hide-quiz-note" />
           Hide the quiz note
@@ -72,7 +82,8 @@
           <table class="config-table">
             <tr>
               <td>
-                <label for="timeout-seconds">Next question after (seconds):</label><select id="timeout-seconds">
+                <label for="timeout-seconds">Next question after (seconds):</label>
+                <select id="timeout-seconds">
                   <option value="0">0</option>
                   <option value="1">1</option>
                   <option value="2" selected>2</option>
@@ -89,7 +100,8 @@
             </tr>
             <tr id="score-key-row" style="display: none">
               <td>
-                <label for="score-key">Score key:</label><select id="score-key">
+                <label for="score-key">Score key:</label>
+                <select id="score-key">
                   <option value="C">C maj / A min</option>
                   <option value="G">G maj / E min (1♯)</option>
                   <option value="D">D maj / B min (2♯)</option>
@@ -110,7 +122,8 @@
             </tr>
             <tr>
               <td>
-                <label for="num-strings">Number of strings:</label><select id="num-strings">
+                <label for="num-strings">Number of strings:</label>
+                <select id="num-strings">
                   <option value="3">3</option>
                   <option value="4">4</option>
                   <option value="5">5</option>
@@ -143,14 +156,19 @@
         </div>
       </div>
       <div class="small-comment-text">
-        Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard". I wish I had this app 30 years ago!
+        Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani:
+        <a href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237">"learn all notes on the neck"</a>
+        . I wish I had this app 30 years ago!
       </div>
       <div class="small-comment-text">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
+      <div id="tts-unavailable" style="display: none; font-size: 0.85em; color: #666; font-style: italic">
+        Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari or Firefox for TTS support.
+      </div>
     </div>
     <div id="build-info"></div>
     <div class="copyright">
       Copyright &copy; 2025 GitHub copilot and Dmitry Ledentsov |
-      <a href="https://github.com/d-led/fret-flashcards" target="_blank" style="color: var(--accent); text-decoration: none">GitHub</a>
+      <a href="https://github.com/d-led/fret-flashcards" target="_blank">GitHub</a>
     </div>
     <script src="./index.js"></script>
   </body>

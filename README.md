@@ -7,15 +7,16 @@ A compact browser-based tool to practice and memorize notes on a 3- to 12-string
 
 ## Features
 
-- Practice identifying notes on any string and fret
-- Choose between a basic 0-11th fret practice or 21, 22 or 24 frets with multiple notes to find on one string
-- Optionally include sharps/flats in quizzes
-- 3–10 strings with ready-made presets and per-string custom tuning
-- Reset tuning to standard 6-string configuration
-- Visual cues and audio feedback for correct/incorrect answers
-- Settings persist across browser sessions so your preferences are retained
-- Optional quiz bias towards strings of the current tuning with the most mistakes
+- Practice identifying notes on any string and fret.
+- Choose between a basic 0-11th fret practice or 21, 22 or 24 frets with multiple notes to find on one string.
+- Optionally include sharps/flats in quizzes.
+- 3–10 strings with ready-made presets and per-string custom tuning.
+- Reset tuning to standard 6-string configuration.
+- Visual cues and audio feedback for correct/incorrect answers.
+- Settings persist across browser sessions so your preferences are retained.
+- Optional quiz bias towards strings of the current tuning with the most mistakes.
 - You don't actually need a stringed instrument for practicing at all: try turning on the score notation and turning off the quiz note hint. Sing or play it on any instrument!
+- You don't have to look at the monitor either: enable the synthetic "voice hints" (might not work in all browsers).
 
 ## Deployment
 
