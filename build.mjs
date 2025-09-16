@@ -68,6 +68,30 @@ function replaceBuildInfo() {
   }
 }
 
+function minifyHTML() {
+  try {
+    const htmlFile = path.join(outdir, "index.html");
+    if (!fs.existsSync(htmlFile)) {
+      console.log("index.html not found, skipping HTML minification");
+      return;
+    }
+
+    let html = fs.readFileSync(htmlFile, "utf8");
+    // Remove HTML comments
+    html = html.replace(/<!--[\s\S]*?-->/g, "");
+    // Collapse whitespace between tags
+    html = html.replace(/>\s+</g, "><");
+    // Collapse multiple spaces/newlines to a single space
+    html = html.replace(/\s{2,}/g, " ");
+    html = html.trim();
+
+    fs.writeFileSync(htmlFile, html, "utf8");
+    console.log("Minified HTML: index.html");
+  } catch (e) {
+    console.error("Failed to minify HTML:", e);
+  }
+}
+
 async function buildJS(watch = false) {
   const options = {
     entryPoints: [path.join("src", "ts", "index.ts"), path.join("src", "css", "main.css"), path.join("src", "static", "index.html"), path.join("src", "logo", "logo.svg")],
@@ -77,11 +101,12 @@ async function buildJS(watch = false) {
     target: ["es2019"],
     format: "iife",
     platform: "browser",
-    minify: false,
+    // Minify only for non-watch (production) builds
+    minify: !watch,
     logLevel: "info",
     loader: {
       ".html": "copy",
-      ".css": "copy",
+      ".css": "css",
       ".svg": "copy",
     },
     assetNames: "[name]",
@@ -124,6 +149,11 @@ async function buildJS(watch = false) {
     copyVendorAssets();
     await build(options);
     replaceBuildInfo();
+    if (!watch) {
+      // JS and CSS are already minified by esbuild when !watch
+      // Minify the copied HTML without external dependencies
+      minifyHTML();
+    }
   }
 }
 
