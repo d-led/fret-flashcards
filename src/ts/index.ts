@@ -559,6 +559,7 @@ $(async function () {
   function hookTTSGestureOnce() {
     if (ttsGestureHooked || !("speechSynthesis" in window)) return;
     const onFirstGesture = () => {
+      console.log("TTS gesture detected, enableTTS:", enableTTS, "ttsInitialized:", ttsInitialized);
       if (enableTTS) {
         // Always try to initialize TTS on first gesture for iOS
         if (!ttsInitialized) {
@@ -566,6 +567,7 @@ $(async function () {
         }
         // Always try to process the queue on gesture, even if already initialized
         if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
+          console.log("Processing TTS queue on gesture, queue length:", ttsQueue.length);
           processTTSQueue();
         }
       }
@@ -576,6 +578,8 @@ $(async function () {
     document.addEventListener("click", onFirstGesture, true);
     document.addEventListener("touchstart", onFirstGesture, true);
     document.addEventListener("touchend", onFirstGesture, true);
+    // Also listen for keydown events for keyboard users
+    document.addEventListener("keydown", onFirstGesture, true);
     ttsGestureHooked = true;
   }
 
@@ -584,6 +588,7 @@ $(async function () {
       document.removeEventListener("click", ttsGestureHandler, true);
       document.removeEventListener("touchstart", ttsGestureHandler, true);
       document.removeEventListener("touchend", ttsGestureHandler, true);
+      document.removeEventListener("keydown", ttsGestureHandler, true);
       ttsGestureHandler = null;
       ttsGestureHooked = false;
     }
@@ -646,34 +651,14 @@ $(async function () {
       utterance.volume = item.volume ?? 0.9; // Higher default volume for better clarity against MIDI
       utterance.pitch = item.pitch ?? 1.0;
 
-      // Force voice loading and wait for voices to be available
-      let voices = speechSynthesis.getVoices();
-
-      // If voices aren't loaded yet, wait for them with a timeout
-      if (voices.length === 0) {
-        console.log("Waiting for voices to load...");
-        let voiceLoadTimeout = setTimeout(() => {
-          console.log("Voice loading timeout, proceeding without voice selection");
-          speakUtterance(utterance, item);
-        }, 2000); // 2 second timeout
-
-        speechSynthesis.addEventListener(
-          "voiceschanged",
-          function voiceHandler() {
-            clearTimeout(voiceLoadTimeout);
-            speechSynthesis.removeEventListener("voiceschanged", voiceHandler);
-            voices = speechSynthesis.getVoices();
-            setBestVoice(utterance, voices, selectedVoice || undefined);
-            speakUtterance(utterance, item);
-          },
-          { once: true },
-        );
-        return;
-      }
-
-      // Set the best available voice
-      setBestVoice(utterance, voices, selectedVoice || undefined);
-      speakUtterance(utterance, item);
+      // Load voices when available - based on Stack Overflow solution
+      loadVoicesWhenAvailable(() => {
+        const voices = speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          setBestVoice(utterance, voices, selectedVoice || undefined);
+        }
+        speakUtterance(utterance, item);
+      });
 
     } catch (err) {
       console.error("Error with TTS queue processing:", err);
@@ -785,18 +770,21 @@ $(async function () {
     console.log("Initializing TTS with empty utterance");
     ttsInitialized = true;
 
-    // Use a very short, non-empty utterance to unlock iOS speech engine reliably
-    const initUtterance = new SpeechSynthesisUtterance("Ready");
+    // Mobile Safari requires an utterance (even a blank one) during user interaction
+    // to enable utterances during timeouts/intervals - based on Stack Overflow solution
+    const initUtterance = new SpeechSynthesisUtterance("");
     initUtterance.volume = 0.01; // Very quiet, almost silent
     initUtterance.rate = 1.1;
     initUtterance.pitch = 1.0;
 
     initUtterance.onend = () => {
+      console.log("TTS initialization utterance ended");
       if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
         processTTSQueue();
       }
     };
-    initUtterance.onerror = () => {
+    initUtterance.onerror = (event) => {
+      console.warn("TTS initialization utterance error:", event.error);
       if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
         processTTSQueue();
       }
@@ -809,14 +797,20 @@ $(async function () {
       }
       speechSynthesis.cancel();
       speechSynthesis.speak(initUtterance);
+      
       // Fallback nudge in case onend doesn't fire on some iOS versions
       setTimeout(() => {
         if (!ttsCurrentlyPlaying && ttsQueue.length > 0) {
+          console.log("TTS initialization fallback - processing queue");
           processTTSQueue();
         }
-      }, 800);
+      }, 500);
     } catch (error) {
       console.warn("TTS initialization failed:", error);
+      // Even if initialization fails, try to process the queue
+      if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
+        processTTSQueue();
+      }
     }
   }
 
@@ -843,6 +837,11 @@ $(async function () {
   function speakStatusImmediate(message: string) {
     if (!("speechSynthesis" in window)) return;
 
+    // Ensure TTS is initialized first
+    if (!ttsInitialized) {
+      initializeTTSOnFirstInteraction();
+    }
+
     try {
       const utterance = new SpeechSynthesisUtterance(message);
       utterance.lang = "en-US";
@@ -850,30 +849,39 @@ $(async function () {
       utterance.volume = 0.75;
       utterance.pitch = 1.05;
 
-      let voices = speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        setBestVoice(utterance, voices, selectedVoice || undefined);
+      // Load voices when available - based on Stack Overflow solution
+      loadVoicesWhenAvailable(() => {
+        const voices = speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          setBestVoice(utterance, voices, selectedVoice || undefined);
+        }
         speechSynthesis.cancel();
         speechSynthesis.speak(utterance);
-        return;
-      }
+      });
+    } catch (e) {
+      console.warn("speakStatusImmediate failed:", e);
+    }
+  }
 
-      // Wait briefly for voices if not yet loaded
-      const timeout = setTimeout(() => {
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      }, 500);
+  // Load voices when available - based on Stack Overflow solution
+  function loadVoicesWhenAvailable(onComplete = () => {}) {
+    const voices = speechSynthesis.getVoices();
+    
+    if (voices.length !== 0) {
+      onComplete();
+    } else {
+      // Wait for voices to load
       const handler = () => {
-        clearTimeout(timeout);
         speechSynthesis.removeEventListener("voiceschanged", handler);
-        voices = speechSynthesis.getVoices();
-        if (voices && voices.length > 0) setBestVoice(utterance, voices, selectedVoice || undefined);
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
+        onComplete();
       };
       speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
-    } catch (e) {
-      // Fallback silently
+      
+      // Fallback timeout
+      setTimeout(() => {
+        speechSynthesis.removeEventListener("voiceschanged", handler);
+        onComplete();
+      }, 2000);
     }
   }
 
@@ -1646,6 +1654,19 @@ $(async function () {
       volume: 0.9, // Louder for better clarity against MIDI
       pitch: 1.0,
     });
+
+    // For iOS Safari, also try immediate speech as a fallback during user interaction
+    // This ensures the first utterance happens during user interaction as required by mobile Safari
+    if (!ttsInitialized || ttsQueue.length === 1) {
+      console.log("Attempting immediate quiz note announcement for iOS compatibility");
+      // Try immediate speech after a short delay to allow queue processing
+      setTimeout(() => {
+        if (ttsQueue.length > 0 && !ttsCurrentlyPlaying) {
+          console.log("Fallback: speaking quiz note immediately");
+          speakStatusImmediate(text);
+        }
+      }, 100);
+    }
   }
 
   // Queue TTS for octave hint (separated from error handling)
@@ -2610,7 +2631,8 @@ $(async function () {
 
       // Force early voice loading for better cross-browser compatibility
       if ("speechSynthesis" in window) {
-        // Call getVoices() immediately to trigger loading
+        // Call getVoices() immediately to trigger loading - based on Stack Overflow solution
+        speechSynthesis.cancel(); // removes anything 'stuck'
         speechSynthesis.getVoices();
 
         // Listen for voice changes
