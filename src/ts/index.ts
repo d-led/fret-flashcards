@@ -535,6 +535,7 @@ $(async function () {
   let hideQuizNote = false; // Default to false, to show quiz note by default
   let enableTTS = false; // Default to false, text-to-speech for quiz notes
   let selectedVoice: string | null = null; // Selected voice for TTS, null means use default
+  let ttsInitialized = false; // Track if TTS has been initialized with user interaction
   let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
   let consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
@@ -695,6 +696,50 @@ $(async function () {
     ttsQueue = [];
     speechSynthesis.cancel();
     ttsCurrentlyPlaying = false;
+  }
+
+  // TTS Initialization functions
+  function initializeTTSOnFirstInteraction() {
+    if (ttsInitialized || !("speechSynthesis" in window)) return;
+
+    console.log("Initializing TTS with empty utterance");
+    ttsInitialized = true;
+
+    // Speak an empty utterance to initialize TTS
+    const initUtterance = new SpeechSynthesisUtterance("");
+    initUtterance.volume = 0.01; // Very quiet, almost silent
+    initUtterance.rate = 1.0;
+    initUtterance.pitch = 1.0;
+
+    // Set a very short duration
+    initUtterance.onstart = () => {
+      // Cancel immediately to make it as short as possible
+      setTimeout(() => speechSynthesis.cancel(), 1);
+    };
+
+    try {
+      speechSynthesis.speak(initUtterance);
+    } catch (error) {
+      console.warn("TTS initialization failed:", error);
+    }
+  }
+
+  function speakTTSStatusMessage(message: string) {
+    if (!enableTTS || !("speechSynthesis" in window)) return;
+
+    // Ensure TTS is initialized first
+    if (!ttsInitialized) {
+      initializeTTSOnFirstInteraction();
+    }
+
+    // Add status message to TTS queue with high priority
+    addToTTSQueue({
+      text: message,
+      priority: 100, // High priority for status messages
+      rate: 0.8,
+      volume: 0.7,
+      pitch: 1.1
+    });
   }
 
   // Functions to manage hint state during transitions
@@ -1705,6 +1750,11 @@ $(async function () {
   }
 
   function handleFretClick() {
+    // Initialize TTS on first interaction if needed
+    if (!ttsInitialized && enableTTS && "speechSynthesis" in window) {
+      initializeTTSOnFirstInteraction();
+    }
+
     if (!currentCard) return;
     if (areHintsPlayingForMicMode()) {
       console.log("Ignoring fret button input - hints still playing during mic mode");
@@ -2122,7 +2172,10 @@ $(async function () {
         playPromise
           .then(() => {
             audioEnabled = true;
-            if (isIOS) updateSoundBanner();
+            if (isIOS) {
+              updateSoundBanner();
+              speakTTSStatusMessage("Audio enabled");
+            }
             testAudio.pause();
             testAudio.currentTime = 0;
             console.log("Audio enabled successfully");
@@ -2575,6 +2628,11 @@ $(async function () {
       enableTTS = this.checked;
       updateVoiceSelectionVisibility();
       saveSettings();
+
+      // Speak status message when enabling TTS
+      if (enableTTS) {
+        speakTTSStatusMessage("Enabled this voice");
+      }
     });
 
     $("#voice-select").on("change", function () {
