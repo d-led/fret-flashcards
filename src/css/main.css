@@ -65,6 +65,22 @@ input:focus,
 /* Form group styling */
 .form-group {
   margin-bottom: 1em;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  flex-wrap: wrap;
+}
+
+.form-group label {
+  margin-bottom: 0;
+  min-width: fit-content;
+  flex-shrink: 0;
+}
+
+.form-group select {
+  margin-left: 0;
+  width: auto;
+  min-width: 120px;
 }
 
 .checkbox-group {
@@ -696,6 +712,17 @@ a {
   .config-table td .tuning-select {
     display: inline-block;
     margin-top: 0.5em;
+  }
+  
+  .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+  }
+  
+  .form-group select {
+    width: 100%;
+    min-width: auto;
   }
   button {
     font-size: var(--font-normal);
