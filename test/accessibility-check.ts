@@ -3,10 +3,20 @@
  * Validates accessibility features in the built HTML
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-function checkAccessibility() {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+interface TestResult {
+  name: string;
+  condition: boolean;
+  details?: string;
+}
+
+function checkAccessibility(): boolean {
   console.log('🔍 Running accessibility checks...\n');
   
   let passed = 0;
@@ -20,7 +30,7 @@ function checkAccessibility() {
   const cssPath = path.join(__dirname, '../dist/main.css');
   const cssContent = fs.readFileSync(cssPath, 'utf8');
   
-  function test(name, condition, details = '') {
+  function test(name: string, condition: boolean, details: string = ''): void {
     if (condition) {
       console.log(`✅ ${name}`);
       if (details) console.log(`   ${details}`);
@@ -88,9 +98,9 @@ function checkAccessibility() {
 }
 
 // Run the checks
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const success = checkAccessibility();
   process.exit(success ? 0 : 1);
 }
 
-module.exports = { checkAccessibility };
+export { checkAccessibility };

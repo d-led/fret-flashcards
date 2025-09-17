@@ -43,6 +43,8 @@ jobs:
         run: npm run build
       - name: Run unit tests
         run: npm test
+      - name: Run accessibility tests
+        run: npm run test:accessibility
       - name: Run E2E tests (with JUnit reporter)
         run: |
           mkdir -p test-results
