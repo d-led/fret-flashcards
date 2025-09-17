@@ -1,10 +1,15 @@
 import { PitchDetector } from "pitchy";
+import { mobileEnhancements } from "./modules/mobileEnhancements";
+import { touchHandler } from "./modules/touchHandler";
 
 const buildInfo = "Build: unknown";
 
 console.log(`loaded index.js`);
 
 $(async function () {
+  // Initialize mobile enhancements (includes touch handling)
+  await mobileEnhancements.initialize();
+  
   const SETTINGS_KEY = "guitar_flashcard_settings_v1";
   const STATS_KEY = "guitar_flashcard_stats_v1";
 
@@ -1379,6 +1384,9 @@ $(async function () {
     foundFrets = currentCard.found.slice();
     // expose stable attributes for tests (and other tooling)
     $quizNoteBtn.attr("data-note", currentCard.note);
+    
+    // Update global reference for touch handler
+    (window as any).currentCard = currentCard;
     updateQuizNoteDisplay();
     $flashcardString.attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
     $flashcardString.text(
@@ -1780,6 +1788,13 @@ $(async function () {
     playAnsweredNote(stringIdx, fret);
     const isCorrect = currentCard.frets.includes(fret);
 
+    // Provide haptic feedback for mobile
+    if (isCorrect) {
+      mobileEnhancements.hapticSuccess();
+    } else {
+      mobileEnhancements.hapticError();
+    }
+
     // Track consecutive mistakes for TTS repeat functionality using unified function
     trackMistakeAndHandleTTS(isCorrect, source);
 
@@ -1841,6 +1856,10 @@ $(async function () {
       console.log("Ignoring fret button input - hints still playing during mic mode");
       return;
     }
+    
+    // Provide light haptic feedback for button tap
+    mobileEnhancements.hapticLight();
+    
     let fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
   }
@@ -1852,6 +1871,10 @@ $(async function () {
       console.log("Ignoring fretboard click - hints still playing during mic mode");
       return;
     }
+    
+    // Provide light haptic feedback for fretboard tap
+    mobileEnhancements.hapticLight();
+    
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
@@ -2633,8 +2656,12 @@ $(async function () {
     // Initialize test state
     updateTestState();
 
-    // Expose functions for testing
+    // Expose functions for testing and touch handler
     (window as any).updateUnifiedBanner = updateUnifiedBanner;
+    (window as any).handleFretClick = handleFretClick;
+    (window as any).handleFretboardClick = handleFretboardClick;
+    (window as any).handleQuizNoteClick = playNoteCard;
+    (window as any).currentCard = currentCard;
 
     $("#fret-buttons").on("click", ".fret-btn", handleFretClick);
 

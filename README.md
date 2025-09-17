@@ -41,6 +41,76 @@ Inspired by Steve Vai's anecdote about the first homework given to him by Joe Sa
   - Interactive: `npm run cy` or `npx cypress open --e2e`
   - Headless: `npm run e2e`or `npx cypress run --e2e`
 
+## Mobile Apps (Android & iOS)
+
+**String Homework Tutor** is now available as native mobile apps for Android and iOS! Built with Capacitor for maximum code reuse (95%+ of your existing code works unchanged).
+
+### 🚀 Quick Mobile Start
+
+```bash
+# Install dependencies
+npm install
+
+# Build and sync for mobile
+npm run build:mobile
+
+# Run on Android (requires Android Studio)
+npm run android:dev
+
+# Run on iOS (requires Xcode on macOS)
+npm run ios:dev
+```
+
+### 📱 Mobile Features
+
+- **Haptic Feedback**: Vibration for correct/incorrect answers and button taps
+- **Native Performance**: Full native app experience with web development speed
+- **App Store Ready**: Deploy to Google Play Store and Apple App Store
+- **Touch Optimized**: All interactions work perfectly on touch screens
+- **Enhanced Storage**: Better data persistence with native APIs
+- **App Lifecycle**: Smart audio pause/resume when app goes to background
+
+### 🛠️ Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run build:mobile` | Build web assets + sync to mobile platforms |
+| `npm run android:dev` | Build and run on Android device/emulator |
+| `npm run ios:dev` | Build and run on iOS device/simulator |
+| `npm run android:build` | Build Android APK for production |
+| `npm run ios:build` | Build iOS app for production |
+| `npm run mobile:sync` | Sync web assets to mobile platforms |
+
+### 📋 Prerequisites
+
+#### Android Development
+- Android Studio (latest version)
+- Android SDK (API level 33+)
+- Java Development Kit (JDK 11+)
+
+#### iOS Development (macOS only)
+- Xcode (latest version)
+- iOS SDK (iOS 13.0+)
+- CocoaPods: `sudo gem install cocoapods`
+
+### 🏗️ Building for Production
+
+#### Android (Google Play Store)
+1. Run `npm run build:mobile`
+2. Open in Android Studio: `npx cap open android`
+3. Generate signed AAB file in Android Studio
+4. Upload to Google Play Console
+
+#### iOS (App Store)
+1. Run `npm run build:mobile`
+2. Open in Xcode: `npx cap open ios`
+3. Archive and upload from Xcode
+4. Submit for review in App Store Connect
+
+### 📖 Detailed Mobile Guide
+
+For comprehensive mobile development instructions, see [mobile_development.md](./docs/development/mobile_development.md)
+
 ## Notes for iOS users
 
 - On iOS devices you may need to tap the "enable sound" banner to hear tones.
