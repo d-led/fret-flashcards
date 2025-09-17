@@ -2381,11 +2381,56 @@ $(async function () {
     }
   }
 
+  // Check microphone support and update UI accordingly
+  function checkMicrophoneSupport() {
+    const micButton = $("#mic-toggle");
+    const micControls = $("#mic-controls");
+    
+    // Check if we're on HTTPS (required for microphone access)
+    const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+    
+    // Check if getUserMedia is supported
+    const hasGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+    
+    if (!isHTTPS) {
+      micButton.prop('disabled', true);
+      micButton.attr('title', 'Microphone access requires HTTPS. Please access this app via HTTPS.');
+      micButton.html('<span aria-hidden="true">🎤</span> Mic (HTTPS Required)');
+    } else if (!hasGetUserMedia) {
+      micButton.prop('disabled', true);
+      micButton.attr('title', 'Your browser doesn\'t support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.');
+      micButton.html('<span aria-hidden="true">🎤</span> Mic (Not Supported)');
+    } else {
+      micButton.prop('disabled', false);
+      micButton.attr('title', 'Enable microphone for voice input and pitch detection');
+      micButton.html('<span aria-hidden="true">🎤</span> Enable Mic');
+    }
+  }
+
   // Start microphone and pitch detection using pitchy
   async function startMic() {
     if (pitchDetecting) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("getUserMedia not supported");
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    // Check if we're on HTTPS (required for microphone access)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      throw new Error("Microphone access requires HTTPS. Please access this app via HTTPS.");
+    }
+    
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("getUserMedia not supported");
+    }
+    
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      // Re-throw with more specific error information
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error(`Microphone access failed: ${error}`);
+      }
+    }
     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
     audioContextForPitch = new AC();
     const src = audioContextForPitch.createMediaStreamSource(micStream);
@@ -2629,6 +2674,9 @@ $(async function () {
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
+    
+    // Check microphone support and update UI
+    checkMicrophoneSupport();
 
     // Initialize TTS if enabled in settings (but not on iOS - requires user interaction)
     if (enableTTS && isTTSSupported() && !isIOS) {
@@ -2877,13 +2925,48 @@ $(async function () {
     // Mic toggle handler
     $("#mic-toggle").on("click", async function () {
       const $btn = $(this);
+      
+      // Check if button is disabled
+      if ($btn.prop('disabled')) {
+        const title = $btn.attr('title');
+        if (title) {
+          alert(title);
+        }
+        return;
+      }
+      
       if (!pitchDetecting) {
         try {
           await startMic();
           $btn.text("🎤 Disable Mic");
         } catch (e) {
           console.error("Failed to start mic:", e);
-          alert("Unable to access microphone: " + (e && e.message ? e.message : e));
+          let errorMessage = "Unable to access microphone. ";
+          
+          if (e && e.message) {
+            if (e.message.includes("getUserMedia not supported")) {
+              errorMessage += "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
+            } else if (e.message.includes("Permission denied")) {
+              errorMessage += "Microphone permission was denied. Please allow microphone access in your browser settings and try again.";
+            } else if (e.message.includes("NotAllowedError")) {
+              errorMessage += "Microphone access was blocked. Please check your browser settings and allow microphone access for this site.";
+            } else if (e.message.includes("NotFoundError")) {
+              errorMessage += "No microphone found. Please connect a microphone and try again.";
+            } else if (e.message.includes("NotReadableError")) {
+              errorMessage += "Microphone is already in use by another application. Please close other apps using the microphone and try again.";
+            } else {
+              errorMessage += e.message;
+            }
+          } else {
+            errorMessage += "Please check your browser settings and ensure microphone access is allowed.";
+          }
+          
+          // Check if running on HTTPS
+          if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            errorMessage += "\n\nNote: Microphone access requires HTTPS. Please access this app via HTTPS.";
+          }
+          
+          alert(errorMessage);
         }
       } else {
         stopMic();
