@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Guitar Fretboard Flashcard Game</title>
+    <title>Guitar Fretboard Flashcard Game - Learn Guitar Notes</title>
+    <meta name="description" content="Interactive guitar fretboard flashcard game to learn note positions on the guitar neck. Accessible for screen readers and keyboard navigation." />
     <script src="./vendor/jquery.min.js"></script>
     <script src="./vendor/vexflow.js"></script>
     <link rel="stylesheet" href="./main.css" />
@@ -11,9 +12,15 @@
   </head>
   <body>
     <div class="container">
-      <div id="unified-banner" class="unified-enable-banner" style="display: none">🔊🎤 Click here to enable audio and voice</div>
-      <!-- Test state tracking elements -->
-      <div id="test-state" style="display: none">
+      <!-- Skip to main content link for keyboard users -->
+      <a href="#main-content" class="skip-link">Skip to main content</a>
+      
+      <!-- Audio and voice enablement banner -->
+      <div id="unified-banner" class="unified-enable-banner" style="display: none" role="banner" aria-live="polite">
+        <span aria-hidden="true">🔊</span> Click here to enable audio
+      </div>
+      <!-- Test state tracking elements (hidden from screen readers) -->
+      <div id="test-state" style="display: none" aria-hidden="true">
         <span id="audio-enabled" data-enabled="false"></span>
         <span id="tts-enabled" data-enabled="false"></span>
         <span id="tts-initialized" data-initialized="false"></span>
@@ -22,165 +29,234 @@
         <span id="tts-currently-playing" data-playing="false"></span>
         <span id="utterance-log" data-log="[]"></span>
       </div>
-      <div class="flashcard">
-        <div class="flashcard-instruction">Find the note</div>
-        <div class="note-row">
-          <button class="quiz-note-btn" id="quiz-note-btn" title="Play this note">
-            ?
-            <span class="note-meter" id="note-meter" aria-hidden="true">
-              <span class="note-meter-fill" id="note-meter-fill" style="width: 0"></span>
-            </span>
-          </button>
-          <div class="string" id="flashcard-string">?</div>
-          <div id="note-score">
-            <div id="treble-score"></div>
-            <div id="bass-score"></div>
+      
+      <!-- Main game area -->
+      <main id="main-content" role="main">
+        <h1 class="sr-only">Guitar Fretboard Flashcard Game</h1>
+        
+        <section class="flashcard" aria-labelledby="flashcard-instruction">
+          <h2 id="flashcard-instruction" class="flashcard-instruction">Find the note</h2>
+          <div class="note-row">
+            <button class="quiz-note-btn" id="quiz-note-btn" 
+                    aria-label="Play the target note audio" 
+                    title="Play this note">
+              <span aria-hidden="true">?</span>
+            </button>
+            <div class="string" id="flashcard-string" aria-label="Target string number" role="text">?</div>
+            <div id="note-score" aria-label="Current score" role="status">
+              <div id="treble-score" aria-label="Treble clef score"></div>
+              <div id="bass-score" aria-label="Bass clef score"></div>
+            </div>
           </div>
-        </div>
-        <div class="fretboard-area" id="fretboard-area"></div>
-        <div class="countdown-row">
-          <span class="countdown-inline" id="countdown"></span>
-          <button class="countdown-skip" id="skip-countdown" title="Skip to next quiz">⏭️</button>
-        </div>
-      </div>
-      <div class="fret-buttons" id="fret-buttons"></div>
-      <div id="mic-controls">
-        <button id="mic-toggle">🎤 Enable Mic</button>
-        <span id="mic-status" style="display: none"></span>
-        <span id="mic-meter" style="display: none">
-          <span id="mic-meter-fill"></span>
+          <div class="fretboard-area" id="fretboard-area" 
+               role="application" 
+               aria-label="Interactive guitar fretboard. Use arrow keys to navigate and Enter to select frets."
+               tabindex="0"></div>
+          <div class="countdown-row">
+            <span class="countdown-inline" id="countdown" aria-live="polite" aria-label="Time remaining"></span>
+            <button class="countdown-skip" id="skip-countdown" 
+                    aria-label="Skip to next question" 
+                    title="Skip to next quiz">
+              <span aria-hidden="true">⏭️</span>
+            </button>
+          </div>
+        </section>
+      </main>
+      <!-- Fret selection buttons (dynamically generated) -->
+      <div class="fret-buttons" id="fret-buttons" role="group" aria-label="Fret selection buttons"></div>
+      
+      <!-- Microphone controls -->
+      <section id="mic-controls" aria-labelledby="mic-controls-heading">
+        <h3 id="mic-controls-heading" class="sr-only">Microphone Controls</h3>
+        <button id="mic-toggle" aria-label="Enable microphone for voice input">
+          <span aria-hidden="true">🎤</span> Enable Mic
+        </button>
+        <span id="mic-status" style="display: none" aria-live="polite" role="status"></span>
+        <span id="mic-meter" style="display: none" aria-label="Microphone input level" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+          <span id="mic-meter-fill" aria-hidden="true"></span>
         </span>
-        <span id="mic-feedback" style="display: none"></span>
+        <span id="mic-feedback" style="display: none" aria-live="assertive" role="status"></span>
+      </section>
+      <!-- Game Options -->
+      <section class="options" aria-labelledby="options-heading">
+        <h2 id="options-heading">Game Options</h2>
+        
+        <fieldset class="config">
+          <legend>Fretboard Configuration</legend>
+          <div class="form-group">
+            <label for="fret-count">Number of frets:</label>
+            <select id="fret-count" aria-describedby="fret-count-help">
+              <option value="11">12 (0-11)</option>
+              <option value="21">21</option>
+              <option value="22">22</option>
+              <option value="24">24</option>
+            </select>
+            <div id="fret-count-help" class="sr-only">Select the number of frets to include in the quiz</div>
+          </div>
+        </fieldset>
+        
+        <fieldset>
+          <legend>Quiz Settings</legend>
+          <div class="checkbox-group">
+            <label for="accidentals">
+              <input type="checkbox" id="accidentals" />
+              Include accidentals: sharps (♯) and flats (♭)
+            </label>
+            <label for="enable-bias">
+              <input type="checkbox" id="enable-bias" />
+              Bias towards strings with mistakes
+            </label>
+            <label for="show-score-notation">
+              <input type="checkbox" id="show-score-notation" />
+              Show score notation
+            </label>
+            <label for="enable-tts">
+              <input type="checkbox" id="enable-tts" />
+              Voice hints
+            </label>
+            <label id="hide-quiz-note-label" style="display: none">
+              <input type="checkbox" id="hide-quiz-note" />
+              Hide the quiz note
+            </label>
+          </div>
+        </fieldset>
+        
+        <fieldset id="voice-selection" style="display: none">
+          <legend>Voice Settings</legend>
+          <div class="form-group">
+            <label for="voice-select">Voice:</label>
+            <select id="voice-select" aria-describedby="voice-select-help">
+              <option value="">Default</option>
+            </select>
+            <div id="voice-select-help" class="sr-only">Select a voice for text-to-speech announcements</div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Advanced Settings</legend>
+          <div class="form-group">
+            <label for="timeout-seconds">Next question after (seconds):</label>
+            <select id="timeout-seconds" aria-describedby="timeout-help">
+              <option value="0">0 (manual only)</option>
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+            <div id="timeout-help" class="sr-only">Set how many seconds to wait before automatically moving to the next question. Set to 0 for manual progression only.</div>
+          </div>
+          
+          <div class="form-group" id="score-key-row" style="display: none">
+            <label for="score-key">Score key:</label>
+            <select id="score-key" aria-describedby="score-key-help">
+              <option value="C">C major / A minor</option>
+              <option value="G">G major / E minor (1 sharp)</option>
+              <option value="D">D major / B minor (2 sharps)</option>
+              <option value="A">A major / F sharp minor (3 sharps)</option>
+              <option value="E">E major / C sharp minor (4 sharps)</option>
+              <option value="B">B major / G sharp minor (5 sharps)</option>
+              <option value="F#">F sharp major / D sharp minor (6 sharps)</option>
+              <option value="C#">C sharp major / A sharp minor (7 sharps)</option>
+              <option value="F">F major / D minor (1 flat)</option>
+              <option value="Bb">B flat major / G minor (2 flats)</option>
+              <option value="Eb">E flat major / C minor (3 flats)</option>
+              <option value="Ab">A flat major / F minor (4 flats)</option>
+              <option value="Db">D flat major / B flat minor (5 flats)</option>
+              <option value="Gb">G flat major / E flat minor (6 flats)</option>
+              <option value="Cb">C flat major / A flat minor (7 flats)</option>
+            </select>
+            <div id="score-key-help" class="sr-only">Select the key signature for score notation display</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="num-strings">Number of strings:</label>
+            <select id="num-strings" aria-describedby="strings-help">
+              <option value="3">3 strings</option>
+              <option value="4">4 strings</option>
+              <option value="5">5 strings</option>
+              <option value="6" selected>6 strings (standard guitar)</option>
+              <option value="7">7 strings</option>
+              <option value="8">8 strings</option>
+              <option value="9">9 strings</option>
+              <option value="10">10 strings</option>
+            </select>
+            <div id="strings-help" class="sr-only">Select the number of strings for the guitar fretboard</div>
+          </div>
+          
+          <div class="form-group" id="tuning-config">
+            <!-- Dynamically populated with tuning table -->
+          </div>
+          
+          <div class="button-group">
+            <button id="reset-tuning" aria-label="Reset guitar tuning to standard E-A-D-G-B-E">
+              Reset to Standard Tuning
+            </button>
+            <button id="reset-stats" aria-label="Reset all statistics to zero">
+              Reset Statistics
+            </button>
+          </div>
+        </fieldset>
       </div>
-      <div class="options">
-        <div class="config">
-          <label for="fret-count">Number of frets:</label>
-          <select id="fret-count">
-            <option value="11">12 (0-11)</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="24">24</option>
-          </select>
+      <!-- Additional Information -->
+      <section class="info-section" aria-labelledby="info-heading">
+        <h2 id="info-heading" class="sr-only">Additional Information</h2>
+        <div class="small-comment-text" style="text-align: center;">
+          Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani:
+          <a href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237" target="_blank" rel="noopener">"learn all notes on the neck"</a>
+          . I wish I had this app 30 years ago!
         </div>
-        <label>
-          <input type="checkbox" id="accidentals" />
-          Include accidentals: sharps (♯) and flats (♭)
-        </label>
-        <label>
-          <input type="checkbox" id="enable-bias" />
-          Bias towards strings with mistakes
-        </label>
-        <label>
-          <input type="checkbox" id="show-score-notation" />
-          Show score notation
-        </label>
-        <label>
-          <input type="checkbox" id="enable-tts" />
-          Voice hints
-        </label>
-        <div id="voice-selection" style="display: none; margin-left: 20px; margin-top: 5px">
-          <label for="voice-select" style="font-size: 0.9em">Voice:</label>
-          <select id="voice-select" style="margin-left: 5px">
-            <option value="">Default</option>
-          </select>
+        <div class="small-comment-text" style="text-align: center;">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
+        <div id="tts-unavailable" style="display: none; font-size: 0.85em; color: #666; font-style: italic" role="alert" aria-live="polite">
+          Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari or Firefox for TTS support.
         </div>
-        <label id="hide-quiz-note-label" style="display: none">
-          <input type="checkbox" id="hide-quiz-note" />
-          Hide the quiz note
-        </label>
-        <div class="config">
-          <table class="config-table">
-            <tr>
-              <td>
-                <label for="timeout-seconds">Next question after (seconds):</label>
-                <select id="timeout-seconds">
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2" selected>2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                </select>
-              </td>
-            </tr>
-            <tr id="score-key-row" style="display: none">
-              <td>
-                <label for="score-key">Score key:</label>
-                <select id="score-key">
-                  <option value="C">C maj / A min</option>
-                  <option value="G">G maj / E min (1♯)</option>
-                  <option value="D">D maj / B min (2♯)</option>
-                  <option value="A">A maj / F♯ min (3♯)</option>
-                  <option value="E">E maj / C♯ min (4♯)</option>
-                  <option value="B">B maj / G♯ min (5♯)</option>
-                  <option value="F#">F♯ maj / D♯ min (6♯)</option>
-                  <option value="C#">C♯ maj / A♯ min (7♯)</option>
-                  <option value="F">F maj / D min (1♭)</option>
-                  <option value="Bb">B♭ maj / G min (2♭)</option>
-                  <option value="Eb">E♭ maj / C min (3♭)</option>
-                  <option value="Ab">A♭ maj / F min (4♭)</option>
-                  <option value="Db">D♭ maj / B♭ min (5♭)</option>
-                  <option value="Gb">G♭ maj / E♭ min (6♭)</option>
-                  <option value="Cb">C♭ maj / A♭ min (7♭)</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <label for="num-strings">Number of strings:</label>
-                <select id="num-strings">
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6" selected>6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <!-- <option value="11">11</option>
-                  <option value="12">12</option> -->
-                </select>
-              </td>
-            </tr>
-            <tr id="tuning-config">
-              <td>
-                <!-- Dynamically populated with tuning table -->
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <button id="reset-tuning">Reset to Standard Tuning</button>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <button id="reset-stats">Reset stats (0)</button>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </div>
-      <div class="small-comment-text">
-        Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani:
-        <a href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237">"learn all notes on the neck"</a>
-        . I wish I had this app 30 years ago!
-      </div>
-      <div class="small-comment-text">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
-      <div id="tts-unavailable" style="display: none; font-size: 0.85em; color: #666; font-style: italic">
-        Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari or Firefox for TTS support.
-      </div>
+      </section>
+      
+      <!-- Live regions for dynamic announcements -->
+      <div id="game-announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+      <div id="error-announcements" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
     </div>
-    <div id="build-info"></div>
-    <div class="copyright">
+    
+    <!-- Build information (hidden from screen readers) -->
+    <div id="build-info" aria-hidden="true"></div>
+    
+    <!-- Footer -->
+    <footer class="copyright" role="contentinfo">
       Copyright &copy; 2025 GitHub Dmitry Ledentsov |
-      <a href="https://github.com/d-led/fret-flashcards" target="_blank">GitHub</a>
-      | Made withe the help of GitHub copilot and Cursor
-    </div>
+      <a href="https://github.com/d-led/fret-flashcards" target="_blank" rel="noopener">GitHub</a>
+      | Made with the help of GitHub Copilot and Cursor
+    </footer>
     <script src="./index.js"></script>
+    
+    <!-- Accessibility enhancements script -->
+    <script>
+      // Add keyboard navigation support for fretboard
+      document.addEventListener('DOMContentLoaded', function() {
+        const fretboardArea = document.getElementById('fretboard-area');
+        if (fretboardArea) {
+          // Ensure fretboard is focusable and has proper keyboard support
+          fretboardArea.setAttribute('tabindex', '0');
+          
+          // Add keyboard event listeners for fretboard navigation
+          fretboardArea.addEventListener('keydown', function(e) {
+            // Allow arrow keys and Enter to be handled by the application
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Space'].includes(e.key)) {
+              e.preventDefault();
+              // The main application will handle these events
+            }
+          });
+        }
+        
+        // Announce page load to screen readers
+        const announcement = document.getElementById('game-announcements');
+        if (announcement) {
+          announcement.textContent = 'Guitar Fretboard Flashcard Game loaded. Use Tab to navigate between controls.';
+        }
+      });
+    </script>
   </body>
 </html>

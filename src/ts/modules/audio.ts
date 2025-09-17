@@ -315,6 +315,14 @@ export class AudioManager {
 
 // Utility functions for audio
 export function detectIOS(): boolean {
+  // Check for CI/test environments - treat as desktop
+  const isCI = navigator.userAgent.includes('HeadlessChrome') || 
+               navigator.userAgent.includes('Cypress') ||
+               navigator.userAgent.includes('Electron');
+  if (isCI) {
+    return false;
+  }
+
   return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 

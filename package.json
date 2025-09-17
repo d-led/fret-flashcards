@@ -8,6 +8,8 @@
     "e2e": "cypress run --e2e --browser chrome --spec 'cypress/e2e/!(screenshot).cy.js'",
     "cy": "cypress open --e2e --browser chrome",
     "test:e2e": "npm run build && npm run e2e",
+    "test:accessibility": "npm run build && node test/accessibility-check.js",
+    "test:accessibility:cypress": "node test/accessibility-cypress-check.js",
     "prettier": "prettier -w .",
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",

@@ -618,3 +618,104 @@ Cypress.Commands.add("waitForTTSQueueToHaveLength", (expectedLength) => {
     }
   });
 });
+
+// ===========================================
+// Accessibility Testing Commands
+// ===========================================
+
+// Custom command to simulate Tab key navigation
+Cypress.Commands.add('tab', { prevSubject: 'element' }, (subject) => {
+  cy.wrap(subject).trigger('keydown', { key: 'Tab' });
+});
+
+// Custom command to check if element is focused
+Cypress.Commands.add('shouldBeFocused', { prevSubject: 'element' }, (subject) => {
+  cy.wrap(subject).should('be.focused');
+});
+
+// Custom command to check ARIA attributes
+Cypress.Commands.add('shouldHaveAriaAttribute', { prevSubject: 'element' }, (subject, attribute, value) => {
+  if (value) {
+    cy.wrap(subject).should('have.attr', attribute, value);
+  } else {
+    cy.wrap(subject).should('have.attr', attribute);
+  }
+});
+
+// Custom command to check if element has proper focus styles
+Cypress.Commands.add('shouldHaveFocusStyles', { prevSubject: 'element' }, (subject) => {
+  cy.wrap(subject).should('have.css', 'outline');
+});
+
+// Custom command to test keyboard navigation sequence
+Cypress.Commands.add('testKeyboardNavigation', (selectors) => {
+  selectors.forEach((selector, index) => {
+    cy.get('body').tab();
+    cy.focused().should('match', selector);
+  });
+});
+
+// Custom command to check screen reader only content
+Cypress.Commands.add('shouldHaveScreenReaderContent', (selector, expectedText) => {
+  cy.get(selector).should('have.class', 'sr-only');
+  if (expectedText) {
+    cy.get(selector).should('contain', expectedText);
+  }
+});
+
+// Custom command to check live regions
+Cypress.Commands.add('shouldHaveLiveRegion', (selector, politeness = 'polite') => {
+  cy.get(selector).should('have.attr', 'aria-live', politeness);
+});
+
+// Custom command to check form control accessibility
+Cypress.Commands.add('shouldHaveFormAccessibility', (controlSelector) => {
+  cy.get(controlSelector).then(($control) => {
+    const id = $control.attr('id');
+    if (id) {
+      // Check for associated label
+      cy.get(`label[for="${id}"]`).should('exist');
+      
+      // Check for aria-describedby if it exists
+      const describedBy = $control.attr('aria-describedby');
+      if (describedBy) {
+        cy.get(`#${describedBy}`).should('exist');
+      }
+    }
+  });
+});
+
+// Custom command to test color contrast (basic check)
+Cypress.Commands.add('shouldHaveGoodContrast', { prevSubject: 'element' }, (subject) => {
+  cy.wrap(subject).then(($el) => {
+    const styles = window.getComputedStyle($el[0]);
+    const color = styles.color;
+    const backgroundColor = styles.backgroundColor;
+    
+    // This is a basic check - in a real scenario you'd use a proper contrast checking library
+    expect(color).to.not.equal('rgba(0, 0, 0, 0)'); // Not transparent
+    expect(backgroundColor).to.not.equal('rgba(0, 0, 0, 0)'); // Not transparent
+  });
+});
+
+// Custom command to check if element is accessible to screen readers
+Cypress.Commands.add('shouldBeScreenReaderAccessible', { prevSubject: 'element' }, (subject) => {
+  cy.wrap(subject).then(($el) => {
+    const ariaHidden = $el.attr('aria-hidden');
+    const role = $el.attr('role');
+    const tabindex = $el.attr('tabindex');
+    
+    // Element should not be hidden from screen readers unless it's decorative
+    if (ariaHidden === 'true') {
+      // If hidden, it should be decorative (like emojis)
+      expect($el.text().length).to.be.lessThan(10); // Likely decorative
+    } else {
+      // If not hidden, should have accessible content
+      const hasText = $el.text().trim().length > 0;
+      const hasAriaLabel = $el.attr('aria-label');
+      const hasRole = role;
+      
+      expect(hasText || hasAriaLabel || hasRole).to.be.true;
+    }
+  });
+});

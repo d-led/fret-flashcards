@@ -23,6 +23,83 @@
   --box-shadow: 0 0 0 5px #2264a7;
 }
 
+/* Accessibility styles */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--accent);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Focus styles for better keyboard navigation */
+button:focus,
+select:focus,
+input:focus,
+[tabindex]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Form group styling */
+.form-group {
+  margin-bottom: 1em;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.button-group {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+/* Fieldset styling */
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+legend {
+  font-weight: bold;
+  padding: 0 0.5em;
+  color: var(--accent);
+}
+
+/* Info section styling */
+.info-section {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--border);
+}
+
 body {
   font-family: sans-serif;
   background: var(--bg);
@@ -83,27 +160,6 @@ a {
   box-sizing: border-box;
 }
 
-/* Small level meter inside the quiz note button */
-.note-meter {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 8px;
-  width: 56px;
-  height: 8px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-}
-.note-meter-fill {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: #4caf50;
-  transition:
-    width 120ms linear,
-    background 120ms linear;
-}
 
 #note-score {
   max-width: 260px;

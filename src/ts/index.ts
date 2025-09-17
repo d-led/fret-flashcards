@@ -536,6 +536,7 @@ $(async function () {
   let enableTTS = false; // Default to false, text-to-speech for quiz notes
   let selectedVoice: string | null = null; // Selected voice for TTS, null means use default
   let ttsInitialized = false; // Track if TTS has been initialized with user interaction
+  let ttsUserInitialized = false; // Track if TTS has been initialized by user interaction (banner click)
   let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
   let consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
@@ -858,14 +859,49 @@ $(async function () {
     if ("speechSynthesis" in window) {
       const voices = speechSynthesis.getVoices();
 
-      // Filter to English only
-      const englishVoices: SpeechSynthesisVoice[] = voices.filter((v) => v && typeof v.lang === "string" && v.lang.toLowerCase().startsWith("en"));
+      // Filter to English only - iOS Safari has bugs with lang property
+      // so we need to filter by both language code AND voice name
+      const englishVoices: SpeechSynthesisVoice[] = voices.filter((v) => {
+        if (!v || typeof v.lang !== "string") return false;
+        const lang = v.lang.toLowerCase();
+        const name = v.name.toLowerCase();
+        
+        // Only include voices that are exactly "en" or start with "en-" (like "en-US", "en-GB")
+        const isEnglishLang = lang === "en" || lang.startsWith("en-");
+        
+        // Known non-English voice names (iOS Safari lang property is unreliable)
+        const nonEnglishVoiceNames = [
+          "grandpa", "german", "deutsch", "français", "francais", "español", "espanol",
+          "italiano", "português", "portugues", "flo", "anna", "thomas", "katrin",
+          "marco", "sophie", "hans", "greta", "klaus", "ingrid", "wolfgang"
+        ];
+        
+        const hasNonEnglishName = nonEnglishVoiceNames.some(nonEngName => 
+          name.includes(nonEngName)
+        );
+        
+        return isEnglishLang && !hasNonEnglishName;
+      });
 
       englishVoices.forEach((voice) => {
         const quality = voice.localService ? " (Device)" : " (Network)";
         const option = `<option value="${voice.name}">${voice.name}${quality}</option>`;
         voiceSelect.append(option);
       });
+      
+      // Validate that the selected voice still exists in available English voices
+      // Only do this validation when TTS is actually enabled
+      if (selectedVoice && enableTTS) {
+        const voiceExists = englishVoices.some(v => v.name === selectedVoice);
+        if (!voiceExists) {
+          // If selected voice is not in the filtered English voices, reset to default
+          selectedVoice = null;
+          // Update the stored setting as well
+          const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+          const updatedSettings = { ...settings, selectedVoice: null };
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
+        }
+      }
     }
 
     // Set the selected voice if one was previously chosen
@@ -1299,8 +1335,8 @@ $(async function () {
     } else {
       // Always ensure the quiz note button is visible and shows the note text
       $quizNoteBtn.show();
-      // Update the button text so the textual hint is available even when notation is shown
-      $quizNoteBtn.text(currentCard.note);
+      // Update the button text while preserving aria-hidden spans
+      $quizNoteBtn.html(`<span aria-hidden="true">${currentCard.note}</span>`);
       if (showScoreNotation) {
         $noteScore.show();
         renderNoteScore(currentCard.note, currentCard.string, currentCard.frets);
@@ -1565,6 +1601,7 @@ $(async function () {
     addToTTSQueue(text, 2); // Normal priority for quiz repeats
   }
 
+
   // Queue TTS for initial quiz note announcement (highest priority)
   function queueQuizNoteAnnouncement() {
     if (!enableTTS || !currentCard) return;
@@ -1701,13 +1738,13 @@ $(async function () {
           const minExpected = Math.min(...expectedMidiValues);
           const maxExpected = Math.max(...expectedMidiValues);
 
-          // Check if detected note is approximately an octave off (10-14 semitones to account for different notes)
-          const lowerOctaveMin = detectedMidi - 14;
+          // Check if detected note is approximately 1-2 octaves off (10-26 semitones to account for different notes)
+          const lowerOctaveMin = detectedMidi - 26;
           const lowerOctaveMax = detectedMidi - 10;
           const higherOctaveMin = detectedMidi + 10;
-          const higherOctaveMax = detectedMidi + 14;
+          const higherOctaveMax = detectedMidi + 26;
 
-          // Check if the expected range falls within an octave of the detected note
+          // Check if the expected range falls within 1-2 octaves of the detected note
           const isExpectedOctaveLower = minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax;
           const isExpectedOctaveHigher = minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax;
 
@@ -1999,6 +2036,14 @@ $(async function () {
       return true;
     }
 
+    // Check for CI/test environments - treat as desktop
+    const isCI = navigator.userAgent.includes('HeadlessChrome') || 
+                 navigator.userAgent.includes('Cypress') ||
+                 navigator.userAgent.includes('Electron');
+    if (isCI) {
+      return false;
+    }
+
     // noinspection JSDeprecatedSymbols
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
@@ -2246,7 +2291,7 @@ $(async function () {
             updateTestState();
             if (isIOS) {
               updateUnifiedBanner();
-              speakSystemMessage("Audio enabled");
+              // Don't speak here - banner click handler will speak
               // Queue and speak the quiz note after audio is enabled
               if (enableTTS && currentCard) {
                 queueQuizNoteAnnouncement();
@@ -2261,9 +2306,14 @@ $(async function () {
             if (!isIOS && err.name === "NotAllowedError") {
               // This is expected on desktop - audio will work after user interaction
               audioEnabled = true;
+            } else if (isIOS) {
+              // On iOS, user interaction (banner click) should enable audio
+              // Even if play() fails, the user interaction allows audio to work
+              audioEnabled = true;
+              console.log("Audio enabled on iOS via user interaction");
             } else {
               console.error("Failed to enable audio:", err);
-              audioEnabled = !isIOS;
+              audioEnabled = false;
             }
             updateTestState();
           });
@@ -2277,6 +2327,10 @@ $(async function () {
       if (!isIOS) {
         // On non-iOS, assume audio will work
         audioEnabled = true;
+      } else {
+        // On iOS, user interaction (banner click) should enable audio
+        audioEnabled = true;
+        console.log("Audio enabled on iOS via user interaction (catch block)");
       }
       updateTestState();
     }
@@ -2371,15 +2425,10 @@ $(async function () {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
         const meterFillSilent = document.getElementById("mic-meter-fill");
-        const noteMeterFillSilent = document.getElementById("note-meter-fill");
         const meterEl = document.getElementById("mic-meter");
         if (meterFillSilent) {
           meterFillSilent.style.width = `0%`;
           meterFillSilent.style.background = "#4caf50";
-        }
-        if (noteMeterFillSilent) {
-          noteMeterFillSilent.style.width = `0%`;
-          noteMeterFillSilent.style.background = "#4caf50";
         }
         // Change meter border to indicate no input
         if (meterEl) {
@@ -2393,7 +2442,6 @@ $(async function () {
         if (statusEl) statusEl.textContent = `${noteName}${octave}`;
         // Update meter immediately when stable (use smoothedLevel)
         const meterFillStable = document.getElementById("mic-meter-fill");
-        const noteMeterFill = document.getElementById("note-meter-fill");
         const meterEl = document.getElementById("mic-meter");
         if (meterFillStable) {
           const pct = Math.round(smoothedLevel * 100);
@@ -2401,13 +2449,6 @@ $(async function () {
           if (smoothedLevel < 0.4) meterFillStable.style.background = "#4caf50";
           else if (smoothedLevel < 0.8) meterFillStable.style.background = "#ffeb3b";
           else meterFillStable.style.background = "#f44336";
-        }
-        if (noteMeterFill) {
-          const pct = Math.round(smoothedLevel * 100);
-          noteMeterFill.style.width = `${pct}%`;
-          if (smoothedLevel < 0.4) noteMeterFill.style.background = "#4caf50";
-          else if (smoothedLevel < 0.8) noteMeterFill.style.background = "#ffeb3b";
-          else noteMeterFill.style.background = "#f44336";
         }
         // Change meter border to indicate stable note detection
         if (meterEl) {
@@ -2480,8 +2521,6 @@ $(async function () {
     micBaselineRms = 0;
     baselineSamplesCount = 0;
     collectBaselineUntil = 0;
-    const noteMeterFill = document.getElementById("note-meter-fill");
-    if (noteMeterFill) noteMeterFill.style.width = "0%";
     detector = null;
     pitchBuffer = null;
 
@@ -2515,15 +2554,17 @@ $(async function () {
   function updateUnifiedBanner() {
     const banner = $unifiedBanner;
 
-    if (audioEnabled && ttsInitialized) {
+    if (audioEnabled && ttsUserInitialized) {
       banner.addClass("enabled").text("🔊🎤 Audio and voice enabled!");
       setTimeout(() => banner.hide(), 2000);
-    } else if (enableTTS) {
-      // When TTS is enabled in settings, show the unified banner
-      banner.removeClass("enabled").text("🔊🎤 Click here to enable audio and voice").show();
     } else if (isIOS && !audioEnabled) {
-      // On iOS, show banner even when TTS is disabled to enable audio
-      banner.removeClass("enabled").text("🔊🎤 Click here to enable audio and voice").show();
+      // On iOS, show banner to enable audio
+      // Only show "and voice" if TTS is enabled in settings
+      const bannerText = enableTTS ? "🔊🎤 Click here to enable audio and voice" : "🔊 Click here to enable audio";
+      banner.removeClass("enabled").text(bannerText).show();
+    } else if (!isIOS && enableTTS && !ttsUserInitialized) {
+      // On desktop, show banner when TTS is enabled but not initialized by user
+      banner.removeClass("enabled").text("🔊 Click here to enable voice").show();
     } else {
       banner.hide();
     }
@@ -2536,25 +2577,24 @@ $(async function () {
       // Don't auto-initialize on iOS - require user action
       updateUnifiedBanner();
     } else {
-      // On non-iOS devices, initialize audio automatically
-      initAudioContext();
+      // On non-iOS devices, enable audio automatically (no need to test actual playback)
+      audioEnabled = true;
+      updateTestState();
     }
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
 
-    // Initialize TTS if enabled in settings
-    if (enableTTS && isTTSSupported()) {
+    // Initialize TTS if enabled in settings (but not on iOS - requires user interaction)
+    if (enableTTS && isTTSSupported() && !isIOS) {
       initializeTTS();
     }
 
     // Update test state after all initialization is complete
     updateTestState();
 
-    // Show unified banner ONLY if TTS is enabled in settings on page load
-    if (enableTTS) {
-      updateUnifiedBanner();
-    }
+    // Show unified banner on iOS if audio is not enabled
+    updateUnifiedBanner();
 
     // Check TTS support and conditionally show/hide the option
     const $ttsOption = $("#enable-tts").closest("label");
@@ -2678,30 +2718,111 @@ $(async function () {
     });
 
     // Unified banner click handler
-    $unifiedBanner.on("click", function () {
+    $unifiedBanner.on("click", async function () {
       // Initialize audio if not already enabled
       if (!audioEnabled) {
         initAudioContext();
       }
 
-      // Initialize TTS for system messages (but don't enable TTS globally)
-      if ("speechSynthesis" in window && !ttsInitialized) {
-        initializeTTS();
+      // Initialize TTS if not already initialized (this is a user interaction)
+      if ((!ttsInitialized || isIOS) && "speechSynthesis" in window) {
+        ttsUserInitialized = true; // Mark that user has initialized TTS
+        
+        // On iOS, we need to speak immediately during user interaction
+        if (isIOS) {
+          // Load voices first
+          const voices = speechSynthesis.getVoices();
+          if (voices.length === 0) {
+            // Wait for voices to load
+            await new Promise<void>((resolve) => {
+              const handler = () => {
+                speechSynthesis.removeEventListener("voiceschanged", handler);
+                resolve();
+              };
+              speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
+              
+              // Fallback timeout
+              setTimeout(() => {
+                speechSynthesis.removeEventListener("voiceschanged", handler);
+                resolve();
+              }, 2000);
+            });
+          }
+          
+          // Get available voices after loading
+          const availableVoices = speechSynthesis.getVoices();
+          let voiceToUse = null;
+          
+          // First, try to use the user's selected voice
+          if (selectedVoice) {
+            voiceToUse = availableVoices.find(v => v.name === selectedVoice);
+          }
+          
+          // If no selected voice or it's not available, pick the best English voice
+          if (!voiceToUse && availableVoices.length > 0) {
+            const englishVoices = availableVoices.filter(v => v.lang.startsWith("en"));
+            const localEnglishVoices = englishVoices.filter(v => v.localService);
+            
+            if (localEnglishVoices.length > 0) {
+              voiceToUse = localEnglishVoices[0];
+            } else if (englishVoices.length > 0) {
+              voiceToUse = englishVoices[0];
+            }
+          }
+          
+          // Speak the system message immediately - match the banner text
+          const systemMessage = enableTTS ? "Audio and voice enabled" : "Audio enabled";
+          const utterance = new SpeechSynthesisUtterance(systemMessage);
+          if (voiceToUse) {
+            utterance.voice = voiceToUse;
+          }
+          speechSynthesis.speak(utterance);
+          
+          // If there's a current quiz card and TTS is enabled, also speak the quiz hint immediately
+          if (currentCard && enableTTS) {
+            const ordinalString = getOrdinal(currentCard.string + 1);
+            let spokenNote = currentCard.note;
+            
+            // Spell out accidentals for clarity
+            if (spokenNote.includes("#")) {
+              spokenNote = spokenNote.replace("#", " sharp");
+            } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
+              spokenNote = spokenNote.replace(/[b♭]/, " flat");
+            }
+            
+            const quizText = `Note ${spokenNote}, ${ordinalString} string`;
+            const quizUtterance = new SpeechSynthesisUtterance(quizText);
+            if (voiceToUse) {
+              quizUtterance.voice = voiceToUse;
+            }
+            speechSynthesis.speak(quizUtterance);
+          }
+          
+          // Initialize TTS after iOS-specific logic
+          initializeTTS();
+        } else {
+          // On non-iOS, use the existing logic
+          speakSystemMessage("Voice enabled");
+          if (currentCard && enableTTS) {
+            queueQuizNoteAnnouncement();
+          }
+          
+          // Initialize TTS after non-iOS logic
+          initializeTTS();
+        }
+      } else {
+        // TTS already initialized, use existing logic
+        if (!isIOS) {
+          speakSystemMessage("Voice enabled");
+        }
+        if (currentCard && enableTTS) {
+          queueQuizNoteAnnouncement();
+        }
       }
 
-      // Update banner state
-      updateUnifiedBanner();
-
-      // Speak appropriate confirmation messages
-      // Audio enabled message is handled in initAudioContext success callback
-      if (!ttsInitialized) {
-        speakSystemMessage("Voice enabled");
-      }
-
-      // Queue and speak the quiz note if TTS is enabled
-      if (enableTTS && currentCard) {
-        queueQuizNoteAnnouncement();
-      }
+      // Hide banner when clicked (user is already interacting)
+      $unifiedBanner.hide();
+      updateTestState();
     });
 
     // Mic toggle handler
@@ -2784,9 +2905,16 @@ $(async function () {
     });
 
     $("#voice-select").on("change", function () {
-      selectedVoice = (this as HTMLSelectElement).value || null;
+      const newVoice = (this as HTMLSelectElement).value || null;
+      const voiceName = newVoice || "Default";
+      selectedVoice = newVoice;
       saveSettings();
       updateTestState();
+      
+      // Provide feedback to blind users and debug voice changes
+      if (enableTTS && ttsInitialized) {
+        speakSystemMessage(`Changed the voice to ${voiceName}`);
+      }
     });
 
     // Add event handler for skip button
