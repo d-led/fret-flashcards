@@ -863,12 +863,12 @@ $(async function () {
 
     if ("speechSynthesis" in window) {
       const voices = speechSynthesis.getVoices();
-      
+
       // In CI/test environments, if no voices are available, add mock voices for testing
       if (voices.length === 0 && (navigator.userAgent.includes("HeadlessChrome") || navigator.userAgent.includes("Cypress"))) {
         const mockVoices = [
           { name: "Mock Voice 1", lang: "en-US", localService: true },
-          { name: "Mock Voice 2", lang: "en-GB", localService: false }
+          { name: "Mock Voice 2", lang: "en-GB", localService: false },
         ];
         voices.push(...mockVoices);
       }
@@ -2385,24 +2385,24 @@ $(async function () {
   function checkMicrophoneSupport() {
     const micButton = $("#mic-toggle");
     const micControls = $("#mic-controls");
-    
+
     // Check if we're on HTTPS (required for microphone access)
-    const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
-    
+    const isHTTPS = location.protocol === "https:" || location.hostname === "localhost";
+
     // Check if getUserMedia is supported
     const hasGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-    
+
     if (!isHTTPS) {
-      micButton.prop('disabled', true);
-      micButton.attr('title', 'Microphone access requires HTTPS. Please access this app via HTTPS.');
+      micButton.prop("disabled", true);
+      micButton.attr("title", "Microphone access requires HTTPS. Please access this app via HTTPS.");
       micButton.html('<span aria-hidden="true">🎤</span> Mic (HTTPS Required)');
     } else if (!hasGetUserMedia) {
-      micButton.prop('disabled', true);
-      micButton.attr('title', 'Your browser doesn\'t support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.');
+      micButton.prop("disabled", true);
+      micButton.attr("title", "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.");
       micButton.html('<span aria-hidden="true">🎤</span> Mic (Not Supported)');
     } else {
-      micButton.prop('disabled', false);
-      micButton.attr('title', 'Enable microphone for voice input and pitch detection');
+      micButton.prop("disabled", false);
+      micButton.attr("title", "Enable microphone for voice input and pitch detection");
       micButton.html('<span aria-hidden="true">🎤</span> Enable Mic');
     }
   }
@@ -2410,17 +2410,17 @@ $(async function () {
   // Start microphone and pitch detection using pitchy
   async function startMic() {
     if (pitchDetecting) return;
-    
+
     // Check if we're on HTTPS (required for microphone access)
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
       throw new Error("Microphone access requires HTTPS. Please access this app via HTTPS.");
     }
-    
+
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error("getUserMedia not supported");
     }
-    
+
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (error) {
@@ -2674,7 +2674,7 @@ $(async function () {
 
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
-    
+
     // Check microphone support and update UI
     checkMicrophoneSupport();
 
@@ -2925,16 +2925,16 @@ $(async function () {
     // Mic toggle handler
     $("#mic-toggle").on("click", async function () {
       const $btn = $(this);
-      
+
       // Check if button is disabled
-      if ($btn.prop('disabled')) {
-        const title = $btn.attr('title');
+      if ($btn.prop("disabled")) {
+        const title = $btn.attr("title");
         if (title) {
           alert(title);
         }
         return;
       }
-      
+
       if (!pitchDetecting) {
         try {
           await startMic();
@@ -2942,7 +2942,7 @@ $(async function () {
         } catch (e) {
           console.error("Failed to start mic:", e);
           let errorMessage = "Unable to access microphone. ";
-          
+
           if (e && e.message) {
             if (e.message.includes("getUserMedia not supported")) {
               errorMessage += "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
@@ -2960,12 +2960,12 @@ $(async function () {
           } else {
             errorMessage += "Please check your browser settings and ensure microphone access is allowed.";
           }
-          
+
           // Check if running on HTTPS
-          if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+          if (location.protocol !== "https:" && location.hostname !== "localhost") {
             errorMessage += "\n\nNote: Microphone access requires HTTPS. Please access this app via HTTPS.";
           }
-          
+
           alert(errorMessage);
         }
       } else {
@@ -3056,7 +3056,7 @@ $(async function () {
       $("#countdown").text("");
       nextCard();
     });
-    
+
     // Make populateVoiceSelection globally accessible for testing
     (window as any).populateVoiceOptions = populateVoiceSelection;
   });

@@ -713,13 +713,13 @@ a {
     display: inline-block;
     margin-top: 0.5em;
   }
-  
+
   .form-group {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5em;
   }
-  
+
   .form-group select {
     width: 100%;
     min-width: auto;
