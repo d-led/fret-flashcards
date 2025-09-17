@@ -7,6 +7,15 @@
 // commands please read more here:
 // https://on.cypress.io/custom-commands
 // ***********************************************
+
+// ===========================================
+// Environment Detection
+// ===========================================
+
+// Check if running in CI environment using Cypress env
+Cypress.Commands.add('isRunningInCI', () => {
+  return Cypress.env('CI') === true;
+});
 //
 //
 // -- This is a parent command --

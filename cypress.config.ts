@@ -45,6 +45,10 @@ export default defineConfig({
   },
   video: true,
   videoCompression: true,
+  env: {
+    // Detect CI environment - GitHub Actions sets CI=true automatically
+    CI: process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.CIRCLECI === 'true' || process.env.TRAVIS === 'true' || process.env.BUILDKITE === 'true' || process.env.JENKINS_URL !== undefined
+  },
   e2e: {
     async setupNodeEvents(on, config) {
       on("task", {
