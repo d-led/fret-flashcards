@@ -118,6 +118,13 @@ describe("Audio and TTS Functionality", () => {
     });
 
     it("should populate voice options", () => {
+      // Force re-population of voices to ensure they're loaded
+      cy.window().then((win) => {
+        if (win.populateVoiceOptions) {
+          win.populateVoiceOptions();
+        }
+      });
+      
       cy.get("#voice-select option").should("have.length.greaterThan", 1);
       cy.get("#voice-select option").first().should("have.value", "");
       cy.get("#voice-select option").first().should("contain.text", "Default");
