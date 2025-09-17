@@ -9,7 +9,7 @@ console.log(`loaded index.js`);
 $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
-  
+
   const SETTINGS_KEY = "guitar_flashcard_settings_v1";
   const STATS_KEY = "guitar_flashcard_stats_v1";
 
@@ -870,21 +870,37 @@ $(async function () {
         if (!v || typeof v.lang !== "string") return false;
         const lang = v.lang.toLowerCase();
         const name = v.name.toLowerCase();
-        
+
         // Only include voices that are exactly "en" or start with "en-" (like "en-US", "en-GB")
         const isEnglishLang = lang === "en" || lang.startsWith("en-");
-        
+
         // Known non-English voice names (iOS Safari lang property is unreliable)
         const nonEnglishVoiceNames = [
-          "grandpa", "german", "deutsch", "français", "francais", "español", "espanol",
-          "italiano", "português", "portugues", "flo", "anna", "thomas", "katrin",
-          "marco", "sophie", "hans", "greta", "klaus", "ingrid", "wolfgang"
+          "grandpa",
+          "german",
+          "deutsch",
+          "français",
+          "francais",
+          "español",
+          "espanol",
+          "italiano",
+          "português",
+          "portugues",
+          "flo",
+          "anna",
+          "thomas",
+          "katrin",
+          "marco",
+          "sophie",
+          "hans",
+          "greta",
+          "klaus",
+          "ingrid",
+          "wolfgang",
         ];
-        
-        const hasNonEnglishName = nonEnglishVoiceNames.some(nonEngName => 
-          name.includes(nonEngName)
-        );
-        
+
+        const hasNonEnglishName = nonEnglishVoiceNames.some((nonEngName) => name.includes(nonEngName));
+
         return isEnglishLang && !hasNonEnglishName;
       });
 
@@ -893,11 +909,11 @@ $(async function () {
         const option = `<option value="${voice.name}">${voice.name}${quality}</option>`;
         voiceSelect.append(option);
       });
-      
+
       // Validate that the selected voice still exists in available English voices
       // Only do this validation when TTS is actually enabled
       if (selectedVoice && enableTTS) {
-        const voiceExists = englishVoices.some(v => v.name === selectedVoice);
+        const voiceExists = englishVoices.some((v) => v.name === selectedVoice);
         if (!voiceExists) {
           // If selected voice is not in the filtered English voices, reset to default
           selectedVoice = null;
@@ -1384,7 +1400,7 @@ $(async function () {
     foundFrets = currentCard.found.slice();
     // expose stable attributes for tests (and other tooling)
     $quizNoteBtn.attr("data-note", currentCard.note);
-    
+
     // Update global reference for touch handler
     (window as any).currentCard = currentCard;
     updateQuizNoteDisplay();
@@ -1608,7 +1624,6 @@ $(async function () {
 
     addToTTSQueue(text, 2); // Normal priority for quiz repeats
   }
-
 
   // Queue TTS for initial quiz note announcement (highest priority)
   function queueQuizNoteAnnouncement() {
@@ -1856,10 +1871,10 @@ $(async function () {
       console.log("Ignoring fret button input - hints still playing during mic mode");
       return;
     }
-    
+
     // Provide light haptic feedback for button tap
     mobileEnhancements.hapticLight();
-    
+
     let fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
   }
@@ -1871,10 +1886,10 @@ $(async function () {
       console.log("Ignoring fretboard click - hints still playing during mic mode");
       return;
     }
-    
+
     // Provide light haptic feedback for fretboard tap
     mobileEnhancements.hapticLight();
-    
+
     let s = Number($(this).attr("data-string"));
     let f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
@@ -2060,9 +2075,7 @@ $(async function () {
     }
 
     // Check for CI/test environments - treat as desktop
-    const isCI = navigator.userAgent.includes('HeadlessChrome') || 
-                 navigator.userAgent.includes('Cypress') ||
-                 navigator.userAgent.includes('Electron');
+    const isCI = navigator.userAgent.includes("HeadlessChrome") || navigator.userAgent.includes("Cypress") || navigator.userAgent.includes("Electron");
     if (isCI) {
       return false;
     }
@@ -2754,7 +2767,7 @@ $(async function () {
       // Initialize TTS if not already initialized (this is a user interaction)
       if ((!ttsInitialized || isIOS) && "speechSynthesis" in window) {
         ttsUserInitialized = true; // Mark that user has initialized TTS
-        
+
         // On iOS, we need to speak immediately during user interaction
         if (isIOS) {
           // Load voices first
@@ -2767,7 +2780,7 @@ $(async function () {
                 resolve();
               };
               speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
-              
+
               // Fallback timeout
               setTimeout(() => {
                 speechSynthesis.removeEventListener("voiceschanged", handler);
@@ -2775,28 +2788,28 @@ $(async function () {
               }, 2000);
             });
           }
-          
+
           // Get available voices after loading
           const availableVoices = speechSynthesis.getVoices();
           let voiceToUse = null;
-          
+
           // First, try to use the user's selected voice
           if (selectedVoice) {
-            voiceToUse = availableVoices.find(v => v.name === selectedVoice);
+            voiceToUse = availableVoices.find((v) => v.name === selectedVoice);
           }
-          
+
           // If no selected voice or it's not available, pick the best English voice
           if (!voiceToUse && availableVoices.length > 0) {
-            const englishVoices = availableVoices.filter(v => v.lang.startsWith("en"));
-            const localEnglishVoices = englishVoices.filter(v => v.localService);
-            
+            const englishVoices = availableVoices.filter((v) => v.lang.startsWith("en"));
+            const localEnglishVoices = englishVoices.filter((v) => v.localService);
+
             if (localEnglishVoices.length > 0) {
               voiceToUse = localEnglishVoices[0];
             } else if (englishVoices.length > 0) {
               voiceToUse = englishVoices[0];
             }
           }
-          
+
           // Speak the system message immediately - match the banner text
           const systemMessage = enableTTS ? "Audio and voice enabled" : "Audio enabled";
           const utterance = new SpeechSynthesisUtterance(systemMessage);
@@ -2804,19 +2817,19 @@ $(async function () {
             utterance.voice = voiceToUse;
           }
           speechSynthesis.speak(utterance);
-          
+
           // If there's a current quiz card and TTS is enabled, also speak the quiz hint immediately
           if (currentCard && enableTTS) {
             const ordinalString = getOrdinal(currentCard.string + 1);
             let spokenNote = currentCard.note;
-            
+
             // Spell out accidentals for clarity
             if (spokenNote.includes("#")) {
               spokenNote = spokenNote.replace("#", " sharp");
             } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
               spokenNote = spokenNote.replace(/[b♭]/, " flat");
             }
-            
+
             const quizText = `Note ${spokenNote}, ${ordinalString} string`;
             const quizUtterance = new SpeechSynthesisUtterance(quizText);
             if (voiceToUse) {
@@ -2824,7 +2837,7 @@ $(async function () {
             }
             speechSynthesis.speak(quizUtterance);
           }
-          
+
           // Initialize TTS after iOS-specific logic
           initializeTTS();
         } else {
@@ -2833,7 +2846,7 @@ $(async function () {
           if (currentCard && enableTTS) {
             queueQuizNoteAnnouncement();
           }
-          
+
           // Initialize TTS after non-iOS logic
           initializeTTS();
         }
@@ -2937,7 +2950,7 @@ $(async function () {
       selectedVoice = newVoice;
       saveSettings();
       updateTestState();
-      
+
       // Provide feedback to blind users and debug voice changes
       if (enableTTS && ttsInitialized) {
         speakSystemMessage(`Changed the voice to ${voiceName}`);

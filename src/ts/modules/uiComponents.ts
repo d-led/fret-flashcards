@@ -69,12 +69,15 @@ export class JQueryUIDropdown implements UIDropdown {
   }
 
   getOptions(): string[] {
-    return this.$element.find("option").map((_, el) => $(el).val() as string).get();
+    return this.$element
+      .find("option")
+      .map((_, el) => $(el).val() as string)
+      .get();
   }
 
   setOptions(options: string[]): void {
     this.$element.empty();
-    options.forEach(option => {
+    options.forEach((option) => {
       this.$element.append(`<option value="${option}">${option}</option>`);
     });
   }

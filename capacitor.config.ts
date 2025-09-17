@@ -1,11 +1,11 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.dled.stringhomeworktutor',
-  appName: 'String Homework Tutor',
-  webDir: 'dist',
+  appId: "com.dled.stringhomeworktutor",
+  appName: "String Homework Tutor",
+  webDir: "dist",
   server: {
-    androidScheme: 'https'
+    androidScheme: "https",
   },
   plugins: {
     SplashScreen: {
@@ -25,17 +25,17 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "dark",
-      backgroundColor: "#222222"
+      backgroundColor: "#222222",
     },
     Keyboard: {
       resize: "body",
       style: "dark",
-      resizeOnFullScreen: true
+      resizeOnFullScreen: true,
     },
     Haptics: {
       // Enable haptic feedback
-    }
-  }
+    },
+  },
 };
 
 export default config;

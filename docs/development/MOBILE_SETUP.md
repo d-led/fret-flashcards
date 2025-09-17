@@ -5,11 +5,13 @@ This document explains how to build and run the String Homework Tutor app on And
 ## Prerequisites
 
 ### Android Development
+
 - Android Studio (latest version)
 - Android SDK (API level 33 or higher)
 - Java Development Kit (JDK) 11 or higher
 
 ### iOS Development (macOS only)
+
 - Xcode (latest version)
 - iOS SDK (iOS 13.0 or higher)
 - CocoaPods: `sudo gem install cocoapods`
@@ -17,21 +19,25 @@ This document explains how to build and run the String Homework Tutor app on And
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Build for Mobile
+
 ```bash
 npm run build:mobile
 ```
 
 ### 3. Run on Android
+
 ```bash
 npm run android:dev
 ```
 
 ### 4. Run on iOS (macOS only)
+
 ```bash
 npm run ios:dev
 ```
@@ -48,6 +54,7 @@ npm run ios:dev
 ## Mobile Features
 
 ### Enhanced User Experience
+
 - **Haptic Feedback**: Vibration feedback for correct/incorrect answers
 - **Native Status Bar**: Dark theme matching the app
 - **Splash Screen**: Custom loading screen with app branding
@@ -55,6 +62,7 @@ npm run ios:dev
 - **App Lifecycle**: Proper pause/resume handling
 
 ### Native APIs Used
+
 - `@capacitor/haptics` - Vibration feedback
 - `@capacitor/status-bar` - Status bar styling
 - `@capacitor/splash-screen` - Custom splash screen
@@ -65,12 +73,14 @@ npm run ios:dev
 ## Building for Production
 
 ### Android
+
 1. Build the web assets: `npm run build`
 2. Sync with Android: `npx cap sync android`
 3. Open in Android Studio: `npx cap open android`
 4. In Android Studio, generate signed APK or AAB
 
 ### iOS
+
 1. Build the web assets: `npm run build`
 2. Sync with iOS: `npx cap sync ios`
 3. Open in Xcode: `npx cap open ios`
@@ -79,16 +89,19 @@ npm run ios:dev
 ## Troubleshooting
 
 ### Android Issues
+
 - **Gradle sync failed**: Update Android Studio and SDK
 - **Build failed**: Check Java version (should be JDK 11+)
 - **App crashes**: Check device logs in Android Studio
 
 ### iOS Issues
+
 - **Pod install failed**: Run `sudo gem install cocoapods`
 - **Xcode build failed**: Update Xcode to latest version
 - **Simulator issues**: Reset iOS Simulator
 
 ### General Issues
+
 - **Web assets not updating**: Run `npm run mobile:sync`
 - **Plugin errors**: Check Capacitor plugin versions
 - **Build errors**: Clear node_modules and reinstall
@@ -96,12 +109,14 @@ npm run ios:dev
 ## App Store Preparation
 
 ### Android (Google Play Store)
+
 1. Generate signed AAB file
 2. Create app listing with screenshots
 3. Set up app signing
 4. Upload to Google Play Console
 
 ### iOS (App Store)
+
 1. Create app in App Store Connect
 2. Generate distribution certificate
 3. Archive and upload from Xcode

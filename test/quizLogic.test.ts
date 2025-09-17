@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { QuizLogic } from '../src/ts/modules/quizLogic';
-import { Settings, Statistics } from '../src/ts/types/interfaces';
+import { describe, it, expect, beforeEach } from "vitest";
+import { QuizLogic } from "../src/ts/modules/quizLogic";
+import { Settings, Statistics } from "../src/ts/types/interfaces";
 
-describe('QuizLogic', () => {
+describe("QuizLogic", () => {
   let quizLogic: QuizLogic;
   let settings: Settings;
   let statistics: Statistics;
@@ -20,18 +20,18 @@ describe('QuizLogic', () => {
         { note: "G", octave: 3 },
         { note: "D", octave: 3 },
         { note: "A", octave: 2 },
-        { note: "E", octave: 2 }
+        { note: "E", octave: 2 },
       ],
       enableBias: false,
       showScoreNotation: false,
       scoreKey: "C",
       hideQuizNote: false,
       enableTTS: false,
-      selectedVoice: null
+      selectedVoice: null,
     };
 
     statistics = {
-      answers: []
+      answers: [],
     };
 
     tuning = settings.tuning;
@@ -39,14 +39,14 @@ describe('QuizLogic', () => {
     quizLogic = new QuizLogic(settings, statistics, tuning);
   });
 
-  it('should create a new session', () => {
+  it("should create a new session", () => {
     quizLogic.makeSession();
     const stats = quizLogic.getSessionStats();
     expect(stats.total).toBeGreaterThan(0);
     expect(stats.current).toBe(1);
   });
 
-  it('should show the first card', () => {
+  it("should show the first card", () => {
     quizLogic.makeSession();
     const card = quizLogic.showCard();
     expect(card).toBeTruthy();
@@ -57,7 +57,7 @@ describe('QuizLogic', () => {
     expect(card?.frets.length).toBeGreaterThan(0);
   });
 
-  it('should check correct answers', () => {
+  it("should check correct answers", () => {
     quizLogic.makeSession();
     const card = quizLogic.showCard();
     expect(card).toBeTruthy();
@@ -68,7 +68,7 @@ describe('QuizLogic', () => {
     }
   });
 
-  it('should check incorrect answers', () => {
+  it("should check incorrect answers", () => {
     quizLogic.makeSession();
     const card = quizLogic.showCard();
     expect(card).toBeTruthy();
@@ -79,18 +79,18 @@ describe('QuizLogic', () => {
     }
   });
 
-  it('should move to next card', () => {
+  it("should move to next card", () => {
     quizLogic.makeSession();
     const firstCard = quizLogic.showCard();
     quizLogic.nextCard();
     const secondCard = quizLogic.showCard();
-    
+
     expect(firstCard).toBeTruthy();
     expect(secondCard).toBeTruthy();
     // Cards might be the same due to shuffling, but we should have a card
   });
 
-  it('should record answers in statistics', () => {
+  it("should record answers in statistics", () => {
     quizLogic.makeSession();
     const card = quizLogic.showCard();
     expect(card).toBeTruthy();
@@ -102,9 +102,9 @@ describe('QuizLogic', () => {
     }
   });
 
-  it('should handle countdown timer', (done) => {
+  it("should handle countdown timer", (done) => {
     let countdownValues: number[] = [];
-    
+
     quizLogic.startCountdown(3, () => {
       expect(countdownValues).toEqual([3, 2, 1]);
       done();
@@ -121,34 +121,34 @@ describe('QuizLogic', () => {
     }, 100);
   });
 
-  it('should clear countdown when requested', () => {
+  it("should clear countdown when requested", () => {
     quizLogic.startCountdown(5, () => {});
     expect(quizLogic.getCountdownValue()).toBe(5);
-    
+
     quizLogic.clearCountdown();
     expect(quizLogic.getCountdownValue()).toBe(0);
   });
 
-  it('should update settings and recreate session when needed', () => {
+  it("should update settings and recreate session when needed", () => {
     quizLogic.makeSession();
     const initialStats = quizLogic.getSessionStats();
-    
+
     // Update a setting that affects session
     quizLogic.updateSettings({ showAccidentals: true });
     const newStats = quizLogic.getSessionStats();
-    
+
     // Session should be recreated (stats might be different due to different note set)
     expect(newStats.total).toBeGreaterThan(0);
   });
 
-  it('should not recreate session for non-session-affecting settings', () => {
+  it("should not recreate session for non-session-affecting settings", () => {
     quizLogic.makeSession();
     const initialStats = quizLogic.getSessionStats();
-    
+
     // Update a setting that doesn't affect session
     quizLogic.updateSettings({ enableTTS: true });
     const newStats = quizLogic.getSessionStats();
-    
+
     // Session should remain the same
     expect(newStats.total).toBe(initialStats.total);
   });

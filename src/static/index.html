@@ -14,10 +14,11 @@
     <div class="container">
       <!-- Skip to main content link for keyboard users -->
       <a href="#main-content" class="skip-link">Skip to main content</a>
-      
+
       <!-- Audio and voice enablement banner -->
       <div id="unified-banner" class="unified-enable-banner" style="display: none" role="banner" aria-live="polite">
-        <span aria-hidden="true">🔊</span> Click here to enable audio
+        <span aria-hidden="true">🔊</span>
+        Click here to enable audio
       </div>
       <!-- Test state tracking elements (hidden from screen readers) -->
       <div id="test-state" style="display: none" aria-hidden="true">
@@ -29,17 +30,15 @@
         <span id="tts-currently-playing" data-playing="false"></span>
         <span id="utterance-log" data-log="[]"></span>
       </div>
-      
+
       <!-- Main game area -->
       <main id="main-content" role="main">
         <h1 class="sr-only">Guitar Fretboard Flashcard Game</h1>
-        
+
         <section class="flashcard" aria-labelledby="flashcard-instruction">
           <h2 id="flashcard-instruction" class="flashcard-instruction">Find the note</h2>
           <div class="note-row">
-            <button class="quiz-note-btn" id="quiz-note-btn" 
-                    aria-label="Play the target note audio" 
-                    title="Play this note">
+            <button class="quiz-note-btn" id="quiz-note-btn" aria-label="Play the target note audio" title="Play this note">
               <span aria-hidden="true">?</span>
             </button>
             <div class="string" id="flashcard-string" aria-label="Target string number" role="text">?</div>
@@ -48,15 +47,10 @@
               <div id="bass-score" aria-label="Bass clef score"></div>
             </div>
           </div>
-          <div class="fretboard-area" id="fretboard-area" 
-               role="application" 
-               aria-label="Interactive guitar fretboard. Use arrow keys to navigate and Enter to select frets."
-               tabindex="0"></div>
+          <div class="fretboard-area" id="fretboard-area" role="application" aria-label="Interactive guitar fretboard. Use arrow keys to navigate and Enter to select frets." tabindex="0"></div>
           <div class="countdown-row">
             <span class="countdown-inline" id="countdown" aria-live="polite" aria-label="Time remaining"></span>
-            <button class="countdown-skip" id="skip-countdown" 
-                    aria-label="Skip to next question" 
-                    title="Skip to next quiz">
+            <button class="countdown-skip" id="skip-countdown" aria-label="Skip to next question" title="Skip to next quiz">
               <span aria-hidden="true">⏭️</span>
             </button>
           </div>
@@ -64,12 +58,13 @@
       </main>
       <!-- Fret selection buttons (dynamically generated) -->
       <div class="fret-buttons" id="fret-buttons" role="group" aria-label="Fret selection buttons"></div>
-      
+
       <!-- Microphone controls -->
       <section id="mic-controls" aria-labelledby="mic-controls-heading">
         <h3 id="mic-controls-heading" class="sr-only">Microphone Controls</h3>
         <button id="mic-toggle" aria-label="Enable microphone for voice input">
-          <span aria-hidden="true">🎤</span> Enable Mic
+          <span aria-hidden="true">🎤</span>
+          Enable Mic
         </button>
         <span id="mic-status" style="display: none" aria-live="polite" role="status"></span>
         <span id="mic-meter" style="display: none" aria-label="Microphone input level" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -80,7 +75,7 @@
       <!-- Game Options -->
       <section class="options" aria-labelledby="options-heading">
         <h2 id="options-heading">Game Options</h2>
-        
+
         <fieldset class="config">
           <legend>Fretboard Configuration</legend>
           <div class="form-group">
@@ -94,7 +89,7 @@
             <div id="fret-count-help" class="sr-only">Select the number of frets to include in the quiz</div>
           </div>
         </fieldset>
-        
+
         <fieldset>
           <legend>Quiz Settings</legend>
           <div class="checkbox-group">
@@ -120,7 +115,7 @@
             </label>
           </div>
         </fieldset>
-        
+
         <fieldset id="voice-selection" style="display: none">
           <legend>Voice Settings</legend>
           <div class="form-group">
@@ -150,7 +145,7 @@
             </select>
             <div id="timeout-help" class="sr-only">Set how many seconds to wait before automatically moving to the next question. Set to 0 for manual progression only.</div>
           </div>
-          
+
           <div class="form-group" id="score-key-row" style="display: none">
             <label for="score-key">Score key:</label>
             <select id="score-key" aria-describedby="score-key-help">
@@ -172,7 +167,7 @@
             </select>
             <div id="score-key-help" class="sr-only">Select the key signature for score notation display</div>
           </div>
-          
+
           <div class="form-group">
             <label for="num-strings">Number of strings:</label>
             <select id="num-strings" aria-describedby="strings-help">
@@ -187,43 +182,39 @@
             </select>
             <div id="strings-help" class="sr-only">Select the number of strings for the guitar fretboard</div>
           </div>
-          
+
           <div class="form-group" id="tuning-config">
             <!-- Dynamically populated with tuning table -->
           </div>
-          
+
           <div class="button-group">
-            <button id="reset-tuning" aria-label="Reset guitar tuning to standard E-A-D-G-B-E">
-              Reset to Standard Tuning
-            </button>
-            <button id="reset-stats" aria-label="Reset all statistics to zero">
-              Reset Statistics
-            </button>
+            <button id="reset-tuning" aria-label="Reset guitar tuning to standard E-A-D-G-B-E">Reset to Standard Tuning</button>
+            <button id="reset-stats" aria-label="Reset all statistics to zero">Reset Statistics</button>
           </div>
         </fieldset>
-      </div>
+      </section>
       <!-- Additional Information -->
       <section class="info-section" aria-labelledby="info-heading">
         <h2 id="info-heading" class="sr-only">Additional Information</h2>
-        <div class="small-comment-text" style="text-align: center;">
+        <div class="small-comment-text" style="text-align: center">
           Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani:
           <a href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237" target="_blank" rel="noopener">"learn all notes on the neck"</a>
           . I wish I had this app 30 years ago!
         </div>
-        <div class="small-comment-text" style="text-align: center;">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
+        <div class="small-comment-text" style="text-align: center">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
         <div id="tts-unavailable" style="display: none; font-size: 0.85em; color: #666; font-style: italic" role="alert" aria-live="polite">
           Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari or Firefox for TTS support.
         </div>
       </section>
-      
+
       <!-- Live regions for dynamic announcements -->
       <div id="game-announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
       <div id="error-announcements" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
     </div>
-    
+
     <!-- Build information (hidden from screen readers) -->
     <div id="build-info" aria-hidden="true"></div>
-    
+
     <!-- Footer -->
     <footer class="copyright" role="contentinfo">
       Copyright &copy; 2025 GitHub Dmitry Ledentsov |
@@ -231,30 +222,30 @@
       | Made with the help of GitHub Copilot and Cursor
     </footer>
     <script src="./index.js"></script>
-    
+
     <!-- Accessibility enhancements script -->
     <script>
       // Add keyboard navigation support for fretboard
-      document.addEventListener('DOMContentLoaded', function() {
-        const fretboardArea = document.getElementById('fretboard-area');
+      document.addEventListener("DOMContentLoaded", function () {
+        const fretboardArea = document.getElementById("fretboard-area");
         if (fretboardArea) {
           // Ensure fretboard is focusable and has proper keyboard support
-          fretboardArea.setAttribute('tabindex', '0');
-          
+          fretboardArea.setAttribute("tabindex", "0");
+
           // Add keyboard event listeners for fretboard navigation
-          fretboardArea.addEventListener('keydown', function(e) {
+          fretboardArea.addEventListener("keydown", function (e) {
             // Allow arrow keys and Enter to be handled by the application
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Space'].includes(e.key)) {
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Space"].includes(e.key)) {
               e.preventDefault();
               // The main application will handle these events
             }
           });
         }
-        
+
         // Announce page load to screen readers
-        const announcement = document.getElementById('game-announcements');
+        const announcement = document.getElementById("game-announcements");
         if (announcement) {
-          announcement.textContent = 'Guitar Fretboard Flashcard Game loaded. Use Tab to navigate between controls.';
+          announcement.textContent = "Guitar Fretboard Flashcard Game loaded. Use Tab to navigate between controls.";
         }
       });
     </script>

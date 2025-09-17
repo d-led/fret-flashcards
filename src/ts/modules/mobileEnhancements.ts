@@ -1,11 +1,11 @@
-import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { StatusBar, Style } from '@capacitor/status-bar';
-import { SplashScreen } from '@capacitor/splash-screen';
-import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
-import { App } from '@capacitor/app';
-import { Preferences } from '@capacitor/preferences';
-import { touchHandler } from './touchHandler';
+import { Capacitor } from "@capacitor/core";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+import { App } from "@capacitor/app";
+import { Preferences } from "@capacitor/preferences";
+import { touchHandler } from "./touchHandler";
 
 /**
  * Mobile-specific enhancements for String Homework Tutor
@@ -36,9 +36,9 @@ export class MobileEnhancements {
       if (!isIOS) {
         touchHandler.initialize();
       } else {
-        console.log('Skipping touch handler on iOS to avoid conflicts');
+        console.log("Skipping touch handler on iOS to avoid conflicts");
       }
-      
+
       // Only run on native platforms
       if (Capacitor.isNativePlatform()) {
         await this.setupStatusBar();
@@ -46,11 +46,11 @@ export class MobileEnhancements {
         await this.setupAppLifecycle();
         await this.hideSplashScreen();
       }
-      
+
       this.isInitialized = true;
-      console.log('Mobile enhancements initialized');
+      console.log("Mobile enhancements initialized");
     } catch (error) {
-      console.error('Failed to initialize mobile enhancements:', error);
+      console.error("Failed to initialize mobile enhancements:", error);
     }
   }
 
@@ -60,9 +60,9 @@ export class MobileEnhancements {
   private async setupStatusBar(): Promise<void> {
     try {
       await StatusBar.setStyle({ style: Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#222222' });
+      await StatusBar.setBackgroundColor({ color: "#222222" });
     } catch (error) {
-      console.error('Failed to setup status bar:', error);
+      console.error("Failed to setup status bar:", error);
     }
   }
 
@@ -72,10 +72,10 @@ export class MobileEnhancements {
   private async setupKeyboard(): Promise<void> {
     try {
       await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
-      await Keyboard.setStyle({ style: 'dark' });
+      await Keyboard.setStyle({ style: "dark" });
       await Keyboard.setScroll({ isDisabled: false });
     } catch (error) {
-      console.error('Failed to setup keyboard:', error);
+      console.error("Failed to setup keyboard:", error);
     }
   }
 
@@ -85,8 +85,8 @@ export class MobileEnhancements {
   private async setupAppLifecycle(): Promise<void> {
     try {
       // Handle app state changes
-      App.addListener('appStateChange', ({ isActive }) => {
-        console.log('App state changed. Is active?', isActive);
+      App.addListener("appStateChange", ({ isActive }) => {
+        console.log("App state changed. Is active?", isActive);
         if (isActive) {
           // App became active - resume audio if needed
           this.resumeAudio();
@@ -97,12 +97,12 @@ export class MobileEnhancements {
       });
 
       // Handle back button on Android
-      App.addListener('backButton', () => {
+      App.addListener("backButton", () => {
         // Handle back button - could show exit confirmation
         this.handleBackButton();
       });
     } catch (error) {
-      console.error('Failed to setup app lifecycle:', error);
+      console.error("Failed to setup app lifecycle:", error);
     }
   }
 
@@ -113,7 +113,7 @@ export class MobileEnhancements {
     try {
       await SplashScreen.hide();
     } catch (error) {
-      console.error('Failed to hide splash screen:', error);
+      console.error("Failed to hide splash screen:", error);
     }
   }
 
@@ -122,11 +122,11 @@ export class MobileEnhancements {
    */
   public async hapticSuccess(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    
+
     try {
       await Haptics.impact({ style: ImpactStyle.Medium });
     } catch (error) {
-      console.error('Failed to provide success haptic feedback:', error);
+      console.error("Failed to provide success haptic feedback:", error);
     }
   }
 
@@ -135,11 +135,11 @@ export class MobileEnhancements {
    */
   public async hapticError(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    
+
     try {
       await Haptics.impact({ style: ImpactStyle.Heavy });
     } catch (error) {
-      console.error('Failed to provide error haptic feedback:', error);
+      console.error("Failed to provide error haptic feedback:", error);
     }
   }
 
@@ -148,11 +148,11 @@ export class MobileEnhancements {
    */
   public async hapticLight(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    
+
     try {
       await Haptics.impact({ style: ImpactStyle.Light });
     } catch (error) {
-      console.error('Failed to provide light haptic feedback:', error);
+      console.error("Failed to provide light haptic feedback:", error);
     }
   }
 
@@ -161,7 +161,7 @@ export class MobileEnhancements {
    */
   private resumeAudio(): void {
     // This will be called by the main audio module
-    const event = new CustomEvent('mobileAppResume');
+    const event = new CustomEvent("mobileAppResume");
     window.dispatchEvent(event);
   }
 
@@ -170,7 +170,7 @@ export class MobileEnhancements {
    */
   private pauseAudio(): void {
     // This will be called by the main audio module
-    const event = new CustomEvent('mobileAppPause');
+    const event = new CustomEvent("mobileAppPause");
     window.dispatchEvent(event);
   }
 
@@ -179,10 +179,10 @@ export class MobileEnhancements {
    */
   private handleBackButton(): void {
     // Check if we're in a modal or special view
-    const modal = document.querySelector('.modal, .overlay, .popup');
+    const modal = document.querySelector(".modal, .overlay, .popup");
     if (modal) {
       // Close modal instead of exiting app
-      const closeButton = modal.querySelector('[data-dismiss], .close, .cancel');
+      const closeButton = modal.querySelector("[data-dismiss], .close, .cancel");
       if (closeButton) {
         (closeButton as HTMLElement).click();
         return;
@@ -190,7 +190,7 @@ export class MobileEnhancements {
     }
 
     // Default: show exit confirmation
-    if (confirm('Are you sure you want to exit String Homework Tutor?')) {
+    if (confirm("Are you sure you want to exit String Homework Tutor?")) {
       App.exitApp();
     }
   }
@@ -207,7 +207,7 @@ export class MobileEnhancements {
         localStorage.setItem(key, JSON.stringify(value));
       }
     } catch (error) {
-      console.error('Failed to set preference:', error);
+      console.error("Failed to set preference:", error);
       // Fallback to localStorage
       localStorage.setItem(key, JSON.stringify(value));
     }
@@ -227,7 +227,7 @@ export class MobileEnhancements {
         return value ? JSON.parse(value) : null;
       }
     } catch (error) {
-      console.error('Failed to get preference:', error);
+      console.error("Failed to get preference:", error);
       // Fallback to localStorage
       const value = localStorage.getItem(key);
       return value ? JSON.parse(value) : null;

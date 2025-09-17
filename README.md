@@ -72,23 +72,25 @@ npm run ios:dev
 
 ### 🛠️ Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run build:mobile` | Build web assets + sync to mobile platforms |
-| `npm run android:dev` | Build and run on Android device/emulator |
-| `npm run ios:dev` | Build and run on iOS device/simulator |
-| `npm run android:build` | Build Android APK for production |
-| `npm run ios:build` | Build iOS app for production |
-| `npm run mobile:sync` | Sync web assets to mobile platforms |
+| Command                 | Description                                 |
+| ----------------------- | ------------------------------------------- |
+| `npm run build:mobile`  | Build web assets + sync to mobile platforms |
+| `npm run android:dev`   | Build and run on Android device/emulator    |
+| `npm run ios:dev`       | Build and run on iOS device/simulator       |
+| `npm run android:build` | Build Android APK for production            |
+| `npm run ios:build`     | Build iOS app for production                |
+| `npm run mobile:sync`   | Sync web assets to mobile platforms         |
 
 ### 📋 Prerequisites
 
 #### Android Development
+
 - Android Studio (latest version)
 - Android SDK (API level 33+)
 - Java Development Kit (JDK 11+)
 
 #### iOS Development (macOS only)
+
 - Xcode (latest version)
 - iOS SDK (iOS 13.0+)
 - CocoaPods: `sudo gem install cocoapods`
@@ -96,12 +98,14 @@ npm run ios:dev
 ### 🏗️ Building for Production
 
 #### Android (Google Play Store)
+
 1. Run `npm run build:mobile`
 2. Open in Android Studio: `npx cap open android`
 3. Generate signed AAB file in Android Studio
 4. Upload to Google Play Console
 
 #### iOS (App Store)
+
 1. Run `npm run build:mobile`
 2. Open in Xcode: `npx cap open ios`
 3. Archive and upload from Xcode

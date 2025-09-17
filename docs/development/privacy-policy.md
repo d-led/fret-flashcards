@@ -9,10 +9,13 @@ String Homework Tutor ("we," "our," or "us") is committed to protecting your pri
 ## Information We Collect
 
 ### No Personal Data Collection
+
 String Homework Tutor does not collect, store, or transmit any personal data. We do not have access to your personal information, and we do not track your usage patterns.
 
 ### Local Device Storage
+
 The app stores the following data locally on your device only:
+
 - Quiz settings and preferences
 - Statistics and progress tracking
 - Custom instrument tunings
@@ -24,18 +27,21 @@ This data remains on your device and is never transmitted to our servers or thir
 ## Permissions and Device Access
 
 ### Microphone Access
+
 - **Purpose**: Used for voice input and pitch detection features
 - **Usage**: Optional feature for hands-free note input
 - **Data**: Audio is processed locally and not stored or transmitted
 - **Control**: You can disable microphone access in your device settings
 
 ### Audio Access
+
 - **Purpose**: Used for playing musical notes and feedback sounds
 - **Usage**: Essential for the app's educational functionality
 - **Data**: No audio data is collected or stored
 - **Control**: You can mute the app in your device settings
 
 ### Haptic Feedback
+
 - **Purpose**: Used for tactile feedback on correct/incorrect answers
 - **Usage**: Enhances the learning experience with vibration feedback
 - **Data**: No data is collected or stored
@@ -44,6 +50,7 @@ This data remains on your device and is never transmitted to our servers or thir
 ## Third-Party Services
 
 String Homework Tutor does not use any third-party services that collect data, including:
+
 - No analytics services
 - No advertising networks
 - No crash reporting services
@@ -76,6 +83,7 @@ If you have any questions about this Privacy Policy, please contact us at:
 ## Compliance
 
 This Privacy Policy complies with:
+
 - Apple App Store Review Guidelines
 - General Data Protection Regulation (GDPR)
 - California Consumer Privacy Act (CCPA)

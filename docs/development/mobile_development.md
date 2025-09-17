@@ -19,6 +19,7 @@ This guide covers everything you need to know about developing, building, and de
 ### Required Software
 
 #### Android Development
+
 - **Android Studio** (latest version)
   - Download from: https://developer.android.com/studio
   - Includes Android SDK, emulator, and build tools
@@ -28,6 +29,7 @@ This guide covers everything you need to know about developing, building, and de
   - Install via Android Studio SDK Manager
 
 #### iOS Development (macOS only)
+
 - **Xcode** (latest version)
   - Download from Mac App Store
   - Includes iOS SDK and simulators
@@ -38,17 +40,20 @@ This guide covers everything you need to know about developing, building, and de
 - **iOS Deployment Target**: 13.0+
 
 #### General
+
 - **Node.js** 18+ and npm
 - **Git** for version control
 
 ### System Requirements
 
 #### Android
+
 - **OS**: Windows 10+, macOS 10.14+, or Linux
 - **RAM**: 8GB minimum, 16GB recommended
 - **Storage**: 10GB free space for Android Studio and SDK
 
 #### iOS
+
 - **OS**: macOS 12.0+ (Monterey or later)
 - **RAM**: 8GB minimum, 16GB recommended
 - **Storage**: 15GB free space for Xcode and simulators
@@ -94,12 +99,12 @@ npm run build:mobile
 The app provides tactile feedback for better user experience:
 
 ```typescript
-import { mobileEnhancements } from './modules/mobileEnhancements';
+import { mobileEnhancements } from "./modules/mobileEnhancements";
 
 // Success feedback (correct answer)
 mobileEnhancements.hapticSuccess();
 
-// Error feedback (incorrect answer)  
+// Error feedback (incorrect answer)
 mobileEnhancements.hapticError();
 
 // Light feedback (button taps)
@@ -107,6 +112,7 @@ mobileEnhancements.hapticLight();
 ```
 
 **Implementation Locations:**
+
 - `src/ts/modules/mobileEnhancements.ts` - Core haptic system
 - `src/ts/index.ts` - Integrated into quiz logic
 
@@ -142,7 +148,7 @@ Handles app state changes for audio and performance:
 
 ```typescript
 // Automatic audio pause/resume
-App.addListener('appStateChange', ({ isActive }) => {
+App.addListener("appStateChange", ({ isActive }) => {
   if (isActive) {
     resumeAudio();
   } else {
@@ -157,10 +163,10 @@ Uses Capacitor Preferences for better data persistence:
 
 ```typescript
 // Set preference (works on web and mobile)
-await mobileEnhancements.setPreference('settings', userSettings);
+await mobileEnhancements.setPreference("settings", userSettings);
 
 // Get preference with fallback
-const settings = await mobileEnhancements.getPreference('settings');
+const settings = await mobileEnhancements.getPreference("settings");
 ```
 
 ## Development Workflow
@@ -168,6 +174,7 @@ const settings = await mobileEnhancements.getPreference('settings');
 ### Daily Development
 
 1. **Start web development server:**
+
    ```bash
    npm run watch
    ```
@@ -175,30 +182,32 @@ const settings = await mobileEnhancements.getPreference('settings');
 2. **Make changes to TypeScript/CSS/HTML**
 
 3. **Sync changes to mobile:**
+
    ```bash
    npm run mobile:sync
    ```
 
 4. **Test on device/emulator:**
+
    ```bash
    # Android
    npm run android:dev
-   
+
    # iOS (macOS only)
    npm run ios:dev
    ```
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Build web assets only |
-| `npm run build:mobile` | Build web assets + sync to mobile |
-| `npm run mobile:sync` | Sync web assets to mobile platforms |
-| `npm run android:dev` | Build and run on Android |
-| `npm run ios:dev` | Build and run on iOS |
-| `npm run android:build` | Build Android APK |
-| `npm run ios:build` | Build iOS app |
+| Script                  | Description                         |
+| ----------------------- | ----------------------------------- |
+| `npm run build`         | Build web assets only               |
+| `npm run build:mobile`  | Build web assets + sync to mobile   |
+| `npm run mobile:sync`   | Sync web assets to mobile platforms |
+| `npm run android:dev`   | Build and run on Android            |
+| `npm run ios:dev`       | Build and run on iOS                |
+| `npm run android:build` | Build Android APK                   |
+| `npm run ios:build`     | Build iOS app                       |
 
 ### File Structure
 
@@ -221,11 +230,13 @@ fret-flashcards/
 ### Android Production Build
 
 1. **Prepare for release:**
+
    ```bash
    npm run build:mobile
    ```
 
 2. **Open in Android Studio:**
+
    ```bash
    npx cap open android
    ```
@@ -245,11 +256,13 @@ fret-flashcards/
 ### iOS Production Build
 
 1. **Prepare for release:**
+
    ```bash
    npm run build:mobile
    ```
 
 2. **Open in Xcode:**
+
    ```bash
    npx cap open ios
    ```
@@ -271,11 +284,13 @@ fret-flashcards/
 ### Android Testing
 
 #### Using Android Studio
+
 1. Open project: `npx cap open android`
 2. Click "Run" button or press `Ctrl+R`
 3. Select device/emulator
 
 #### Using Command Line
+
 ```bash
 # List available devices
 adb devices
@@ -288,6 +303,7 @@ npx cap run android --target=emulator
 ```
 
 #### Testing Checklist
+
 - [ ] App launches successfully
 - [ ] Haptic feedback works on correct/incorrect answers
 - [ ] Audio plays correctly
@@ -299,11 +315,13 @@ npx cap run android --target=emulator
 ### iOS Testing
 
 #### Using Xcode
+
 1. Open project: `npx cap open ios`
 2. Select simulator or device
 3. Click "Run" button or press `Cmd+R`
 
 #### Using Command Line
+
 ```bash
 # List available simulators
 xcrun simctl list devices
@@ -313,6 +331,7 @@ npx cap run ios --target="iPhone 15 Pro"
 ```
 
 #### Testing Checklist
+
 - [ ] App launches successfully
 - [ ] Haptic feedback works (real device only)
 - [ ] Audio plays correctly
@@ -335,6 +354,7 @@ npm run serve
 ### Common Android Issues
 
 #### Gradle Sync Failed
+
 ```bash
 # Clean and rebuild
 cd android
@@ -343,11 +363,13 @@ cd android
 ```
 
 #### App Crashes on Launch
+
 - Check Android logs: `adb logcat`
 - Verify all permissions in `AndroidManifest.xml`
 - Ensure web assets are synced: `npm run mobile:sync`
 
 #### Build Errors
+
 - Update Android Studio and SDK
 - Check Java version (should be JDK 11+)
 - Clear Gradle cache: `./gradlew clean`
@@ -355,6 +377,7 @@ cd android
 ### Common iOS Issues
 
 #### Pod Install Failed
+
 ```bash
 # Install CocoaPods
 sudo gem install cocoapods
@@ -365,6 +388,7 @@ pod install --repo-update
 ```
 
 #### Xcode Build Failed
+
 ```bash
 # Run first launch setup
 xcodebuild -runFirstLaunch
@@ -374,6 +398,7 @@ xcodebuild -runFirstLaunch
 ```
 
 #### Simulator Issues
+
 ```bash
 # Reset simulator
 xcrun simctl erase all
@@ -385,6 +410,7 @@ xcrun simctl list devices
 ### General Issues
 
 #### Web Assets Not Updating
+
 ```bash
 # Force sync
 npm run mobile:sync
@@ -395,6 +421,7 @@ npx cap sync ios
 ```
 
 #### Plugin Errors
+
 ```bash
 # Check plugin versions
 npm list @capacitor
@@ -404,6 +431,7 @@ npm update @capacitor/core @capacitor/cli
 ```
 
 #### Build Errors
+
 ```bash
 # Clear everything and reinstall
 rm -rf node_modules package-lock.json
@@ -454,11 +482,13 @@ npm run build:mobile
 ### App Store Assets Needed
 
 #### Required Images
+
 - **App Icon**: 1024x1024 PNG (no transparency)
 - **Screenshots**: Various device sizes
 - **Feature Graphic**: 1024x500 PNG (Android)
 
 #### App Information
+
 - **App Name**: String Homework Tutor
 - **Description**: Detailed app description
 - **Keywords**: guitar, learning, music, education, fretboard
@@ -472,6 +502,7 @@ npm run build:mobile
 The app automatically generates all required icons and splash screens from a single SVG logo using `@capacitor/assets`.
 
 #### Logo Source
+
 - **Location**: `src/logo/logo.svg`
 - **Format**: SVG (128x128 recommended)
 - **Background**: Should have a solid background color for best results
@@ -479,11 +510,13 @@ The app automatically generates all required icons and splash screens from a sin
 #### Automatic Generation
 
 **Generate all assets:**
+
 ```bash
 npm run generate:assets
 ```
 
 **Assets are automatically generated during mobile builds:**
+
 ```bash
 npm run build:mobile  # Includes asset generation
 ```
@@ -493,17 +526,20 @@ npm run build:mobile  # Includes asset generation
 The script automatically creates:
 
 **Android (87 files):**
+
 - Adaptive icons for all densities (ldpi, mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
 - Regular app icons for all densities
 - Splash screens for all orientations and densities
 - Dark mode splash screens
 
 **iOS (10 files):**
+
 - App icons for all required sizes
 - Splash screens for all device sizes
 - Dark mode splash screens
 
 **PWA (7 files):**
+
 - Web icons in various sizes (48x48 to 512x512)
 - Automatically updates `www/manifest.json`
 
@@ -512,6 +548,7 @@ The script automatically creates:
 If you need to manually replace specific assets:
 
 **Android Icons:**
+
 ```
 android/app/src/main/res/
 ├── mipmap-hdpi/ic_launcher.png     (72x72)
@@ -522,6 +559,7 @@ android/app/src/main/res/
 ```
 
 **iOS Icons:**
+
 ```
 ios/App/App/Assets.xcassets/AppIcon.appiconset/
 ├── Contents.json
@@ -535,11 +573,13 @@ ios/App/App/Assets.xcassets/AppIcon.appiconset/
 #### Updating the Logo
 
 1. **Replace the source logo:**
+
    ```bash
    # Update src/logo/logo.svg with your new design
    ```
 
 2. **Regenerate all assets:**
+
    ```bash
    npm run generate:assets
    ```
@@ -552,6 +592,7 @@ ios/App/App/Assets.xcassets/AppIcon.appiconset/
 #### Asset Generation Script
 
 The `scripts/generate-icons.js` script:
+
 - Copies your logo from `src/logo/logo.svg` to the `assets/` directory
 - Runs `@capacitor/assets generate` to create all required sizes
 - Maintains consistent branding across all platforms
@@ -560,6 +601,7 @@ The `scripts/generate-icons.js` script:
 ### Custom Splash Screens
 
 #### Android
+
 ```
 android/app/src/main/res/
 ├── drawable/splash.xml
@@ -567,6 +609,7 @@ android/app/src/main/res/
 ```
 
 #### iOS
+
 ```
 ios/App/App/
 ├── LaunchScreen.storyboard
@@ -580,24 +623,29 @@ Create environment-specific builds:
 ```typescript
 // capacitor.config.ts
 const config: CapacitorConfig = {
-  appId: 'com.dled.stringhomeworktutor',
-  appName: 'String Homework Tutor',
-  webDir: 'dist',
-  server: process.env.NODE_ENV === 'development' ? {
-    url: 'http://localhost:8080',
-    cleartext: true
-  } : undefined
+  appId: "com.dled.stringhomeworktutor",
+  appName: "String Homework Tutor",
+  webDir: "dist",
+  server:
+    process.env.NODE_ENV === "development"
+      ? {
+          url: "http://localhost:8080",
+          cleartext: true,
+        }
+      : undefined,
 };
 ```
 
 ### Performance Optimization
 
 #### Web Assets
+
 - Minify CSS and JavaScript
 - Optimize images
 - Use efficient bundling
 
 #### Mobile-Specific
+
 - Lazy load non-critical features
 - Optimize for touch interactions
 - Handle memory constraints
@@ -609,6 +657,7 @@ const config: CapacitorConfig = {
 **Problem**: iOS app shows black screen with quarter circle, or SceneDelegate loading errors.
 
 **Symptoms**:
+
 ```
 Info.plist configuration "Default Configuration" for UIWindowSceneSessionRoleApplication contained UISceneDelegateClassName key, but could not load class with name "SceneDelegate".
 There is no scene delegate set. A scene delegate class must be specified to use a main storyboard file.
@@ -632,11 +681,13 @@ npx cap run ios
 ### iOS Simulator Management
 
 **List available simulators**:
+
 ```bash
 npx cap run ios --list
 ```
 
 **Run on specific simulator**:
+
 ```bash
 # Using simulator ID directly
 npx cap run ios --target="088DAA2D-0E24-4A7D-8BFF-1C7372FFED9B"
@@ -650,11 +701,13 @@ npm run ios:iphone13Mini
 ```
 
 **Open Xcode project**:
+
 ```bash
 npx cap open ios
 ```
 
 **Quick Reference**:
+
 ```bash
 # 1. List available simulators
 npm run ios:list
@@ -677,16 +730,19 @@ npm run ios:run "1D9323A4-D5B5-4709-AE4E-90820CF7523A"  # iPhone 13 mini
 ## Support and Resources
 
 ### Documentation
+
 - [Capacitor Documentation](https://capacitorjs.com/docs)
 - [Android Development Guide](https://developer.android.com/guide)
 - [iOS Development Guide](https://developer.apple.com/ios/)
 
 ### Community
+
 - [Capacitor Discord](https://discord.gg/capacitor)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/capacitor)
 - [GitHub Issues](https://github.com/ionic-team/capacitor/issues)
 
 ### Tools
+
 - [Android Studio](https://developer.android.com/studio)
 - [Xcode](https://developer.apple.com/xcode/)
 - [Capacitor CLI](https://capacitorjs.com/docs/cli)

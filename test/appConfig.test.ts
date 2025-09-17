@@ -10,7 +10,7 @@ const mockLocalStorage = {
   clear: vi.fn(),
 };
 
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(window, "localStorage", {
   value: mockLocalStorage,
   writable: true,
 });
@@ -117,7 +117,7 @@ class MockUIBanner implements UIBanner {
   }
 
   removeClass(className: string): void {
-    this.classes = this.classes.filter(c => c !== className);
+    this.classes = this.classes.filter((c) => c !== className);
   }
 
   on(event: string, handler: (event: any) => void): void {
@@ -171,7 +171,7 @@ describe("AppConfigManager", () => {
   describe("initialization", () => {
     it("should initialize with default settings", () => {
       const settings = configManager.getSettings();
-      
+
       expect(settings.fretCount).toBe(11);
       expect(settings.showAccidentals).toBe(false);
       expect(settings.timeoutSeconds).toBe(2);
@@ -194,13 +194,13 @@ describe("AppConfigManager", () => {
         { note: "A", octave: 2 },
         { note: "E", octave: 2 },
       ];
-      
+
       expect(settings.tuning).toEqual(expectedTuning);
     });
 
     it("should initialize with correct constants", () => {
       const constants = configManager.getConstants();
-      
+
       expect(constants.typicalFretMarks).toEqual([3, 5, 7, 9, 12, 15, 17, 19, 21, 24]);
       expect(constants.doubleFretMarkers).toEqual([12, 24]);
       expect(constants.allNotes).toEqual(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]);
@@ -211,7 +211,7 @@ describe("AppConfigManager", () => {
   describe("default tunings", () => {
     it("should have tunings for all string counts 3-12", () => {
       const tunings = configManager.getDefaultTunings();
-      
+
       for (let i = 3; i <= 12; i++) {
         expect(tunings[i]).toBeDefined();
         expect(tunings[i].name).toBeTruthy();
@@ -221,7 +221,7 @@ describe("AppConfigManager", () => {
 
     it("should have valid tuning configurations", () => {
       const tunings = configManager.getDefaultTunings();
-      
+
       Object.values(tunings).forEach((tuning) => {
         expect(tuning.name).toBeTruthy();
         expect(Array.isArray(tuning.strings)).toBe(true);
@@ -238,15 +238,15 @@ describe("AppConfigManager", () => {
       const tuning6 = configManager.getTuningForStringCount(6);
       const tuning12 = configManager.getTuningForStringCount(12);
       const tuningInvalid = configManager.getTuningForStringCount(99);
-      
+
       expect(tuning6).toBeDefined();
       expect(tuning6?.strings).toHaveLength(6);
       expect(tuning6?.name).toBe("Standard");
-      
+
       expect(tuning12).toBeDefined();
       expect(tuning12?.strings).toHaveLength(12);
       expect(tuning12?.name).toBe("12-String Extended");
-      
+
       expect(tuningInvalid).toBeNull();
     });
   });
@@ -262,7 +262,7 @@ describe("AppConfigManager", () => {
       configManager.updateSetting("fretCount", 24);
       configManager.updateSetting("showAccidentals", true);
       configManager.updateSetting("selectedVoice", "test-voice");
-      
+
       expect(configManager.getSetting("fretCount")).toBe(24);
       expect(configManager.getSetting("showAccidentals")).toBe(true);
       expect(configManager.getSetting("selectedVoice")).toBe("test-voice");
@@ -275,9 +275,9 @@ describe("AppConfigManager", () => {
         timeoutSeconds: 5,
         enableTTS: true,
       };
-      
+
       configManager.updateSettings(updates);
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(24);
       expect(settings.showAccidentals).toBe(true);
@@ -287,9 +287,9 @@ describe("AppConfigManager", () => {
 
     it("should preserve unchanged settings when updating", () => {
       const originalSettings = configManager.getSettings();
-      
+
       configManager.updateSetting("fretCount", 24);
-      
+
       const newSettings = configManager.getSettings();
       expect(newSettings.fretCount).toBe(24);
       expect(newSettings.showAccidentals).toBe(originalSettings.showAccidentals);
@@ -304,7 +304,7 @@ describe("AppConfigManager", () => {
         { note: "B", octave: 3 },
         { note: "G", octave: 3 },
       ];
-      
+
       expect(configManager.validateTuning(validTuning)).toBe(true);
     });
 
@@ -313,7 +313,7 @@ describe("AppConfigManager", () => {
         { note: "X", octave: 4 },
         { note: "B", octave: 3 },
       ];
-      
+
       expect(configManager.validateTuning(invalidTuning)).toBe(false);
     });
 
@@ -322,7 +322,7 @@ describe("AppConfigManager", () => {
         { note: "E", octave: 99 },
         { note: "B", octave: 3 },
       ];
-      
+
       expect(configManager.validateTuning(invalidTuning)).toBe(false);
     });
 
@@ -331,7 +331,7 @@ describe("AppConfigManager", () => {
         { note: "E" }, // missing octave
         { note: "B", octave: 3 },
       ] as any;
-      
+
       expect(configManager.validateTuning(invalidTuning)).toBe(false);
     });
 
@@ -354,10 +354,10 @@ describe("AppConfigManager", () => {
         { note: "D", octave: 2 },
       ];
       configManager.updateSetting("tuning", customTuning);
-      
+
       // Reset to default
       configManager.resetTuningToDefault();
-      
+
       const settings = configManager.getSettings();
       const defaultTuning = configManager.getTuningForStringCount(6);
       expect(settings.tuning).toEqual(defaultTuning?.strings);
@@ -366,7 +366,7 @@ describe("AppConfigManager", () => {
     it("should handle reset when no default tuning exists", () => {
       // Set invalid string count
       configManager.updateSetting("numStrings", 99);
-      
+
       // Reset should not throw error
       expect(() => configManager.resetTuningToDefault()).not.toThrow();
     });
@@ -376,18 +376,15 @@ describe("AppConfigManager", () => {
     it("should save settings to localStorage", () => {
       configManager.updateSetting("fretCount", 24);
       configManager.saveSettings();
-      
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        "test-settings",
-        JSON.stringify(configManager.getSettings())
-      );
+
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith("test-settings", JSON.stringify(configManager.getSettings()));
     });
 
     it("should handle save errors gracefully", () => {
       mockLocalStorage.setItem.mockImplementation(() => {
         throw new Error("Storage quota exceeded");
       });
-      
+
       expect(() => configManager.saveSettings()).not.toThrow();
     });
 
@@ -413,12 +410,12 @@ describe("AppConfigManager", () => {
         enableTTS: true,
         selectedVoice: "test-voice",
       };
-      
+
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(savedSettings));
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(true);
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(24);
       expect(settings.showAccidentals).toBe(true);
@@ -437,12 +434,12 @@ describe("AppConfigManager", () => {
         extendedRange: true,
         showAccidentals: false,
       };
-      
+
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(oldSettings));
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(true);
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(24); // extendedRange: true should set fretCount to 24
     });
@@ -452,12 +449,12 @@ describe("AppConfigManager", () => {
         fretCount: 12, // old value should be converted to 11
         showAccidentals: false,
       };
-      
+
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(oldSettings));
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(true);
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(11); // 12 should be converted to 11
     });
@@ -469,12 +466,12 @@ describe("AppConfigManager", () => {
         numStrings: 99, // invalid value
         tuning: "invalid", // invalid type
       };
-      
+
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(invalidSettings));
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(true); // Should still return true but use defaults for invalid values
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(11); // Should use default
       expect(settings.timeoutSeconds).toBe(2); // Should use default
@@ -483,14 +480,14 @@ describe("AppConfigManager", () => {
 
     it("should return false for invalid JSON", () => {
       mockLocalStorage.getItem.mockReturnValue("invalid json");
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(false);
     });
 
     it("should return false for null data", () => {
       mockLocalStorage.getItem.mockReturnValue(null);
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(false);
     });
@@ -499,7 +496,7 @@ describe("AppConfigManager", () => {
       mockLocalStorage.getItem.mockImplementation(() => {
         throw new Error("Storage error");
       });
-      
+
       const result = configManager.loadSettings();
       expect(result).toBe(false);
     });
@@ -508,11 +505,11 @@ describe("AppConfigManager", () => {
   describe("configuration access", () => {
     it("should return complete configuration", () => {
       const config = configManager.getConfig();
-      
+
       expect(config.settings).toBeDefined();
       expect(config.defaultTunings).toBeDefined();
       expect(config.constants).toBeDefined();
-      
+
       expect(config.settings.fretCount).toBe(11);
       expect(Object.keys(config.defaultTunings)).toHaveLength(10); // 3-12
       expect(config.constants.typicalFretMarks).toBeDefined();
@@ -528,10 +525,10 @@ describe("AppConfigManager", () => {
         timeoutSeconds: 5,
         enableTTS: true,
       });
-      
+
       // Reset to defaults
       configManager.resetToDefaults();
-      
+
       const settings = configManager.getSettings();
       expect(settings.fretCount).toBe(11);
       expect(settings.showAccidentals).toBe(false);
@@ -543,10 +540,10 @@ describe("AppConfigManager", () => {
   describe("modification detection", () => {
     it("should detect when settings are modified", () => {
       expect(configManager.isModified()).toBe(false);
-      
+
       configManager.updateSetting("fretCount", 24);
       expect(configManager.isModified()).toBe(true);
-      
+
       configManager.resetToDefaults();
       expect(configManager.isModified()).toBe(false);
     });
@@ -566,11 +563,11 @@ describe("AppConfigManager", () => {
         enableTTS: true,
         selectedVoice: "test-voice",
       };
-      
+
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(savedSettings));
-      
+
       configManager.loadSettings();
-      
+
       expect(mockUI.fretCount.getValue()).toBe("24");
       expect(mockUI.showAccidentals.isChecked()).toBe(true);
       expect(mockUI.timeoutSeconds.getValue()).toBe("5");
@@ -586,7 +583,7 @@ describe("AppConfigManager", () => {
     it("should update dependent UI elements when showScoreNotation changes", () => {
       configManager.updateSetting("showScoreNotation", true);
       configManager.loadSettings(); // This calls updateUI()
-      
+
       expect(mockUI.scoreKeyRow.visible).toBe(true);
       expect(mockUI.hideQuizNoteLabel.visible).toBe(true);
     });
@@ -594,12 +591,12 @@ describe("AppConfigManager", () => {
     it("should update voice selection visibility when enableTTS changes", () => {
       configManager.updateSetting("enableTTS", true);
       configManager.loadSettings(); // This calls updateUI()
-      
+
       expect(mockUI.voiceSelection.visible).toBe(true);
     });
 
     it("should set up UI event handlers", () => {
-      const setupSpy = vi.spyOn(configManager as any, 'setupUIEventHandlers');
+      const setupSpy = vi.spyOn(configManager as any, "setupUIEventHandlers");
       configManager.setupUIEventHandlers();
       expect(setupSpy).toHaveBeenCalled();
     });
@@ -612,8 +609,8 @@ describe("AppConfigManager", () => {
 
     it("should handle tuning with all valid notes", () => {
       const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-      const tuning: TuningString[] = allNotes.map(note => ({ note, octave: 4 }));
-      
+      const tuning: TuningString[] = allNotes.map((note) => ({ note, octave: 4 }));
+
       expect(configManager.validateTuning(tuning)).toBe(true);
     });
 
@@ -622,7 +619,7 @@ describe("AppConfigManager", () => {
         { note: "C", octave: 0 },
         { note: "C", octave: 8 },
       ];
-      
+
       expect(configManager.validateTuning(tuning)).toBe(true);
     });
 
@@ -631,7 +628,7 @@ describe("AppConfigManager", () => {
         { note: "C", octave: -1 },
         { note: "C", octave: 9 },
       ];
-      
+
       expect(configManager.validateTuning(tuning)).toBe(false);
     });
   });

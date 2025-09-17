@@ -9,24 +9,28 @@ The application has been designed with accessibility in mind to ensure it can be
 ## Accessibility Features
 
 ### 1. Screen Reader Support
+
 - **Semantic HTML**: Proper heading hierarchy (h1, h2, h3)
 - **ARIA Labels**: All interactive elements have descriptive labels
 - **Live Regions**: Dynamic content changes are announced to screen readers
 - **Screen Reader Only Content**: Hidden content for screen readers only
 
 ### 2. Keyboard Navigation
+
 - **Skip Links**: Quick navigation to main content
 - **Tab Order**: Logical tab sequence through all interactive elements
 - **Focus Management**: Clear focus indicators and proper focus handling
 - **Keyboard Shortcuts**: Full functionality available via keyboard
 
 ### 3. Form Accessibility
+
 - **Proper Labels**: All form controls have associated labels
 - **Fieldsets**: Related form controls are grouped with legends
 - **Help Text**: Complex controls have descriptive help text
 - **Error Handling**: Clear error messages and validation
 
 ### 4. Visual Accessibility
+
 - **High Contrast**: Good color contrast ratios
 - **Focus Indicators**: Clear visual focus indicators
 - **Responsive Design**: Works on various screen sizes
@@ -35,6 +39,7 @@ The application has been designed with accessibility in mind to ensure it can be
 ## Testing Tools
 
 ### 1. Automated Accessibility Check
+
 We have a custom Node.js script that validates accessibility features:
 
 ```bash
@@ -42,6 +47,7 @@ npm run test:accessibility
 ```
 
 This script checks:
+
 - HTML structure and semantics
 - ARIA attributes and roles
 - Form accessibility
@@ -50,6 +56,7 @@ This script checks:
 - CSS accessibility features
 
 ### 2. Cypress E2E Tests
+
 Comprehensive end-to-end accessibility tests using Cypress:
 
 ```bash
@@ -57,6 +64,7 @@ npm run test:e2e
 ```
 
 The accessibility tests cover:
+
 - Semantic HTML structure validation
 - ARIA labels and descriptions
 - Keyboard navigation testing
@@ -65,6 +73,7 @@ The accessibility tests cover:
 - Focus management testing
 
 ### 3. Manual Testing
+
 For complete accessibility validation, manual testing is recommended:
 
 1. **Screen Reader Testing**:
@@ -92,16 +101,19 @@ For complete accessibility validation, manual testing is recommended:
 ## Running Tests
 
 ### Quick Accessibility Check
+
 ```bash
 npm run test:accessibility
 ```
 
 ### Full E2E Tests (including accessibility)
+
 ```bash
 npm run test:e2e
 ```
 
 ### Development with Accessibility Testing
+
 ```bash
 npm run watch  # Start development server
 # In another terminal:
@@ -111,6 +123,7 @@ npm run test:accessibility  # Run accessibility checks
 ## Accessibility Standards
 
 The application follows these accessibility standards:
+
 - **WCAG 2.1 AA**: Web Content Accessibility Guidelines Level AA
 - **Section 508**: US federal accessibility requirements
 - **ARIA 1.1**: Accessible Rich Internet Applications
@@ -129,6 +142,7 @@ The application follows these accessibility standards:
 ## Continuous Integration
 
 Accessibility tests are integrated into the build process:
+
 - Every build runs accessibility checks
 - Failed accessibility tests prevent deployment
 - Regular accessibility audits are performed
@@ -136,6 +150,7 @@ Accessibility tests are integrated into the build process:
 ## Contributing
 
 When adding new features:
+
 1. Ensure they are keyboard accessible
 2. Add proper ARIA labels and descriptions
 3. Test with screen readers

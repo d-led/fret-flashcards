@@ -12,7 +12,7 @@ describe("Audio and TTS Functionality", () => {
       cy.getTestState().should((state) => {
         expect(state.audioEnabled).to.equal("true"); // Audio should be enabled on desktop
       });
-      
+
       cy.getTestState().then((state) => {
         expect(state.ttsEnabled).to.equal("false");
         expect(state.ttsInitialized).to.equal("false");

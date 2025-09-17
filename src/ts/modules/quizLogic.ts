@@ -1,4 +1,4 @@
-import { QuizCard, QuizSession, Settings, Statistics } from '../types/interfaces';
+import { QuizCard, QuizSession, Settings, Statistics } from "../types/interfaces";
 
 /**
  * Quiz Logic Module
@@ -38,7 +38,7 @@ export class QuizLogic {
     // Reset consecutive mistakes counter for new session
     this.consecutiveMistakes = 0;
     this.consecutiveOctaveMistakes = 0;
-    
+
     // Clear TTS queue when starting a new session
     this.clearTimeouts();
 
@@ -55,7 +55,7 @@ export class QuizLogic {
           cards.push({
             note: n,
             stringIndex: s,
-            frets: fretPositions
+            frets: fretPositions,
           });
         }
       }
@@ -64,7 +64,7 @@ export class QuizLogic {
     // Apply weighted shuffle based on statistics if available
     this.session = {
       cards: this.applyWeightedShuffle(cards),
-      currentIndex: 0
+      currentIndex: 0,
     };
 
     this.sessionIndex = 0;
@@ -123,8 +123,7 @@ export class QuizLogic {
   public checkAnswer(stringIndex: number, fret: number): boolean {
     if (!this.currentCard) return false;
 
-    const isCorrect = this.currentCard.stringIndex === stringIndex && 
-                     this.currentCard.frets.includes(fret);
+    const isCorrect = this.currentCard.stringIndex === stringIndex && this.currentCard.frets.includes(fret);
 
     if (isCorrect && !this.foundFrets.includes(fret)) {
       this.foundFrets.push(fret);
@@ -152,7 +151,7 @@ export class QuizLogic {
       note: this.currentCard.note,
       stringIndex,
       fret,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     if (correct) {
@@ -229,7 +228,7 @@ export class QuizLogic {
     return {
       total: this.session.cards.length,
       current: this.sessionIndex + 1,
-      remaining: this.session.cards.length - this.sessionIndex
+      remaining: this.session.cards.length - this.sessionIndex,
     };
   }
 
@@ -239,7 +238,7 @@ export class QuizLogic {
   public updateSettings(newSettings: Partial<Settings>): void {
     const needsNewSession = this.settingsChanged(newSettings);
     this.settings = { ...this.settings, ...newSettings };
-    
+
     if (needsNewSession) {
       this.makeSession();
     }
@@ -269,7 +268,7 @@ export class QuizLogic {
     for (let f of frets) {
       const noteIdx = (openIdx + f) % 12;
       const noteOnFret = this.allNotes[noteIdx];
-      
+
       if (noteOnFret === note || (this.settings.showAccidentals && this.areNotesEquivalent(noteOnFret, note))) {
         positions.push(f);
       }
@@ -281,15 +280,15 @@ export class QuizLogic {
   private areNotesEquivalent(note1: string, note2: string): boolean {
     const equivalents: { [key: string]: string[] } = {
       "C#": ["Db"],
-      "Db": ["C#"],
+      Db: ["C#"],
       "D#": ["Eb"],
-      "Eb": ["D#"],
+      Eb: ["D#"],
       "F#": ["Gb"],
-      "Gb": ["F#"],
+      Gb: ["F#"],
       "G#": ["Ab"],
-      "Ab": ["G#"],
+      Ab: ["G#"],
       "A#": ["Bb"],
-      "Bb": ["A#"]
+      Bb: ["A#"],
     };
 
     return note1 === note2 || (equivalents[note1] && equivalents[note1].includes(note2));
@@ -303,7 +302,7 @@ export class QuizLogic {
     // Calculate mistake counts per string
     const mistakeCounts = Array(this.settings.numStrings).fill(0);
     const currentTuningStr = JSON.stringify(this.tuning);
-    
+
     this.statistics.answers.forEach((answer) => {
       if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
         mistakeCounts[answer.stringIndex]++;
@@ -333,7 +332,7 @@ export class QuizLogic {
     while (arrCopy.length > 0) {
       const rand = Math.random() * totalWeight;
       let cumWeight = 0;
-      
+
       for (let i = 0; i < arrCopy.length; i++) {
         cumWeight += weightsCopy[i];
         if (rand < cumWeight) {
@@ -359,16 +358,8 @@ export class QuizLogic {
   }
 
   private settingsChanged(newSettings: Partial<Settings>): boolean {
-    const sessionAffectingSettings = [
-      'fretCountSetting',
-      'showAccidentals',
-      'numStrings',
-      'enableBias'
-    ];
-    
-    return sessionAffectingSettings.some(key => 
-      newSettings[key as keyof Settings] !== undefined && 
-      newSettings[key as keyof Settings] !== this.settings[key as keyof Settings]
-    );
+    const sessionAffectingSettings = ["fretCountSetting", "showAccidentals", "numStrings", "enableBias"];
+
+    return sessionAffectingSettings.some((key) => newSettings[key as keyof Settings] !== undefined && newSettings[key as keyof Settings] !== this.settings[key as keyof Settings]);
   }
 }

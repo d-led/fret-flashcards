@@ -50,21 +50,9 @@
       "Accessibility features demonstration",
       "Different instrument configurations"
     ],
-    "iphone_5_5_inch": [
-      "Main quiz screen showing fretboard with note question",
-      "Settings screen with customization options",
-      "Score display showing progress and statistics"
-    ],
-    "ipad_12_9_inch": [
-      "Main quiz screen on iPad",
-      "Settings screen on iPad",
-      "Score display on iPad"
-    ],
-    "ipad_11_inch": [
-      "Main quiz screen on iPad",
-      "Settings screen on iPad",
-      "Score display on iPad"
-    ]
+    "iphone_5_5_inch": ["Main quiz screen showing fretboard with note question", "Settings screen with customization options", "Score display showing progress and statistics"],
+    "ipad_12_9_inch": ["Main quiz screen on iPad", "Settings screen on iPad", "Score display on iPad"],
+    "ipad_11_inch": ["Main quiz screen on iPad", "Settings screen on iPad", "Score display on iPad"]
   },
   "app_review_information": {
     "contact_information": {
@@ -124,14 +112,7 @@
       "iPad Pro 11-inch (4th generation)",
       "iPad Pro 12.9-inch (6th generation)"
     ],
-    "accessibility_features": [
-      "VoiceOver support",
-      "Dynamic Type",
-      "High Contrast",
-      "Reduce Motion",
-      "Keyboard navigation",
-      "Haptic feedback"
-    ]
+    "accessibility_features": ["VoiceOver support", "Dynamic Type", "High Contrast", "Reduce Motion", "Keyboard navigation", "Haptic feedback"]
   },
   "compliance_checklist": {
     "app_completeness": {

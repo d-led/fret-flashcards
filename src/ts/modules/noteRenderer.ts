@@ -1,4 +1,4 @@
-import { QuizCard } from '../types/interfaces';
+import { QuizCard } from "../types/interfaces";
 
 /**
  * Note Rendering Module
@@ -11,8 +11,8 @@ export class NoteRenderer {
 
   constructor() {
     // Initialize VexFlow if not already done
-    if (typeof VexFlow === 'undefined') {
-      throw new Error('VexFlow library not loaded');
+    if (typeof VexFlow === "undefined") {
+      throw new Error("VexFlow library not loaded");
     }
   }
 
@@ -120,18 +120,24 @@ export class NoteRenderer {
     console.log("Bass notes:", bassNotes);
 
     // Create note objects for VexFlow
-    const trebleNoteObj = trebleNotes.length > 0 ? { 
-      keys: trebleNotes.map((n) => `${n.note}/${n.octave}`), 
-      clef: "treble", 
-      duration: "w", 
-      stemDirection: 1 
-    } : null;
-    const bassNoteObj = bassNotes.length > 0 ? { 
-      keys: bassNotes.map((n) => `${n.note}/${n.octave}`), 
-      clef: "bass", 
-      duration: "w", 
-      stemDirection: -1 
-    } : null;
+    const trebleNoteObj =
+      trebleNotes.length > 0
+        ? {
+            keys: trebleNotes.map((n) => `${n.note}/${n.octave}`),
+            clef: "treble",
+            duration: "w",
+            stemDirection: 1,
+          }
+        : null;
+    const bassNoteObj =
+      bassNotes.length > 0
+        ? {
+            keys: bassNotes.map((n) => `${n.note}/${n.octave}`),
+            clef: "bass",
+            duration: "w",
+            stemDirection: -1,
+          }
+        : null;
 
     const width = card.note.includes("#") || card.note.includes("b") ? 140 : 120;
 
@@ -210,7 +216,7 @@ export class NoteRenderer {
       console.log(`Applying smart SVG optimization to ${clefName} clef...`);
 
       const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-      
+
       // Calculate bounds from visual elements only
       this.updateBoundsFromElements(svgEl.querySelectorAll("path"), bounds);
       this.updateBoundsFromElements(svgEl.querySelectorAll("circle"), bounds);
@@ -296,12 +302,12 @@ export class NoteRenderer {
       { name: "B", idx: 11 },
     ];
 
-    const variant = noteVariants.find(v => v.name === note);
+    const variant = noteVariants.find((v) => v.name === note);
     if (!variant) {
       throw new Error(`Unknown note: ${note}`);
     }
 
-    return 12 + (octave * 12) + variant.idx;
+    return 12 + octave * 12 + variant.idx;
   }
 
   private midiToNoteAndOctave(midi: number, preferredNote: string): { note: string; octave: number } {
@@ -326,22 +332,22 @@ export class NoteRenderer {
     ];
 
     const octave = Math.floor((midi - 12) / 12);
-    const noteIndex = ((midi - 12) % 12 + 12) % 12;
+    const noteIndex = (((midi - 12) % 12) + 12) % 12;
 
     // Find the best enharmonic spelling based on preferred note
-    const possibleNotes = noteVariants.filter(v => v.idx === noteIndex);
+    const possibleNotes = noteVariants.filter((v) => v.idx === noteIndex);
     let chosenNote = possibleNotes[0].name;
 
     if (possibleNotes.length > 1) {
       // Prefer the same accidental type as the preferred note
       const preferredHasSharp = preferredNote.includes("#");
       const preferredHasFlat = preferredNote.includes("b");
-      
+
       if (preferredHasSharp) {
-        const sharpNote = possibleNotes.find(n => n.name.includes("#"));
+        const sharpNote = possibleNotes.find((n) => n.name.includes("#"));
         if (sharpNote) chosenNote = sharpNote.name;
       } else if (preferredHasFlat) {
-        const flatNote = possibleNotes.find(n => n.name.includes("b"));
+        const flatNote = possibleNotes.find((n) => n.name.includes("b"));
         if (flatNote) chosenNote = flatNote.name;
       }
     }

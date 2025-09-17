@@ -71,10 +71,7 @@ export function calculateDistanceToRange(midi: number, min: number, max: number)
  * @param config - Score rendering configuration
  * @returns Object indicating which clefs to use
  */
-export function determineClefUsage(
-  midi: number,
-  config: ScoreRenderingConfig
-): { useTreble: boolean; useBass: boolean; preferBass: boolean } {
+export function determineClefUsage(midi: number, config: ScoreRenderingConfig): { useTreble: boolean; useBass: boolean; preferBass: boolean } {
   const writtenTrebleMidi = midi + config.trebleOctaveShift;
   const writtenBassMidi = midi + config.bassOctaveShift;
 
@@ -99,11 +96,7 @@ export function determineClefUsage(
  * @param config - Score rendering configuration
  * @returns The chosen clef and its written MIDI
  */
-export function chooseBestClef(
-  writtenTrebleMidi: number,
-  writtenBassMidi: number,
-  config: ScoreRenderingConfig
-): { clef: "treble" | "bass"; writtenMidi: number } {
+export function chooseBestClef(writtenTrebleMidi: number, writtenBassMidi: number, config: ScoreRenderingConfig): { clef: "treble" | "bass"; writtenMidi: number } {
   const trebleDist = calculateDistanceToRange(writtenTrebleMidi, config.trebleRange.min, config.trebleRange.max);
   const bassDist = calculateDistanceToRange(writtenBassMidi, config.bassRange.min, config.bassRange.max);
 
@@ -151,13 +144,7 @@ export function addBassNote(noteName: string, octave: number, bassNotes: VexFlow
  * @param config - Score rendering configuration
  * @returns Object containing treble and bass notes and note objects
  */
-export function calculateScoreNotes(
-  quizNote: string,
-  stringIndex: number,
-  frets: number[],
-  tuning: Array<{ note: string; octave: number }>,
-  config: ScoreRenderingConfig
-): ScoreRenderingResult {
+export function calculateScoreNotes(quizNote: string, stringIndex: number, frets: number[], tuning: Array<{ note: string; octave: number }>, config: ScoreRenderingConfig): ScoreRenderingResult {
   const trebleNotes: VexFlowNote[] = [];
   const bassNotes: VexFlowNote[] = [];
 
@@ -322,7 +309,7 @@ export function optimizeSvg(container: HTMLElement, clefName: string): void {
 
     // Instead of using getBBox() which includes oversized text bounds,
     // manually calculate bounds based on visual elements
-      const bounds: SVGBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    const bounds: SVGBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
     updateBoundsFromElements(svgEl.querySelectorAll("path"), bounds);
     updateBoundsFromElements(svgEl.querySelectorAll("circle"), bounds);
 

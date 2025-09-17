@@ -4,7 +4,7 @@
  */
 
 export interface TouchEvent {
-  type: 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
+  type: "touchstart" | "touchmove" | "touchend" | "touchcancel";
   target: EventTarget | null;
   touches: TouchList;
   changedTouches: TouchList;
@@ -48,8 +48,8 @@ export class TouchHandler {
     this.setupGlobalTouchHandlers();
     this.setupPreventSelectionStyles();
     this.isInitialized = true;
-    
-    console.log('Touch handler initialized');
+
+    console.log("Touch handler initialized");
   }
 
   /**
@@ -58,23 +58,23 @@ export class TouchHandler {
   private setupGlobalTouchHandlers(): void {
     // Detect if we're on iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    
+
     // On iOS, be more conservative with event handling to avoid conflicts
     const touchOptions = isIOS ? { passive: true } : { passive: false };
-    
+
     // Prevent default touch behaviors that can cause issues
-    document.addEventListener('touchstart', this.handleTouchStart.bind(this), touchOptions);
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this), touchOptions);
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this), touchOptions);
-    document.addEventListener('touchcancel', this.handleTouchCancel.bind(this), touchOptions);
+    document.addEventListener("touchstart", this.handleTouchStart.bind(this), touchOptions);
+    document.addEventListener("touchmove", this.handleTouchMove.bind(this), touchOptions);
+    document.addEventListener("touchend", this.handleTouchEnd.bind(this), touchOptions);
+    document.addEventListener("touchcancel", this.handleTouchCancel.bind(this), touchOptions);
 
     // Prevent context menu on long press
-    document.addEventListener('contextmenu', (e) => {
+    document.addEventListener("contextmenu", (e) => {
       e.preventDefault();
     });
 
     // Prevent text selection during touch
-    document.addEventListener('selectstart', (e) => {
+    document.addEventListener("selectstart", (e) => {
       e.preventDefault();
     });
   }
@@ -83,7 +83,7 @@ export class TouchHandler {
    * Setup CSS styles to prevent text selection and improve touch handling
    */
   private setupPreventSelectionStyles(): void {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       /* Prevent text selection during touch */
       * {
@@ -163,7 +163,7 @@ export class TouchHandler {
     this.touchStartPoint = {
       x: touch.clientX,
       y: touch.clientY,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.isLongPress = false;
@@ -264,13 +264,13 @@ export class TouchHandler {
     if (!target) return;
 
     // Find the appropriate handler based on the target
-    if (target.classList.contains('fret-btn')) {
+    if (target.classList.contains("fret-btn")) {
       this.handleFretButtonTap(target);
-    } else if (target.classList.contains('fret-cell')) {
+    } else if (target.classList.contains("fret-cell")) {
       this.handleFretboardTap(target);
-    } else if (target.classList.contains('quiz-note-btn')) {
+    } else if (target.classList.contains("quiz-note-btn")) {
       this.handleQuizNoteTap(target);
-    } else if (target.classList.contains('skip-countdown')) {
+    } else if (target.classList.contains("skip-countdown")) {
       this.handleSkipCountdownTap(target);
     }
   }
@@ -288,16 +288,16 @@ export class TouchHandler {
     }
 
     // Could add long press functionality here if needed
-    console.log('Long press detected on:', target.className);
+    console.log("Long press detected on:", target.className);
   }
 
   /**
    * Handle fret button taps
    */
   private handleFretButtonTap(target: HTMLElement): void {
-    const fret = parseInt(target.getAttribute('data-fret') || '0');
+    const fret = parseInt(target.getAttribute("data-fret") || "0");
     const currentCard = (window as any).currentCard;
-    
+
     if (!currentCard) return;
 
     // Provide haptic feedback
@@ -306,7 +306,7 @@ export class TouchHandler {
     }
 
     // Trigger the fret button click handler
-    if (typeof (window as any).handleFretClick === 'function') {
+    if (typeof (window as any).handleFretClick === "function") {
       (window as any).handleFretClick.call(target);
     }
   }
@@ -315,10 +315,10 @@ export class TouchHandler {
    * Handle fretboard taps
    */
   private handleFretboardTap(target: HTMLElement): void {
-    const string = parseInt(target.getAttribute('data-string') || '0');
-    const fret = parseInt(target.getAttribute('data-fret') || '0');
+    const string = parseInt(target.getAttribute("data-string") || "0");
+    const fret = parseInt(target.getAttribute("data-fret") || "0");
     const currentCard = (window as any).currentCard;
-    
+
     if (!currentCard || string !== currentCard.string) return;
 
     // Provide haptic feedback
@@ -327,7 +327,7 @@ export class TouchHandler {
     }
 
     // Trigger the fretboard click handler
-    if (typeof (window as any).handleFretboardClick === 'function') {
+    if (typeof (window as any).handleFretboardClick === "function") {
       (window as any).handleFretboardClick.call(target);
     }
   }
@@ -342,7 +342,7 @@ export class TouchHandler {
     }
 
     // Trigger the quiz note click handler
-    if (typeof (window as any).handleQuizNoteClick === 'function') {
+    if (typeof (window as any).handleQuizNoteClick === "function") {
       (window as any).handleQuizNoteClick.call(target);
     }
   }
@@ -357,7 +357,7 @@ export class TouchHandler {
     }
 
     // Trigger the skip countdown click handler
-    if (typeof (window as any).handleSkipCountdownClick === 'function') {
+    if (typeof (window as any).handleSkipCountdownClick === "function") {
       (window as any).handleSkipCountdownClick.call(target);
     }
   }
@@ -390,18 +390,20 @@ export class TouchHandler {
     return {
       touchMoveThreshold: this.touchMoveThreshold,
       swipeThreshold: this.swipeThreshold,
-      longPressThreshold: this.longPressThreshold
+      longPressThreshold: this.longPressThreshold,
     };
   }
 
   /**
    * Update touch sensitivity settings
    */
-  public updateTouchSettings(settings: Partial<{
-    touchMoveThreshold: number;
-    swipeThreshold: number;
-    longPressThreshold: number;
-  }>): void {
+  public updateTouchSettings(
+    settings: Partial<{
+      touchMoveThreshold: number;
+      swipeThreshold: number;
+      longPressThreshold: number;
+    }>,
+  ): void {
     if (settings.touchMoveThreshold !== undefined) {
       this.touchMoveThreshold = settings.touchMoveThreshold;
     }

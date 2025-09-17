@@ -33,7 +33,7 @@ export class FretboardRenderer {
    */
   public renderFretboard(container: JQuery, options: FretboardRenderOptions): void {
     const { highlightStringIdx, foundFrets, stringNames, config } = options;
-    
+
     const tableHtml = this.generateFretboardHtml(highlightStringIdx, foundFrets, stringNames, config);
     container.html(tableHtml);
   }
@@ -46,48 +46,36 @@ export class FretboardRenderer {
    * @param config - Fretboard configuration
    * @returns HTML string for the fretboard table
    */
-  private generateFretboardHtml(
-    highlightStringIdx: number,
-    foundFrets: number[],
-    stringNames: StringInfo[],
-    config: FretboardConfig
-  ): string {
+  private generateFretboardHtml(highlightStringIdx: number, foundFrets: number[], stringNames: StringInfo[], config: FretboardConfig): string {
     const { fretCount, fretCountSetting, stringErrorCounts, typicalFretMarks, doubleFretMarkers } = config;
-    
+
     const extraFret = fretCountSetting > 11 ? 0 : 1; // Add extra column for 12th fret marker in default mode (visual only)
-    
+
     // Generate string rows
     const fretRows = this.generateStringRows(highlightStringIdx, foundFrets, stringNames, fretCount, extraFret, stringErrorCounts);
-    
+
     // Generate fret marker row
     const markRow = this.generateFretMarkerRow(fretCount, extraFret, fretCountSetting, typicalFretMarks, doubleFretMarkers);
-    
+
     // Generate header row
     const headerRow = this.generateHeaderRow(fretCount, extraFret);
-    
+
     return `<table class="fretboard-table"><thead>${headerRow}</thead><tbody>${fretRows}${markRow}</tbody></table>`;
   }
 
   /**
    * Generate the string rows for the fretboard
    */
-  private generateStringRows(
-    highlightStringIdx: number,
-    foundFrets: number[],
-    stringNames: StringInfo[],
-    fretCount: number,
-    extraFret: number,
-    stringErrorCounts: number[]
-  ): string {
+  private generateStringRows(highlightStringIdx: number, foundFrets: number[], stringNames: StringInfo[], fretCount: number, extraFret: number, stringErrorCounts: number[]): string {
     let fretRows = "";
-    
+
     for (let s = 0; s < stringNames.length; s++) {
       fretRows += `<tr>`;
-      
+
       // Add title attribute for hover tooltip showing error count (safe fallback to 0)
       const wrongCount = Array.isArray(stringErrorCounts) ? stringErrorCounts[s] || 0 : 0;
       fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0">${stringNames[s].openNote}</td>`;
-      
+
       for (let f = 0; f < fretCount + extraFret; f++) {
         let fretClass = "fret-cell";
         if (f === 0) fretClass += " open-fret";
@@ -97,7 +85,7 @@ export class FretboardRenderer {
         } else {
           fretClass += " inactive";
         }
-        
+
         if (f >= fretCount) {
           fretClass += " inactive"; // Extra column is inactive (visual only)
           fretRows += `<td class="${fretClass}" style="visibility: hidden;" data-string="${s}" data-fret="${f}"></td>`;
@@ -107,27 +95,21 @@ export class FretboardRenderer {
       }
       fretRows += `</tr>`;
     }
-    
+
     return fretRows;
   }
 
   /**
    * Generate the fret marker row (dots)
    */
-  private generateFretMarkerRow(
-    fretCount: number,
-    extraFret: number,
-    fretCountSetting: number,
-    typicalFretMarks: number[],
-    doubleFretMarkers: number[]
-  ): string {
+  private generateFretMarkerRow(fretCount: number, extraFret: number, fretCountSetting: number, typicalFretMarks: number[], doubleFretMarkers: number[]): string {
     let markRow = '<tr class="fretboard-mark-row">';
     markRow += "<td></td>";
-    
+
     for (let f = 0; f < fretCount + extraFret; f++) {
       let marker = "";
       let fretNum = f; // 0 = open, 1 = 1st fret, etc.
-      
+
       if (fretCountSetting > 11) {
         if (typicalFretMarks.includes(fretNum)) {
           if (doubleFretMarkers.includes(fretNum)) {
@@ -152,14 +134,14 @@ export class FretboardRenderer {
           }
         }
       }
-      
+
       if (f >= fretCount) {
         markRow += `<td class="fret-dot-cell">${marker}</td>`; // Marker visible
       } else {
         markRow += `<td class="fret-dot-cell">${marker}</td>`;
       }
     }
-    
+
     markRow += "</tr>";
     return markRow;
   }
@@ -170,7 +152,7 @@ export class FretboardRenderer {
   private generateHeaderRow(fretCount: number, extraFret: number): string {
     let headerRow = '<tr class="fretboard-header">';
     headerRow += "<th></th>";
-    
+
     for (let f = 0; f < fretCount + extraFret; f++) {
       if (f >= fretCount) {
         headerRow += `<th class="fret-label" style="visibility: hidden;">${f}</th>`; // Header hidden
@@ -178,7 +160,7 @@ export class FretboardRenderer {
         headerRow += `<th class="fret-label">${f}</th>`;
       }
     }
-    
+
     headerRow += "</tr>";
     return headerRow;
   }
@@ -192,7 +174,7 @@ export class FretboardRenderer {
       fretCountSetting: 11,
       stringErrorCounts: [],
       typicalFretMarks: [3, 5, 7, 9, 12, 15, 17, 19, 21, 24],
-      doubleFretMarkers: [12, 24]
+      doubleFretMarkers: [12, 24],
     };
   }
 

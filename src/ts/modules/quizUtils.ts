@@ -70,13 +70,7 @@ export function generateStringNames(tuning: Array<{ note: string; octave: number
  * @param showAccidentals - Whether to include enharmonic equivalents
  * @returns Array of fret positions where the note can be played
  */
-export function findFretPositions(
-  note: string,
-  stringIndex: number,
-  tuning: Array<{ note: string; octave: number }>,
-  fretCount: number,
-  showAccidentals: boolean
-): number[] {
+export function findFretPositions(note: string, stringIndex: number, tuning: Array<{ note: string; octave: number }>, fretCount: number, showAccidentals: boolean): number[] {
   const frets: number[] = [];
   const openNote = tuning[stringIndex].note;
   const openIdx = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].indexOf(openNote);
@@ -106,7 +100,7 @@ export function generateQuizCards(config: QuizConfig): QuizCard[] {
   for (let stringIndex = 0; stringIndex < config.numStrings; stringIndex++) {
     for (const note of notes) {
       const frets = findFretPositions(note, stringIndex, config.tuning, config.fretCount, config.showAccidentals);
-      
+
       if (frets.length > 0) {
         cards.push({
           string: stringIndex,
@@ -131,7 +125,7 @@ export function generateQuizCards(config: QuizConfig): QuizCard[] {
 export function calculateMistakeStats(
   answers: Array<{ tuning: Array<{ note: string; octave: number }>; correct: boolean; string: number }>,
   tuning: Array<{ note: string; octave: number }>,
-  numStrings: number
+  numStrings: number,
 ): MistakeStats {
   const mistakeCounts = Array(numStrings).fill(0);
   let totalMistakes = 0;
@@ -154,11 +148,7 @@ export function calculateMistakeStats(
  * @param enableBias - Whether to apply bias weighting
  * @returns Array of weights for each card
  */
-export function calculateWeights(
-  cards: QuizCard[],
-  mistakeStats: MistakeStats,
-  enableBias: boolean
-): number[] {
+export function calculateWeights(cards: QuizCard[], mistakeStats: MistakeStats, enableBias: boolean): number[] {
   if (mistakeStats.totalMistakes === 0) {
     // No statistics yet, use equal weights
     return cards.map(() => 1);
@@ -191,7 +181,7 @@ export function weightedShuffle<T>(arr: T[], weights: number[]): T[] {
   while (arrCopy.length > 0) {
     const rand = Math.random() * totalWeight;
     let cumWeight = 0;
-    
+
     for (let i = 0; i < arrCopy.length; i++) {
       cumWeight += weightsCopy[i];
       if (rand < cumWeight) {
@@ -227,15 +217,12 @@ export function shuffle<T>(arr: T[]): T[] {
  * @param answers - Previous answers for bias calculation
  * @returns New quiz session
  */
-export function createQuizSession(
-  config: QuizConfig,
-  answers: Array<{ tuning: Array<{ note: string; octave: number }>; correct: boolean; string: number }> = []
-): QuizSession {
+export function createQuizSession(config: QuizConfig, answers: Array<{ tuning: Array<{ note: string; octave: number }>; correct: boolean; string: number }> = []): QuizSession {
   const cards = generateQuizCards(config);
   const stringNames = generateStringNames(config.tuning);
-  
+
   let shuffledCards: QuizCard[];
-  
+
   if (answers.length > 0) {
     const mistakeStats = calculateMistakeStats(answers, config.tuning, config.numStrings);
     const weights = calculateWeights(cards, mistakeStats, config.enableBias);
@@ -260,11 +247,7 @@ export function createQuizSession(
  * @param tuning - String tuning configuration
  * @returns Answer validation result
  */
-export function validateAnswer(
-  answer: { string: number; fret: number },
-  currentCard: QuizCard,
-  tuning: Array<{ note: string; octave: number }>
-): AnswerResult {
+export function validateAnswer(answer: { string: number; fret: number }, currentCard: QuizCard, tuning: Array<{ note: string; octave: number }>): AnswerResult {
   // Check if the answer is for the correct string
   if (answer.string !== currentCard.string) {
     return {
@@ -276,7 +259,7 @@ export function validateAnswer(
 
   // Check if the fret is correct
   const isCorrect = currentCard.frets.includes(answer.fret);
-  
+
   return {
     isCorrect,
     isOctaveError: false,
@@ -294,17 +277,11 @@ export function validateAnswer(
  * @param fretCount - Number of frets available
  * @returns Answer validation result
  */
-export function validateDetectedNote(
-  detectedNote: string,
-  currentCard: QuizCard,
-  tuning: Array<{ note: string; octave: number }>,
-  noteVariants: NoteVariant[],
-  fretCount: number
-): AnswerResult {
+export function validateDetectedNote(detectedNote: string, currentCard: QuizCard, tuning: Array<{ note: string; octave: number }>, noteVariants: NoteVariant[], fretCount: number): AnswerResult {
   // Parse detected note (may be "NAME" or "NAME/OCTAVE")
   let namePart = detectedNote;
   let octavePart: number | null = null;
-  
+
   if (detectedNote.includes("/")) {
     const parts = detectedNote.split("/");
     namePart = parts[0];
@@ -329,18 +306,18 @@ export function validateDetectedNote(
     // Try to compute MIDI using provided octave
     const candidateMidi = getMidi(variant.name, octavePart);
     const fretDiff = candidateMidi - openMidi;
-    
+
     if (fretDiff >= 0 && fretDiff < fretCount) {
       detectedMidi = candidateMidi;
     } else {
       // Octave is out of range
       const octaveDiff = Math.floor(fretDiff / 12);
       const hint = octaveDiff < 0 ? "try octave higher" : "try octave lower";
-      
+
       // Calculate expected octave for this note on this string
       const expectedMidi = openMidi + currentCard.frets[0];
       const expectedOctave = Math.floor(expectedMidi / 12) - 1;
-      
+
       return {
         isCorrect: false,
         isOctaveError: true,
@@ -352,7 +329,7 @@ export function validateDetectedNote(
     for (let octave = 1; octave <= 8; octave++) {
       const candidateMidi = getMidi(variant.name, octave);
       const fretDiff = candidateMidi - openMidi;
-      
+
       if (fretDiff >= 0 && fretDiff < fretCount) {
         detectedMidi = candidateMidi;
         break;

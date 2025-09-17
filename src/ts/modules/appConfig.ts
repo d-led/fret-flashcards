@@ -46,7 +46,7 @@ export interface AppConfig {
 export class AppConfigManager {
   private settings: AppSettings;
   private defaultTunings: Record<number, TuningConfig>;
-  private constants: AppConfig['constants'];
+  private constants: AppConfig["constants"];
   private settingsKey: string;
   private ui: UIComponents | null = null;
   private onSettingsChange: (() => void) | null = null;
@@ -96,7 +96,7 @@ export class AppConfigManager {
   /**
    * Create application constants
    */
-  private createConstants(): AppConfig['constants'] {
+  private createConstants(): AppConfig["constants"] {
     return {
       typicalFretMarks: [3, 5, 7, 9, 12, 15, 17, 19, 21, 24],
       doubleFretMarkers: [12, 24],
@@ -285,7 +285,7 @@ export class AppConfigManager {
   /**
    * Get application constants
    */
-  public getConstants(): AppConfig['constants'] {
+  public getConstants(): AppConfig["constants"] {
     return { ...this.constants };
   }
 
@@ -294,14 +294,8 @@ export class AppConfigManager {
    */
   public validateTuning(tuning: TuningString[]): boolean {
     if (!Array.isArray(tuning)) return false;
-    
-    return tuning.every((t) => 
-      t && 
-      typeof t.note === "string" && 
-      typeof t.octave === "number" &&
-      this.constants.allNotes.includes(t.note) &&
-      t.octave >= 0 && t.octave <= 8
-    );
+
+    return tuning.every((t) => t && typeof t.note === "string" && typeof t.octave === "number" && this.constants.allNotes.includes(t.note) && t.octave >= 0 && t.octave <= 8);
   }
 
   /**
@@ -332,7 +326,7 @@ export class AppConfigManager {
     try {
       const raw = localStorage.getItem(this.settingsKey);
       if (!raw) return false;
-      
+
       const settings = JSON.parse(raw);
       if (typeof settings !== "object") return false;
 
@@ -352,21 +346,21 @@ export class AppConfigManager {
       if ("showAccidentals" in settings) {
         this.settings.showAccidentals = Boolean(settings.showAccidentals);
       }
-      
+
       if ("timeoutSeconds" in settings) {
         const val = Number(settings.timeoutSeconds);
         if (isFinite(val) && val >= 0 && val <= 10) {
           this.settings.timeoutSeconds = val;
         }
       }
-      
+
       if ("numStrings" in settings) {
         const val = Number(settings.numStrings);
         if (val >= 3 && val <= 12) {
           this.settings.numStrings = val;
         }
       }
-      
+
       if ("tuning" in settings && Array.isArray(settings.tuning) && settings.tuning.length === this.settings.numStrings) {
         if (this.validateTuning(settings.tuning)) {
           this.settings.tuning = settings.tuning.slice();
@@ -376,27 +370,27 @@ export class AppConfigManager {
       } else {
         this.resetTuningToDefault();
       }
-      
+
       if ("enableBias" in settings) {
         this.settings.enableBias = Boolean(settings.enableBias);
       }
-      
+
       if ("showScoreNotation" in settings) {
         this.settings.showScoreNotation = Boolean(settings.showScoreNotation);
       }
-      
+
       if ("scoreKey" in settings && typeof settings.scoreKey === "string") {
         this.settings.scoreKey = settings.scoreKey;
       }
-      
+
       if ("hideQuizNote" in settings) {
         this.settings.hideQuizNote = Boolean(settings.hideQuizNote);
       }
-      
+
       if ("enableTTS" in settings) {
         this.settings.enableTTS = Boolean(settings.enableTTS);
       }
-      
+
       if ("selectedVoice" in settings && typeof settings.selectedVoice === "string") {
         this.settings.selectedVoice = settings.selectedVoice;
       }
@@ -431,7 +425,7 @@ export class AppConfigManager {
     // Update dependent UI elements
     this.ui.scoreKeyRow.toggle(this.settings.showScoreNotation);
     this.ui.hideQuizNoteLabel.toggle(this.settings.showScoreNotation);
-    
+
     // Update voice selection visibility
     this.ui.voiceSelection.toggle(this.settings.enableTTS);
   }

@@ -5,10 +5,13 @@ This document describes the various scripts available for development, testing, 
 ## Test Scripts
 
 ### Unit Tests
+
 ```bash
 npm test
 ```
+
 Runs all unit tests using Vitest. Tests are located in the `test/` directory and cover:
+
 - Core application logic
 - Audio and TTS functionality
 - Touch handling
@@ -16,10 +19,13 @@ Runs all unit tests using Vitest. Tests are located in the `test/` directory and
 - UI controls and utilities
 
 ### E2E Tests
+
 ```bash
 npm run test:e2e
 ```
+
 Runs end-to-end tests using Cypress. This command:
+
 1. Builds the application
 2. Runs Cypress tests in headless Chrome
 3. Generates test reports and screenshots
@@ -27,12 +33,15 @@ Runs end-to-end tests using Cypress. This command:
 ### Accessibility Tests
 
 #### HTML/CSS Accessibility Check
+
 ```bash
 npm run test:accessibility
 ```
+
 **Purpose**: Validates accessibility features in the built HTML and CSS files.
 
 **What it checks**:
+
 - HTML structure (DOCTYPE, lang attribute, title, meta description)
 - Semantic HTML (skip links, landmarks, heading hierarchy)
 - ARIA attributes (labels, roles, live regions)
@@ -44,12 +53,15 @@ npm run test:accessibility
 **Output**: Console report showing passed/failed checks with success rate.
 
 #### Cypress Test Structure Validation
+
 ```bash
 npm run test:accessibility:cypress
 ```
+
 **Purpose**: Validates that the Cypress accessibility test file is properly structured.
 
 **What it checks**:
+
 - Test file has proper describe blocks for different accessibility categories
 - Tests cover all required accessibility areas
 - Uses proper Cypress commands and assertions
@@ -60,32 +72,41 @@ npm run test:accessibility:cypress
 ## Build Scripts
 
 ### Development Build
+
 ```bash
 npm run build
 ```
+
 Builds the application for development using the custom build script.
 
 ### Watch Mode
+
 ```bash
 npm run watch
 ```
+
 Builds the application and watches for changes, rebuilding automatically.
 
 ### Mobile Build
+
 ```bash
 npm run build:mobile
 ```
+
 Builds the application and generates mobile assets for iOS and Android.
 
 ## Asset Generation
 
 ### Generate Icons and Splash Screens
+
 ```bash
 npm run generate:assets
 ```
+
 **Purpose**: Generates app icons and splash screens from the source logo.
 
 **What it does**:
+
 1. Copies the logo from `src/logo/logo.svg` to `assets/`
 2. Runs `@capacitor/assets generate` to create all required sizes
 3. Generates icons for iOS, Android, and PWA
@@ -96,6 +117,7 @@ npm run generate:assets
 ## Mobile Development
 
 ### iOS Development
+
 ```bash
 npm run ios:dev          # Build and run on iOS simulator
 npm run ios:build        # Build iOS app
@@ -104,6 +126,7 @@ npm run ios:list         # List available simulators
 ```
 
 ### Android Development
+
 ```bash
 npm run android:dev      # Build and run on Android emulator
 npm run android:build    # Build Android app
@@ -112,12 +135,15 @@ npm run android:build    # Build Android app
 ## App Store Preparation
 
 ### Setup App Store Assets
+
 ```bash
 npm run setup-app-store
 ```
+
 **Purpose**: Prepares all assets and metadata for App Store submission.
 
 **What it does**:
+
 1. Generates screenshots for different device sizes
 2. Creates app store metadata
 3. Validates all required assets are present
@@ -126,9 +152,11 @@ npm run setup-app-store
 **Location**: `scripts/setup-app-store.sh`
 
 ### App Store Preparation (Node.js)
+
 ```bash
 node scripts/app-store-prep.js
 ```
+
 **Purpose**: Alternative Node.js-based app store preparation with more detailed validation.
 
 **Location**: `scripts/app-store-prep.js`
@@ -136,9 +164,11 @@ node scripts/app-store-prep.js
 ## Utility Scripts
 
 ### SSL Certificate Generation
+
 ```bash
 ./scripts/generate-cert.sh
 ```
+
 **Purpose**: Generates self-signed SSL certificates for local HTTPS testing.
 
 **Location**: `scripts/generate-cert.sh`
@@ -157,6 +187,7 @@ All scripts are organized in the `scripts/` directory:
 ## Development Workflow
 
 ### Typical Development Cycle
+
 1. **Start development**: `npm run watch`
 2. **Run tests**: `npm test`
 3. **Test accessibility**: `npm run test:accessibility`
@@ -164,6 +195,7 @@ All scripts are organized in the `scripts/` directory:
 5. **Test mobile**: `npm run ios:dev` or `npm run android:dev`
 
 ### Pre-deployment Checklist
+
 1. All tests pass: `npm test && npm run test:e2e`
 2. Accessibility validated: `npm run test:accessibility`
 3. Mobile assets generated: `npm run generate:assets`

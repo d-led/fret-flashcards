@@ -8,7 +8,7 @@ const mockJQuery = (html: string) => ({
       html = content;
     }
     return html;
-  })
+  }),
 });
 
 // Mock DOM elements for testing
@@ -23,22 +23,22 @@ describe("FretboardRenderer", () => {
   beforeEach(() => {
     renderer = new FretboardRenderer();
     mockContainer = createMockContainer();
-    
+
     defaultStringNames = [
       { name: "1st", openNote: "E", midi: 64 },
       { name: "2nd", openNote: "B", midi: 59 },
       { name: "3rd", openNote: "G", midi: 55 },
       { name: "4th", openNote: "D", midi: 50 },
       { name: "5th", openNote: "A", midi: 45 },
-      { name: "6th", openNote: "E", midi: 40 }
+      { name: "6th", openNote: "E", midi: 40 },
     ];
-    
+
     defaultConfig = {
       fretCount: 12,
       fretCountSetting: 11,
       stringErrorCounts: [0, 0, 0, 0, 0, 0],
       typicalFretMarks: [3, 5, 7, 9, 12, 15, 17, 19, 21, 24],
-      doubleFretMarkers: [12, 24]
+      doubleFretMarkers: [12, 24],
     };
   });
 
@@ -48,7 +48,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -65,7 +65,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 2,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -79,7 +79,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [3, 5],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -91,14 +91,14 @@ describe("FretboardRenderer", () => {
     it("should include error counts in tooltips", () => {
       const configWithErrors = {
         ...defaultConfig,
-        stringErrorCounts: [2, 0, 1, 0, 3, 0]
+        stringErrorCounts: [2, 0, 1, 0, 3, 0],
       };
-      
+
       const options: FretboardRenderOptions = {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: configWithErrors
+        config: configWithErrors,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -116,7 +116,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -132,7 +132,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -150,7 +150,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -165,7 +165,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -180,14 +180,14 @@ describe("FretboardRenderer", () => {
       const extendedConfig = {
         ...defaultConfig,
         fretCount: 25,
-        fretCountSetting: 24
+        fretCountSetting: 24,
       };
-      
+
       const options: FretboardRenderOptions = {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: extendedConfig
+        config: extendedConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -206,7 +206,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -214,7 +214,7 @@ describe("FretboardRenderer", () => {
       const html = mockContainer.html.mock.calls[0][0];
       expect(html).toContain("fretboard-header");
       expect(html).toContain("fret-label");
-      
+
       // Should have fret numbers 0-11
       for (let i = 0; i < 12; i++) {
         expect(html).toContain(`>${i}<`);
@@ -225,7 +225,7 @@ describe("FretboardRenderer", () => {
   describe("createDefaultConfig", () => {
     it("should create a valid default configuration", () => {
       const config = FretboardRenderer.createDefaultConfig();
-      
+
       expect(config.fretCount).toBe(12);
       expect(config.fretCountSetting).toBe(11);
       expect(Array.isArray(config.stringErrorCounts)).toBe(true);
@@ -242,11 +242,11 @@ describe("FretboardRenderer", () => {
     it("should update configuration with partial values", () => {
       const partialConfig = {
         fretCount: 25,
-        fretCountSetting: 24
+        fretCountSetting: 24,
       };
-      
+
       const updatedConfig = renderer.updateConfig(partialConfig);
-      
+
       expect(updatedConfig.fretCount).toBe(25);
       expect(updatedConfig.fretCountSetting).toBe(24);
       expect(updatedConfig.stringErrorCounts).toEqual([]); // Should keep default
@@ -258,11 +258,11 @@ describe("FretboardRenderer", () => {
         fretCountSetting: 11,
         stringErrorCounts: [1, 2, 3],
         typicalFretMarks: [3, 5, 7],
-        doubleFretMarkers: [12]
+        doubleFretMarkers: [12],
       };
-      
+
       const updatedConfig = renderer.updateConfig(existingConfig);
-      
+
       expect(updatedConfig).toEqual(existingConfig);
     });
   });
@@ -273,7 +273,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 0,
         foundFrets: [],
         stringNames: [],
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -290,7 +290,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: -1,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);
@@ -306,7 +306,7 @@ describe("FretboardRenderer", () => {
         highlightStringIdx: 999,
         foundFrets: [],
         stringNames: defaultStringNames,
-        config: defaultConfig
+        config: defaultConfig,
       };
 
       renderer.renderFretboard(mockContainer as any, options);

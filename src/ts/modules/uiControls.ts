@@ -1,4 +1,4 @@
-import { UICallbacks, UIState, Settings } from '../types/interfaces';
+import { UICallbacks, UIState, Settings } from "../types/interfaces";
 
 /**
  * Pure UI Controls Module
@@ -274,7 +274,7 @@ export class UIControls {
   private updateVoiceSelectionVisibility(): void {
     const $voiceSelect = $("#voice-select");
     const $voiceLabel = $("#voice-label");
-    
+
     if (this.state.enableTTS && this.state.ttsInitialized) {
       $voiceSelect.show();
       $voiceLabel.show();
