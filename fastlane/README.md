@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Generate screenshots for App Store
 
+### ios test_auth
+
+```sh
+[bundle exec] fastlane ios test_auth
+```
+
+Test authentication with App Store Connect
+
 ### ios release
 
 ```sh
