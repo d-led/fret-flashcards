@@ -235,10 +235,12 @@ class AppStoreValidate {
       }
     }
 
-    // Check for contact email (should be configurable)
-    const contactEmail = process.env.CONTACT_EMAIL || "your-email@example.com";
+    // Check for contact email
+    const contactEmail = "stringhomeworktutor@ledentsov.de";
     if (!privacyContent.includes(contactEmail)) {
-      this.addWarning(`Privacy policy should include contact email: ${contactEmail}`);
+      this.addError(`Privacy policy missing contact email: ${contactEmail}`);
+    } else {
+      this.log(`Privacy policy includes correct contact email: ${contactEmail}`, "success");
     }
 
     this.log("Privacy policy validation passed", "success");

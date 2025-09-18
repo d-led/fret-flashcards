@@ -1,0 +1,55 @@
+{
+  "app_information": {
+    "name": "String Homework Tutor",
+    "subtitle": "Infinite fretboard practice",
+    "bundle_id": "com.dled.stringhomeworktutor",
+    "category": "Education",
+    "age_rating": "4+",
+    "price": 2.99,
+    "currency": "USD",
+    "availability": "worldwide"
+  },
+  "description": {
+    "short": "Master guitar fretboard notes with interactive flashcards and sheet music practice. Perfect for students, teachers, and self-taught musicians.",
+    "full": "String Homework Tutor - Master the Fretboard\n\nThe homework tutor you always wished for! Learn guitar notes on the fretboard and their location in sheet music with this interactive, accessible flashcard game.\n\nFEATURES\n• Practice identifying notes on any string and fret\n• Choose from 12, 21, 22, or 24 frets\n• Include sharps/flats in quizzes\n• 3-10 strings with custom tuning\n• Visual cues and audio feedback\n• Haptic feedback for mobile devices\n• Voice hints and text-to-speech\n• Score notation display\n• Bias towards strings with mistakes\n• Settings persist across sessions\n\nPERFECT FOR\n• Guitar students of all levels\n• Music teachers and educators\n• Self-taught musicians\n• Anyone learning string instruments\n\nACCESSIBILITY\n• Full VoiceOver support\n• Keyboard navigation\n• High contrast support\n• Screen reader compatible\n• Haptic feedback\n\nINSPIRED BY\nSteve Vai's anecdote about Joe Satriani's first homework: \"learn all notes on the fretboard\"\n\nNo internet required - everything works offline!"
+  },
+  "keywords": "guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings",
+  "promotional_text": "Master guitar fretboard notes with interactive flashcards. Perfect for students, teachers, and self-taught musicians. Full accessibility support included!",
+  "marketing_url": "https://github.com/dledentsov/fret-flashcards",
+  "privacy_url": "https://github.com/dledentsov/fret-flashcards/blob/main/docs/development/privacy-policy.md",
+  "support_url": "https://github.com/dledentsov/fret-flashcards",
+  "version": {
+    "number": "1.0.0",
+    "release_notes": "Initial release of String Homework Tutor - Master guitar fretboard notes with interactive flashcards and sheet music practice."
+  },
+  "permissions": {
+    "microphone": "This app uses the microphone for pitch detection for touch-free operation to help you learn notes on your instrument.",
+    "audio": "Used for playing notes and feedback sounds",
+    "haptic": "Used for tactile feedback on correct/incorrect answers"
+  },
+  "accessibility": {
+    "voiceover_support": true,
+    "keyboard_navigation": true,
+    "high_contrast_support": true,
+    "screen_reader_compatible": true,
+    "haptic_feedback": true,
+    "dynamic_type_support": true
+  },
+  "compliance": {
+    "no_internet_required": true,
+    "no_data_collection": true,
+    "coppa_compliant": true,
+    "gdpr_compliant": true,
+    "ccpa_compliant": true,
+    "encryption_exempt": true
+  },
+  "screenshots": {
+    "required_devices": [
+      "iPhone 17 Pro Max",
+      "iPhone 17 Pro", 
+      "iPad Pro 13-inch (M4)"
+    ],
+    "generated_via": "fastlane snapshot",
+    "directory": "ios/screenshots"
+  }
+}
