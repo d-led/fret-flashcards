@@ -80,38 +80,52 @@ final class StringHomeworkTutorUITests: XCTestCase {
             print("Scroll attempt \(scrollAttempts) to find score notation")
             scrollMultipleTimes(app, direction: "down", times: 2)
             
-            // Try multiple element types for score notation
+            // Try multiple element types for score notation - try labels first since HTML uses label elements
             let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "score notation")
             
-            // Try checkBoxes first
-            var scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
-            var scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+            // Try staticTexts (labels) first - this is most likely what we need to click
+            var scoreNotationElement = app.staticTexts.containing(scoreNotationPredicate).firstMatch
+            var scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
+            
+            // If not found as staticText, try checkBoxes
+            if !scoreNotationExists {
+                scoreNotationElement = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
+            }
             
             // If not found as checkbox, try as button
             if !scoreNotationExists {
-                scoreNotationSwitch = app.buttons.containing(scoreNotationPredicate).firstMatch
-                scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+                scoreNotationElement = app.buttons.containing(scoreNotationPredicate).firstMatch
+                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
             }
             
             // If not found as button, try as switch
             if !scoreNotationExists {
-                scoreNotationSwitch = app.switches.containing(scoreNotationPredicate).firstMatch
-                scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+                scoreNotationElement = app.switches.containing(scoreNotationPredicate).firstMatch
+                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
             }
             
             if scoreNotationExists {
-                print("Found score notation element: \(scoreNotationSwitch.label)")
+                print("Found score notation element: \(scoreNotationElement.label)")
+                print("Element exists: \(scoreNotationElement.exists)")
+                print("Element is hittable: \(scoreNotationElement.isHittable)")
+                
                 // Scroll a bit more to ensure the element is fully visible and clickable
                 scrollMultipleTimes(app, direction: "down", times: 1)
                 sleep(1)
                 
-                if scoreNotationSwitch.isHittable {
-                    print("Tapping score notation switch: \(scoreNotationSwitch.label)")
-                    scoreNotationSwitch.tap()
+                // Use predicate-based waiting for better reliability
+                let predicate = NSPredicate(format: "exists == true AND isHittable == true")
+                let expectation = XCTNSPredicateExpectation(predicate: predicate, object: scoreNotationElement)
+                let result = XCTWaiter().wait(for: [expectation], timeout: 3)
+                
+                if result == .completed {
+                    print("Tapping score notation element: \(scoreNotationElement.label)")
+                    scoreNotationElement.tap()
                     sleep(2)
                     scoreNotationFound = true
                 } else {
-                    print("Score notation switch found but not hittable, trying to scroll more")
+                    print("Score notation element found but not hittable after waiting, trying to scroll more")
                 }
             } else {
                 print("Score notation not found on attempt \(scrollAttempts)")
