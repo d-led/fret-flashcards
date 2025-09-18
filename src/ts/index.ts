@@ -10,6 +10,25 @@ $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
+  // Listen for app backgrounding events to handle microphone state
+  window.addEventListener('appBackgrounded', (event: Event) => {
+    const customEvent = event as CustomEvent;
+    console.log("App backgrounded event received:", {
+      action: customEvent.detail?.action,
+      pitchDetecting: pitchDetecting,
+      micStream: !!micStream
+    });
+    
+    if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
+      console.log("App backgrounded - automatically disabling microphone");
+      stopMic();
+      // Update UI to reflect microphone is off
+      updateMicrophoneButtonState(false);
+      // Show user feedback
+      showMicrophoneLossNotification();
+    }
+  });
+
   const SETTINGS_KEY = "guitar_flashcard_settings_v1";
   const STATS_KEY = "guitar_flashcard_stats_v1";
 
@@ -645,6 +664,9 @@ $(async function () {
       setBestVoice(utterance, voices, selectedVoice || undefined);
     }
 
+    // Boost volume on iOS where overall output is quieter
+    utterance.volume = isIOS ? 1.0 : 0.9;
+
     utterance.onend = () => {
       ttsCurrentlyPlaying = false;
       updateTestState();
@@ -809,7 +831,8 @@ $(async function () {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "en-US";
       utterance.rate = 0.7;
-      utterance.volume = 0.9;
+      // Boost volume on iOS where overall output is quieter
+      utterance.volume = isIOS ? 1.0 : 0.9;
       utterance.pitch = 1.0;
 
       // Load voices when available
@@ -2182,8 +2205,8 @@ $(async function () {
     const midi = 69 + 12 * Math.log2(freq / 440);
     const octave = Math.floor(midi / 12) - 1;
     const useTriangle = octave === 1 || octave === 2;
-    // Slightly boost amplitude on iOS where overall output is quieter
-    const amp = isIOS ? 0.52 : 0.25;
+    // Boost amplitude on iOS where overall output is quieter
+    const amp = isIOS ? 0.75 : 0.25;
 
     // Generate wave data (triangle for octaves 1-2, sine otherwise)
     for (let i = 0; i < length; i++) {
@@ -2422,6 +2445,60 @@ $(async function () {
     }
   }
 
+  // Handle microphone access being cut off
+  function handleMicrophoneEnded() {
+    console.log("Microphone access ended - automatically disabling microphone");
+    if (pitchDetecting) {
+      stopMic();
+      // Update UI to reflect microphone is off
+      updateMicrophoneButtonState(false);
+      // Show user feedback
+      showMicrophoneLossNotification();
+    }
+  }
+
+  // Handle microphone being muted
+  function handleMicrophoneMuted() {
+    console.log("Microphone muted");
+    // Optionally show a notification that microphone is muted
+    const statusEl = document.getElementById("mic-status");
+    if (statusEl) {
+      statusEl.textContent = "Microphone muted";
+    }
+  }
+
+  // Handle microphone being unmuted
+  function handleMicrophoneUnmuted() {
+    console.log("Microphone unmuted");
+    // Clear any muted status
+    const statusEl = document.getElementById("mic-status");
+    if (statusEl && statusEl.textContent === "Microphone muted") {
+      statusEl.textContent = "";
+    }
+  }
+
+  // Show notification when microphone access is lost
+  function showMicrophoneLossNotification() {
+    // Create a temporary notification
+    const notification = $('<div class="mic-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">Microphone access lost - disabled automatically</div>');
+    $('body').append(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.fadeOut(300, () => notification.remove());
+    }, 3000);
+  }
+
+  // Update microphone button text and state
+  function updateMicrophoneButtonState(isEnabled: boolean) {
+    const micButton = $("#mic-toggle");
+    if (isEnabled) {
+      micButton.text("🎤 Disable Mic");
+    } else {
+      micButton.text("🎤 Enable Mic");
+    }
+  }
+
   // Start microphone and pitch detection using pitchy
   async function startMic() {
     if (pitchDetecting) return;
@@ -2438,6 +2515,26 @@ $(async function () {
 
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Add event listener to detect when microphone access is cut off
+      if (micStream && micStream.getAudioTracks().length > 0) {
+        const audioTrack = micStream.getAudioTracks()[0];
+        audioTrack.addEventListener('ended', handleMicrophoneEnded);
+        audioTrack.addEventListener('mute', handleMicrophoneMuted);
+        audioTrack.addEventListener('unmute', handleMicrophoneUnmuted);
+        
+        // Monitor track state periodically as a fallback
+        const stateMonitor = setInterval(() => {
+          if (audioTrack.readyState === 'ended' && pitchDetecting) {
+            console.log("Microphone track ended detected via polling");
+            clearInterval(stateMonitor);
+            handleMicrophoneEnded();
+          }
+        }, 1000);
+        
+        // Store the interval ID so we can clear it when stopping
+        (window as any).micStateMonitor = stateMonitor;
+      }
     } catch (error) {
       // Re-throw with more specific error information
       if (error instanceof Error) {
@@ -2604,9 +2701,22 @@ $(async function () {
     }
     if (micStream) {
       try {
+        // Remove event listeners before stopping tracks
+        if (micStream.getAudioTracks().length > 0) {
+          const audioTrack = micStream.getAudioTracks()[0];
+          audioTrack.removeEventListener('ended', handleMicrophoneEnded);
+          audioTrack.removeEventListener('mute', handleMicrophoneMuted);
+          audioTrack.removeEventListener('unmute', handleMicrophoneUnmuted);
+        }
         micStream.getTracks().forEach((t) => t.stop());
       } catch (e) {}
       micStream = null;
+    }
+    
+    // Clear the state monitoring interval
+    if ((window as any).micStateMonitor) {
+      clearInterval((window as any).micStateMonitor);
+      (window as any).micStateMonitor = null;
     }
     const statusEl = document.getElementById("mic-status");
     if (statusEl) {
@@ -2888,6 +2998,8 @@ $(async function () {
           if (voiceToUse) {
             utterance.voice = voiceToUse;
           }
+          // Boost volume on iOS where overall output is quieter
+          utterance.volume = 1.0;
           speechSynthesis.speak(utterance);
 
           // If there's a current quiz card and TTS is enabled, also speak the quiz hint immediately
@@ -2907,6 +3019,8 @@ $(async function () {
             if (voiceToUse) {
               quizUtterance.voice = voiceToUse;
             }
+            // Boost volume on iOS where overall output is quieter
+            quizUtterance.volume = 1.0;
             speechSynthesis.speak(quizUtterance);
           }
 
@@ -2953,7 +3067,7 @@ $(async function () {
       if (!pitchDetecting) {
         try {
           await startMic();
-          $btn.text("🎤 Disable Mic");
+          updateMicrophoneButtonState(true);
         } catch (e) {
           console.error("Failed to start mic:", e);
           let errorMessage = "Unable to access microphone. ";
@@ -2985,7 +3099,7 @@ $(async function () {
         }
       } else {
         stopMic();
-        $btn.text("🎤 Enable Mic");
+        updateMicrophoneButtonState(false);
       }
     });
 

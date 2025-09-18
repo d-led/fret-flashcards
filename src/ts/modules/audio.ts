@@ -192,8 +192,8 @@ export class AudioManager {
     const midi = 69 + 12 * Math.log2(freq / 440);
     const octave = Math.floor(midi / 12) - 1;
     const useTriangle = octave === 1 || octave === 2;
-    // Slightly boost amplitude on iOS where overall output is quieter
-    const amp = this.config.isIOS ? 0.52 : 0.25;
+    // Boost amplitude on iOS where overall output is quieter
+    const amp = this.config.isIOS ? 0.75 : 0.25;
 
     // Generate wave data (triangle for octaves 1-2, sine otherwise)
     for (let i = 0; i < length; i++) {
