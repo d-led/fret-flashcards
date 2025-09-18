@@ -19,6 +19,30 @@ final class StringHomeworkTutorUITests: XCTestCase {
 
         // In UI tests it's important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
+    
+    private func scrollMultipleTimes(_ app: XCUIApplication, direction: String, times: Int) {
+        let scrollView = app.scrollViews.firstMatch
+        if scrollView.exists {
+            for _ in 1...times {
+                if direction == "up" {
+                    scrollView.swipeUp()
+                } else {
+                    scrollView.swipeDown()
+                }
+                sleep(1)
+            }
+        } else {
+            // Fallback: scroll the main window
+            for _ in 1...times {
+                if direction == "up" {
+                    app.swipeUp()
+                } else {
+                    app.swipeDown()
+                }
+                sleep(1)
+            }
+        }
+    }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
@@ -30,10 +54,36 @@ final class StringHomeworkTutorUITests: XCTestCase {
         app.activate()
         setupSnapshot(app)
         sleep(15)
-        app/*@START_MENU_TOKEN@*/.staticTexts["🔊 Click here to enable audio"]/*[[".otherElements[\"banner\"].staticTexts",".otherElements.staticTexts[\"🔊 Click here to enable audio\"]",".staticTexts[\"🔊 Click here to enable audio\"]"],[[[-1,2],[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        
+        // Wait for the banner to appear and tap it to enable audio - search by partial text (case-insensitive)
+        let audioBannerPredicate = NSPredicate(format: "label CONTAINS[c] %@", "here to enable")
+        let audioBanner = app.staticTexts.containing(audioBannerPredicate).firstMatch
+        let audioBannerExists = audioBanner.waitForExistence(timeout: 15)
+        print("Audio banner exists: \(audioBannerExists)")
+        if audioBannerExists {
+            print("Audio banner is hittable: \(audioBanner.isHittable)")
+            audioBanner.tap()
+            sleep(1)
+        }
+        
+        // First scroll up to find the "Show score notation" switch
+        scrollMultipleTimes(app, direction: "up", times: 3)
+        
+        // Wait for the "Show score notation" checkbox to appear and tap it - search by partial text (case-insensitive)
+        let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Show score notation")
+        let scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+        let scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 15)
+        print("Score notation switch exists: \(scoreNotationExists)")
+        if scoreNotationExists {
+            print("Score notation switch is hittable: \(scoreNotationSwitch.isHittable)")
+            scoreNotationSwitch.tap()
+            sleep(1)
+        }
+
+        // Now scroll back down to show the main content better
+        scrollMultipleTimes(app, direction: "down", times: 3)
         sleep(1)
-        app/*@START_MENU_TOKEN@*/.switches["Show score notation"]/*[[".otherElements.switches[\"Show score notation\"]",".switches[\"Show score notation\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
-        sleep(1)
+        
         snapshot("01MainScreen")
     }
 
