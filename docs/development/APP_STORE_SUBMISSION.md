@@ -36,7 +36,13 @@ npm run app-store:prep
 # Step 3: Submit to TestFlight first
 npm run app-store:submit:testflight
 
-# Step 4: After testing, submit to App Store
+# Step 4: Upload screenshots to App Store Connect
+npm run app-store:screenshots
+
+# Step 5: Upload metadata to App Store Connect
+npm run app-store:metadata
+
+# Step 6: After testing, submit to App Store
 npm run app-store:submit:appstore
 ```
 
@@ -50,6 +56,9 @@ npm run app-store:submit:appstore
 | `npm run app-store:prep` | Preparation | Generates screenshots and prepares all assets |
 | `npm run app-store:submit:testflight` | TestFlight | Builds and uploads to TestFlight |
 | `npm run app-store:submit:appstore` | App Store | Builds and uploads to App Store |
+| `npm run app-store:metadata` | Metadata | Upload metadata only to App Store Connect |
+| `npm run app-store:screenshots` | Screenshots | Upload screenshots (replaces existing) |
+| `npm run app-store:screenshots:add` | Screenshots | Upload screenshots (adds to existing) |
 | `npm run app-store:testflight` | Direct Fastlane | Direct fastlane TestFlight upload |
 | `npm run app-store:release` | Direct Fastlane | Direct fastlane App Store release |
 | `npm run screenshots` | Screenshots | Generate screenshots only |
@@ -93,6 +102,44 @@ The app generates screenshots for these required devices:
 - iPad Pro 13-inch (M4) (12.9" display)
 
 Screenshots are automatically generated using fastlane snapshot and saved to `ios/screenshots/`.
+
+### Screenshot Upload Options
+
+You have two options for uploading screenshots to App Store Connect:
+
+#### Option 1: Replace All Screenshots (Recommended)
+```bash
+npm run app-store:screenshots
+```
+- **Behavior**: Deletes ALL existing screenshots and uploads new ones
+- **Use when**: You want to completely refresh your app store screenshots
+- **Configuration**: Uses `overwrite_screenshots: true`
+
+#### Option 2: Add to Existing Screenshots
+```bash
+npm run app-store:screenshots:add
+```
+- **Behavior**: Adds new screenshots alongside existing ones
+- **Use when**: You want to add screenshots without affecting existing ones
+- **Configuration**: Uses `overwrite_screenshots: false`
+
+### Screenshot Upload Workflow
+
+1. **Generate Screenshots**:
+   ```bash
+   npm run app-store:prep  # Includes screenshot generation
+   # OR
+   npm run screenshots     # Screenshots only
+   ```
+
+2. **Upload Screenshots**:
+   ```bash
+   npm run app-store:screenshots  # Replace existing
+   # OR
+   npm run app-store:screenshots:add  # Add to existing
+   ```
+
+3. **Verify Upload**: Check App Store Connect to confirm screenshots were uploaded correctly.
 
 ## 🔍 Validation Process
 
@@ -256,6 +303,18 @@ xcrun simctl list devices
 
 # Reset simulators if needed
 xcrun simctl erase all
+```
+
+#### Screenshot Upload Issues
+```bash
+# Verify screenshots exist before upload
+ls -la ios/screenshots/en-US/
+
+# Check screenshot file sizes (should be reasonable)
+du -h ios/screenshots/en-US/*.png
+
+# Upload screenshots individually if batch fails
+npm run app-store:screenshots:add  # Safer option
 ```
 
 #### Fastlane Issues

@@ -45,6 +45,24 @@ cd ios
 fastlane deliver --username "$APPLE_ID" --app_identifier "com.dled.stringhomeworktutor"
 ```
 
+### **Screenshot Upload Commands**
+
+#### **Replace All Screenshots (Recommended)**
+```bash
+npm run app-store:screenshots
+```
+- Deletes ALL existing screenshots and uploads new ones
+- Uses `overwrite_screenshots: true`
+- Best for complete screenshot refresh
+
+#### **Add Screenshots to Existing**
+```bash
+npm run app-store:screenshots:add
+```
+- Adds new screenshots alongside existing ones
+- Uses `overwrite_screenshots: false`
+- Best for incremental updates
+
 ## ⚙️ **Environment Setup**
 
 ### **Required Environment Variables**
@@ -96,6 +114,11 @@ npm run app-store:validate
 ```bash
 # Upload updated metadata to App Store Connect
 npm run app-store:sync:upload
+
+# Upload screenshots (if updated)
+npm run app-store:screenshots  # Replace all
+# OR
+npm run app-store:screenshots:add  # Add to existing
 ```
 
 ## 🔍 **Consistency Checking**
@@ -143,7 +166,9 @@ Add these scripts to your `package.json`:
   "scripts": {
     "app-store:sync:download": "source .env && cd ios && fastlane deliver download_metadata --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\"",
     "app-store:sync:upload": "source .env && cd ios && fastlane deliver --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\"",
-    "app-store:sync:check": "npm run app-store:validate"
+    "app-store:sync:check": "npm run app-store:validate",
+    "app-store:screenshots": "fastlane upload_screenshots",
+    "app-store:screenshots:add": "fastlane upload_screenshots_add"
   }
 }
 ```

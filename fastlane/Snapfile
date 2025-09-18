@@ -1,7 +1,7 @@
 # Snapfile for String Homework Tutor
 # Configuration for fastlane snapshot
 
-workspace "./App/App.xcworkspace"
+workspace "./ios/App/App.xcworkspace"
 scheme "App"
 
 devices([
@@ -14,7 +14,7 @@ languages([
   "en-US"
 ])
 
-output_directory "./screenshots"
+output_directory "./ios/screenshots"
 clear_previous_screenshots true
 stop_after_first_error false
 localize_simulator false

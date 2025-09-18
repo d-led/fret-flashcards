@@ -24,9 +24,11 @@ final class StringHomeworkTutorUITests: XCTestCase {
         let scrollView = app.scrollViews.firstMatch
         if scrollView.exists {
             for _ in 1...times {
-                if direction == "up" {
+                if direction == "down" {
+                    // To scroll down, we swipe up (content moves up, revealing content below)
                     scrollView.swipeUp()
                 } else {
+                    // To scroll up, we swipe down (content moves down, revealing content above)
                     scrollView.swipeDown()
                 }
                 sleep(1)
@@ -34,9 +36,11 @@ final class StringHomeworkTutorUITests: XCTestCase {
         } else {
             // Fallback: scroll the main window
             for _ in 1...times {
-                if direction == "up" {
+                if direction == "down" {
+                    // To scroll down, we swipe up (content moves up, revealing content below)
                     app.swipeUp()
                 } else {
+                    // To scroll up, we swipe down (content moves down, revealing content above)
                     app.swipeDown()
                 }
                 sleep(1)
@@ -63,44 +67,64 @@ final class StringHomeworkTutorUITests: XCTestCase {
         if audioBannerExists {
             print("Audio banner is hittable: \(audioBanner.isHittable)")
             audioBanner.tap()
-            sleep(1)
+            sleep(2)
         }
         
-        // First scroll up to find the "Show score notation" switch
-        scrollMultipleTimes(app, direction: "up", times: 5)
+        // Scroll down to find the "Show score notation" checkbox - try multiple scroll amounts
+        var scoreNotationFound = false
+        var scrollAttempts = 0
+        let maxScrollAttempts = 5
         
-        // Wait for the "Show score notation" checkbox to appear and tap it - try multiple approaches
-        var scoreNotationSwitch: XCUIElement?
-        var scoreNotationExists = false
-        
-        // Try by element ID first
-        scoreNotationSwitch = app.checkBoxes["show-score-notation"]
-        scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
-        
-        // If not found by ID, try by label text
-        if !scoreNotationExists {
-            let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Show score notation")
-            scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
-            scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
+        while !scoreNotationFound && scrollAttempts < maxScrollAttempts {
+            scrollAttempts += 1
+            print("Scroll attempt \(scrollAttempts) to find score notation")
+            scrollMultipleTimes(app, direction: "down", times: 2)
+            
+            // Try multiple element types for score notation
+            let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "score notation")
+            
+            // Try checkBoxes first
+            var scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+            var scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+            
+            // If not found as checkbox, try as button
+            if !scoreNotationExists {
+                scoreNotationSwitch = app.buttons.containing(scoreNotationPredicate).firstMatch
+                scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+            }
+            
+            // If not found as button, try as switch
+            if !scoreNotationExists {
+                scoreNotationSwitch = app.switches.containing(scoreNotationPredicate).firstMatch
+                scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 3)
+            }
+            
+            if scoreNotationExists {
+                print("Found score notation element: \(scoreNotationSwitch.label)")
+                // Scroll a bit more to ensure the element is fully visible and clickable
+                scrollMultipleTimes(app, direction: "down", times: 1)
+                sleep(1)
+                
+                if scoreNotationSwitch.isHittable {
+                    print("Tapping score notation switch: \(scoreNotationSwitch.label)")
+                    scoreNotationSwitch.tap()
+                    sleep(2)
+                    scoreNotationFound = true
+                } else {
+                    print("Score notation switch found but not hittable, trying to scroll more")
+                }
+            } else {
+                print("Score notation not found on attempt \(scrollAttempts)")
+            }
         }
         
-        // If still not found, try as a button
-        if !scoreNotationExists {
-            scoreNotationSwitch = app.buttons["show-score-notation"]
-            scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
-        }
-        
-        if scoreNotationExists && scoreNotationSwitch != nil {
-            // Scroll a bit more to ensure the checkbox is fully visible and clickable
-            scrollMultipleTimes(app, direction: "up", times: 2)
-            sleep(1)
-            scoreNotationSwitch!.tap()
-            sleep(1)
+        if !scoreNotationFound {
+            print("Score notation switch not found after \(maxScrollAttempts) scroll attempts")
         }
 
-        // Now scroll back down to show the main content better
-        scrollMultipleTimes(app, direction: "down", times: 3)
-        sleep(1)
+        // Now scroll back up to show the main content better for the snapshot
+        scrollMultipleTimes(app, direction: "up", times: 5)
+        sleep(2)
         
         snapshot("01MainScreen")
     }
