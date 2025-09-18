@@ -67,16 +67,34 @@ final class StringHomeworkTutorUITests: XCTestCase {
         }
         
         // First scroll up to find the "Show score notation" switch
-        scrollMultipleTimes(app, direction: "up", times: 3)
+        scrollMultipleTimes(app, direction: "up", times: 5)
         
-        // Wait for the "Show score notation" checkbox to appear and tap it - search by partial text (case-insensitive)
-        let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Show score notation")
-        let scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
-        let scoreNotationExists = scoreNotationSwitch.waitForExistence(timeout: 15)
-        print("Score notation switch exists: \(scoreNotationExists)")
-        if scoreNotationExists {
-            print("Score notation switch is hittable: \(scoreNotationSwitch.isHittable)")
-            scoreNotationSwitch.tap()
+        // Wait for the "Show score notation" checkbox to appear and tap it - try multiple approaches
+        var scoreNotationSwitch: XCUIElement?
+        var scoreNotationExists = false
+        
+        // Try by element ID first
+        scoreNotationSwitch = app.checkBoxes["show-score-notation"]
+        scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
+        
+        // If not found by ID, try by label text
+        if !scoreNotationExists {
+            let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Show score notation")
+            scoreNotationSwitch = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+            scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
+        }
+        
+        // If still not found, try as a button
+        if !scoreNotationExists {
+            scoreNotationSwitch = app.buttons["show-score-notation"]
+            scoreNotationExists = scoreNotationSwitch?.waitForExistence(timeout: 10) ?? false
+        }
+        
+        if scoreNotationExists && scoreNotationSwitch != nil {
+            // Scroll a bit more to ensure the checkbox is fully visible and clickable
+            scrollMultipleTimes(app, direction: "up", times: 2)
+            sleep(1)
+            scoreNotationSwitch!.tap()
             sleep(1)
         }
 
