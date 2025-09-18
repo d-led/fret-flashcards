@@ -545,6 +545,7 @@ $(async function () {
   let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
   let consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
+  let lastQuizHintTime = 0; // Track last time quiz hint was given for debouncing
   let hintsCurrentlyPlaying = false; // Track if hints (TTS or sound) are still playing during transition
 
   // Test state tracking
@@ -1246,6 +1247,9 @@ $(async function () {
     // Reset consecutive mistakes counter for new session
     consecutiveMistakes = 0;
     consecutiveOctaveMistakes = 0;
+    // Reset hint debounce timers for new session
+    lastQuizHintTime = 0;
+    lastOctaveHintTime = 0;
     // Clear TTS queue when starting a new session to prevent old announcements
     clearTTSQueue();
     // Dynamically build stringNames based on numStrings and tuning
@@ -1619,6 +1623,13 @@ $(async function () {
   function queueQuizNoteRepeat() {
     if (!enableTTS || !currentCard) return;
 
+    // Check if enough time has passed since last quiz hint (3 seconds debounce)
+    const now = Date.now();
+    if (now - lastQuizHintTime < 3000) {
+      console.log("Quiz hint debounced - too soon since last hint");
+      return;
+    }
+
     const ordinalString = getOrdinal(currentCard.string + 1);
     let spokenNote = currentCard.note;
 
@@ -1630,6 +1641,9 @@ $(async function () {
     }
 
     const text = `Note ${spokenNote}, ${ordinalString} string`;
+
+    // Update the last quiz hint time
+    lastQuizHintTime = now;
 
     addToTTSQueue(text, 2); // Normal priority for quiz repeats
   }
@@ -2392,11 +2406,12 @@ $(async function () {
     // Check if getUserMedia is supported
     const hasGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
 
-    if (!isHTTPS) {
-      micButton.prop("disabled", true);
-      micButton.attr("title", "Microphone access requires HTTPS. Please access this app via HTTPS.");
-      micButton.html('<span aria-hidden="true">🎤</span> Mic (HTTPS Required)');
-    } else if (!hasGetUserMedia) {
+    // if (!isHTTPS) {
+    //   micButton.prop("disabled", true);
+    //   micButton.attr("title", "Microphone access requires HTTPS. Please access this app via HTTPS.");
+    //   micButton.html('<span aria-hidden="true">🎤</span> Mic (HTTPS Required)');
+    // } else 
+    if (!hasGetUserMedia) {
       micButton.prop("disabled", true);
       micButton.attr("title", "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.");
       micButton.html('<span aria-hidden="true">🎤</span> Mic (Not Supported)');
@@ -2412,9 +2427,9 @@ $(async function () {
     if (pitchDetecting) return;
 
     // Check if we're on HTTPS (required for microphone access)
-    if (location.protocol !== "https:" && location.hostname !== "localhost") {
-      throw new Error("Microphone access requires HTTPS. Please access this app via HTTPS.");
-    }
+    // if (location.protocol !== "https:" && location.hostname !== "localhost") {
+    //   throw new Error("Microphone access requires HTTPS. Please access this app via HTTPS.");
+    // }
 
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -2962,9 +2977,9 @@ $(async function () {
           }
 
           // Check if running on HTTPS
-          if (location.protocol !== "https:" && location.hostname !== "localhost") {
-            errorMessage += "\n\nNote: Microphone access requires HTTPS. Please access this app via HTTPS.";
-          }
+          // if (location.protocol !== "https:" && location.hostname !== "localhost") {
+          //   errorMessage += "\n\nNote: Microphone access requires HTTPS. Please access this app via HTTPS.";
+          // }
 
           alert(errorMessage);
         }

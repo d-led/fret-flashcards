@@ -461,3 +461,6 @@ app-store-submission-report.json
 
 # Deployment repository (private)
 ../fret-flashcards-deployment/
+fastlane/report.xml
+screenshots.html
+.DS_Store
