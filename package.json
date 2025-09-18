@@ -50,7 +50,10 @@
     "app-store:validate": "node scripts/app-store-validate.js",
     "app-store:submit": "node scripts/app-store-submit.js",
     "app-store:submit:testflight": "node scripts/app-store-submit.js testflight",
-    "app-store:submit:appstore": "node scripts/app-store-submit.js appstore"
+    "app-store:submit:appstore": "node scripts/app-store-submit.js appstore",
+    "app-store:sync:download": "source .env && cd ios && fastlane deliver download_metadata --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\"",
+    "app-store:sync:upload": "source .env && cd ios && fastlane deliver --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\"",
+    "app-store:sync:check": "npm run app-store:validate"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
