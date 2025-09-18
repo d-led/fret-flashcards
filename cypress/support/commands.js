@@ -425,7 +425,7 @@ Cypress.Commands.add("appScreenshot", () => {
 
   cy.screenshot(name, {
     overwrite: true,
-    clip: { x: 0, y: 75, height: 680, width: 800 },
+    clip: { x: 0, y: 75, height: 600, width: 800 },
   });
 
   cy.wait(500); // Wait a bit to ensure screenshot is saved

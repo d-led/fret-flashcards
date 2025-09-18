@@ -429,3 +429,35 @@ www/
 assets/
 icons/
 ios/DerivedData/
+
+# Fastlane
+ios/fastlane/report.xml
+app-store-validation-report.json
+
+# Sensitive files - DO NOT COMMIT
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*
+app-store-submission-report.json
+
+# Deployment repository (private)
+../fret-flashcards-deployment/

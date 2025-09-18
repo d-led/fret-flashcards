@@ -165,7 +165,7 @@ describe("Accessibility Tests", () => {
 
     it("should have descriptive option text", () => {
       // Check that select options are descriptive
-      cy.get('#timeout-seconds option[value="0"]').should("contain", "0 (manual only)");
+      cy.get('#timeout-seconds option[value="0"]').should("contain", "0 (immediate)");
       cy.get('#num-strings option[value="6"]').should("contain", "6 strings (standard guitar)");
 
       // Check score key options are descriptive
