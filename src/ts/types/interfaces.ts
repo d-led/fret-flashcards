@@ -23,9 +23,6 @@ export interface Settings {
   hideQuizNote: boolean;
   enableTTS: boolean;
   selectedVoice: string | null;
-  micSensitivity: number;
-  micClarityThreshold: number;
-  micNoiseFloor: number;
 }
 
 export interface Statistics {

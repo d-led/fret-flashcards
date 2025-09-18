@@ -13,9 +13,6 @@ export interface AppSettings {
   hideQuizNote: boolean;
   enableTTS: boolean;
   selectedVoice: string | null;
-  micSensitivity: number;
-  micClarityThreshold: number;
-  micNoiseFloor: number;
 }
 
 export interface SettingsState {
@@ -241,26 +238,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hideQuizNote: false,
   enableTTS: false,
   selectedVoice: null,
-  micSensitivity: 0.5, // 0.0 = very sensitive, 1.0 = less sensitive
-  micClarityThreshold: 0.3, // Minimum clarity required for pitch detection (0.0-1.0)
-  micNoiseFloor: 0.0005, // RMS threshold below which input is considered silence
 };
 
 // Settings validation utilities
 export function validateFretCount(value: number): boolean {
   return [11, 21, 22, 24].includes(value);
-}
-
-export function validateMicSensitivity(value: number): boolean {
-  return value >= 0.0 && value <= 1.0;
-}
-
-export function validateMicClarityThreshold(value: number): boolean {
-  return value >= 0.0 && value <= 1.0;
-}
-
-export function validateMicNoiseFloor(value: number): boolean {
-  return value >= 0.0001 && value <= 0.01;
 }
 
 export function validateTimeoutSeconds(value: number): boolean {

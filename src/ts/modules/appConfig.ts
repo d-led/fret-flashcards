@@ -28,9 +28,6 @@ export interface AppSettings {
   hideQuizNote: boolean;
   enableTTS: boolean;
   selectedVoice: string | null;
-  micSensitivity: number;
-  micClarityThreshold: number;
-  micNoiseFloor: number;
 }
 
 export interface AppConfig {
@@ -93,9 +90,6 @@ export class AppConfigManager {
       hideQuizNote: false,
       enableTTS: false,
       selectedVoice: null,
-      micSensitivity: 0.5, // 0.0 = very sensitive, 1.0 = less sensitive
-      micClarityThreshold: 0.3, // Minimum clarity required for pitch detection (0.0-1.0)
-      micNoiseFloor: 0.0005, // RMS threshold below which input is considered silence
     };
   }
 
