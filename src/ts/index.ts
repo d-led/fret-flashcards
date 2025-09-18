@@ -559,6 +559,9 @@ $(async function () {
   let hideQuizNote = false; // Default to false, to show quiz note by default
   let enableTTS = false; // Default to false, text-to-speech for quiz notes
   let selectedVoice: string | null = null; // Selected voice for TTS, null means use default
+  let micSensitivity = 0.5; // Microphone sensitivity (0.0 = very sensitive, 1.0 = less sensitive)
+  let micClarityThreshold = 0.3; // Minimum clarity required for pitch detection (0.0-1.0)
+  let micNoiseFloor = 0.0005; // RMS threshold below which input is considered silence
   let ttsInitialized = false; // Track if TTS has been initialized with user interaction
   let ttsUserInitialized = false; // Track if TTS has been initialized by user interaction (banner click)
   let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
@@ -1105,6 +1108,9 @@ $(async function () {
       hideQuizNote: hideQuizNote,
       enableTTS: enableTTS,
       selectedVoice: selectedVoice,
+      micSensitivity: micSensitivity,
+      micClarityThreshold: micClarityThreshold,
+      micNoiseFloor: micNoiseFloor,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
@@ -1200,9 +1206,21 @@ $(async function () {
         // Update the voice dropdown selection
         $("#voice-select").val(selectedVoice || "");
       }
+      if ("micSensitivity" in settings && typeof settings.micSensitivity === "number") {
+        micSensitivity = Math.max(0, Math.min(1, settings.micSensitivity));
+      }
+      if ("micClarityThreshold" in settings && typeof settings.micClarityThreshold === "number") {
+        micClarityThreshold = Math.max(0, Math.min(1, settings.micClarityThreshold));
+      }
+      if ("micNoiseFloor" in settings && typeof settings.micNoiseFloor === "number") {
+        micNoiseFloor = Math.max(0.0001, Math.min(0.01, settings.micNoiseFloor));
+      }
 
       // Update voice selection visibility after loading all settings
       updateVoiceSelectionVisibility();
+
+      // Update microphone sensitivity UI after loading settings
+      updateMicSensitivityUI();
 
       // Update unified banner after loading settings
       updateUnifiedBanner();
@@ -2499,6 +2517,26 @@ $(async function () {
     }
   }
 
+  // Update microphone sensitivity UI values
+  function updateMicSensitivityUI() {
+    $("#mic-sensitivity").val(micSensitivity);
+    $("#mic-sensitivity-value").text(Math.round(micSensitivity * 100) + "%");
+    $("#mic-clarity").val(micClarityThreshold);
+    $("#mic-clarity-value").text(Math.round(micClarityThreshold * 100) + "%");
+    $("#mic-noise-floor").val(micNoiseFloor);
+    $("#mic-noise-floor-value").text(micNoiseFloor.toFixed(4));
+  }
+
+  // Show/hide microphone sensitivity settings
+  function updateMicSensitivityVisibility() {
+    const micSensitivitySettings = $("#mic-sensitivity-settings");
+    if (pitchDetecting) {
+      micSensitivitySettings.show();
+    } else {
+      micSensitivitySettings.hide();
+    }
+  }
+
   // Start microphone and pitch detection using pitchy
   async function startMic() {
     if (pitchDetecting) return;
@@ -2514,7 +2552,18 @@ $(async function () {
     }
 
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // iOS-specific audio constraints to help reduce background noise
+      const audioConstraints: MediaStreamConstraints = {
+        audio: isIOS ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100,
+          channelCount: 1
+        } : true
+      };
+      
+      micStream = await navigator.mediaDevices.getUserMedia(audioConstraints);
       
       // Add event listener to detect when microphone access is cut off
       if (micStream && micStream.getAudioTracks().length > 0) {
@@ -2598,8 +2647,27 @@ $(async function () {
         baselineSamplesCount = 0; // done collecting
       }
 
+      // Apply sensitivity-based noise floor adjustment
+      let adjustedNoiseFloor = micNoiseFloor * (1 + micSensitivity * 2); // Scale noise floor based on sensitivity
+      let adjustedBaseline = (micBaselineRms || 0) * (1.05 + micSensitivity * 0.5); // Adjust baseline compensation
+      
+      // iOS-specific optimizations for background noise filtering
+      if (isIOS) {
+        // Increase noise floor on iOS to filter out more background noise
+        adjustedNoiseFloor *= 1.5;
+        // More aggressive baseline compensation on iOS
+        adjustedBaseline *= 1.2;
+        // Apply additional clarity threshold boost on iOS
+        const iosClarityBoost = 0.1;
+        if (clarity && clarity < micClarityThreshold + iosClarityBoost) {
+          // Don't process this frame on iOS if clarity is too low
+          pitchAnimFrame = requestAnimationFrame(loop);
+          return;
+        }
+      }
+      
       // Subtract baseline and map to 0..1 using a dB scale. Add a small floor to avoid log(0).
-      const effectiveRms = Math.max(0, rms - (micBaselineRms || 0) * 1.05);
+      const effectiveRms = Math.max(0, rms - adjustedBaseline);
       const rmsFloor = Math.max(effectiveRms, 1e-8);
       const db = 20 * Math.log10(rmsFloor);
       const level = Math.max(0, Math.min(1, (db + 80) / 80));
@@ -2607,7 +2675,7 @@ $(async function () {
       const now = Date.now();
       // Determine current detected note id (rounded MIDI) or null
       let currentNoteId: number | null = null;
-      if (frequency && clarity) {
+      if (frequency && clarity && clarity >= micClarityThreshold) {
         const midi = 69 + 12 * Math.log2(frequency / 440);
 
         currentNoteId = Math.round(midi);
@@ -2623,7 +2691,7 @@ $(async function () {
 
       // Only update visible status and meter when the same note persisted for NOTE_STABLE_MS
       const stable = noteStableSince !== null && now - noteStableSince >= NOTE_STABLE_MS;
-      if (rms < 0.0005) {
+      if (rms < adjustedNoiseFloor) {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
         const meterFillSilent = document.getElementById("mic-meter-fill");
@@ -3068,6 +3136,7 @@ $(async function () {
         try {
           await startMic();
           updateMicrophoneButtonState(true);
+          updateMicSensitivityVisibility();
         } catch (e) {
           console.error("Failed to start mic:", e);
           let errorMessage = "Unable to access microphone. ";
@@ -3100,6 +3169,7 @@ $(async function () {
       } else {
         stopMic();
         updateMicrophoneButtonState(false);
+        updateMicSensitivityVisibility();
       }
     });
 
@@ -3176,6 +3246,25 @@ $(async function () {
       if (enableTTS && ttsInitialized) {
         speakSystemMessage(`Changed the voice to ${voiceName}`);
       }
+    });
+
+    // Microphone sensitivity controls
+    $("#mic-sensitivity").on("input", function () {
+      micSensitivity = parseFloat((this as HTMLInputElement).value);
+      $("#mic-sensitivity-value").text(Math.round(micSensitivity * 100) + "%");
+      saveSettings();
+    });
+
+    $("#mic-clarity").on("input", function () {
+      micClarityThreshold = parseFloat((this as HTMLInputElement).value);
+      $("#mic-clarity-value").text(Math.round(micClarityThreshold * 100) + "%");
+      saveSettings();
+    });
+
+    $("#mic-noise-floor").on("input", function () {
+      micNoiseFloor = parseFloat((this as HTMLInputElement).value);
+      $("#mic-noise-floor-value").text(micNoiseFloor.toFixed(4));
+      saveSettings();
     });
 
     // Add event handler for skip button
