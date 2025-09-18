@@ -124,7 +124,7 @@ describe("Audio and TTS Functionality", () => {
           win.populateVoiceOptions();
         }
       });
-      
+
       cy.get("#voice-select option").should("have.length.greaterThan", 1);
       cy.get("#voice-select option").first().should("have.value", "");
       cy.get("#voice-select option").first().should("contain.text", "Default");
@@ -150,15 +150,8 @@ describe("Audio and TTS Functionality", () => {
       cy.enableTTS();
     });
 
-    it("should queue utterances when TTS is enabled", () => {
-      // Skip in CI due to TTS queue timing issues in headless environment
-      cy.isRunningInCI().then((isCI) => {
-        if (isCI) {
-          cy.log("Skipping TTS queue test in CI - TTS queue timing issues in headless environment");
-          return;
-        }
-      });
-
+    // Skip in CI due to TTS queue timing issues in headless environment
+    (Cypress.env("CI") ? it.skip : it)("should queue utterances when TTS is enabled", () => {
       // Trigger a quiz note announcement
       cy.clickQuizButton();
 
@@ -178,15 +171,7 @@ describe("Audio and TTS Functionality", () => {
       });
     });
 
-    it("should clear queue when TTS is disabled", () => {
-      // Skip in CI due to TTS queue timing issues in headless environment
-      cy.isRunningInCI().then((isCI) => {
-        if (isCI) {
-          cy.log("Skipping TTS queue clear test in CI - TTS queue timing issues in headless environment");
-          return;
-        }
-      });
-
+    (Cypress.env("CI") ? it.skip : it)("should clear queue when TTS is disabled", () => {
       // First queue some utterances
       cy.clickQuizButton();
       cy.getTestState().then((state) => {
@@ -358,15 +343,7 @@ describe("Audio and TTS Functionality", () => {
       });
     });
 
-    it("should handle page reload with active TTS queue", () => {
-      // Skip in CI due to TTS queue timing issues in headless environment
-      cy.isRunningInCI().then((isCI) => {
-        if (isCI) {
-          cy.log("Skipping TTS queue page reload test in CI - TTS queue timing issues in headless environment");
-          return;
-        }
-      });
-
+    (Cypress.env("CI") ? it.skip : it)("should handle page reload with active TTS queue", () => {
       cy.enableTTS();
       cy.clickQuizButton();
 

@@ -13,8 +13,16 @@
 // ===========================================
 
 // Check if running in CI environment using Cypress env
-Cypress.Commands.add('isRunningInCI', () => {
-  return Cypress.env('CI') === true;
+Cypress.Commands.add("isRunningInCI", () => {
+  const ciValue = Cypress.env("CI");
+  const isCI = ciValue === true || ciValue === "true";
+  return cy.wrap(isCI);
+});
+
+// Helper function to conditionally skip tests in CI
+Cypress.Commands.add("skipInCI", (testName, testFn) => {
+  const shouldSkipInCI = Cypress.env("CI") === true || Cypress.env("CI") === "true";
+  return (shouldSkipInCI ? it.skip : it)(testName, testFn);
 });
 //
 //

@@ -11,9 +11,9 @@ function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise
       reject(new Error(`Could not find available port after 10 attempts starting from ${startPort}`));
       return;
     }
-    
+
     const server = http.createServer();
-    
+
     server.listen(startPort, () => {
       const port = (server.address() as any)?.port;
       server.close(() => {
@@ -22,13 +22,15 @@ function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise
         resolve(port);
       });
     });
-    
-    server.on('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
+
+    server.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "EADDRINUSE") {
         // eslint-disable-next-line no-console
         console.log(`Port ${startPort} in use, trying ${startPort + 1}...`);
         // Try next port
-        findAvailablePort(startPort + 1, maxAttempts - 1).then(resolve).catch(reject);
+        findAvailablePort(startPort + 1, maxAttempts - 1)
+          .then(resolve)
+          .catch(reject);
       } else {
         reject(err);
       }
@@ -46,8 +48,8 @@ export default defineConfig({
   video: true,
   videoCompression: true,
   env: {
-    // Detect CI environment - GitHub Actions sets CI=true automatically
-    CI: process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.CIRCLECI === 'true' || process.env.TRAVIS === 'true' || process.env.BUILDKITE === 'true' || process.env.JENKINS_URL !== undefined
+    // Detect CI environment - only check CYPRESS_CI
+    CI: `${process.env.CYPRESS_CI}` === "true",
   },
   e2e: {
     async setupNodeEvents(on, config) {
@@ -84,10 +86,10 @@ export default defineConfig({
 
       // Find an available port first
       const actualPort = await findAvailablePort(port);
-      
+
       // eslint-disable-next-line no-console
       console.log(`Starting test server on port ${actualPort}...`);
-      
+
       server = http.createServer((req, res) => {
         // Delegate static file serving to sirv (single: true will serve index.html for SPA)
         serve(req, res, () => {
@@ -101,18 +103,18 @@ export default defineConfig({
         const timeout = setTimeout(() => {
           reject(new Error(`Server startup timeout after 10 seconds on port ${actualPort}`));
         }, 10000);
-        
+
         server.listen(actualPort, () => {
           // eslint-disable-next-line no-console
           console.log(`Test server running on http://localhost:${actualPort}`);
-          
+
           // Add a small delay to ensure server is fully ready
           setTimeout(() => {
             clearTimeout(timeout);
             resolve();
           }, 100);
         });
-        
+
         server.on("error", (err: NodeJS.ErrnoException & { code?: string }) => {
           clearTimeout(timeout);
           // eslint-disable-next-line no-console
