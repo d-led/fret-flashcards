@@ -86,7 +86,7 @@
 - [ ] **Bundle ID**: com.dled.stringhomeworktutor
 - [ ] **Category**: Education
 - [ ] **Age Rating**: 4+ (suitable for all ages)
-- [ ] **Price**: Free
+- [ ] **Price**: $2.99
 
 #### ✅ **Description**
 
@@ -181,7 +181,7 @@
 
 #### ✅ **Pricing & Availability**
 
-- [ ] Price set to Free
+- [ ] Price set to $2.99
 - [ ] Available in all desired countries
 - [ ] Release date set appropriately
 - [ ] App availability settings correct
