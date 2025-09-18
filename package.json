@@ -39,9 +39,13 @@
     "ios:iphone17ProMax": "npm run build:mobile && npx cap run ios --target=\"8985F7BF-92A1-4379-A360-6FBE13322081\"",
     "ios:iphoneAir": "npm run build:mobile && npx cap run ios --target=\"012F2745-D363-40CB-992E-10A1452983E1\"",
     "mobile:sync": "npx cap sync",
-    "app-store:prep": "node scripts/app-store-prep.js",
-    "app-store:screenshots": "cd ios && fastlane screenshots",
-    "app-store:validate": "node scripts/app-store-prep.js --validate-only"
+    "mobile:sync:ios": "npm run mobile:sync && ./scripts/fix-frameworks.sh",
+    "screenshots": "cd ios && fastlane screenshots",
+    "screenshots:generate": "node scripts/generate-screenshots.js",
+    "screenshots:fastlane": "bash scripts/fastlane-snapshot.sh",
+    "app-store:testflight": "cd ios && fastlane build_testflight",
+    "app-store:release": "cd ios && fastlane release",
+    "app-store:metadata": "cd ios && fastlane upload_metadata"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

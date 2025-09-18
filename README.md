@@ -80,6 +80,7 @@ npm run ios:dev
 | `npm run android:build` | Build Android APK for production            |
 | `npm run ios:build`     | Build iOS app for production                |
 | `npm run mobile:sync`   | Sync web assets to mobile platforms         |
+| `npm run mobile:sync:ios` | Sync web assets to iOS (preserves CocoaPods settings) |
 
 ### 📋 Prerequisites
 

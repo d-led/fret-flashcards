@@ -1,94 +1,53 @@
 # Privacy Policy for String Homework Tutor
 
-**Last updated: September 17, 2024**
+**Last updated: 18.09.2025**
 
-## Introduction
+## Data Collection
 
-String Homework Tutor ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how our mobile application collects, uses, and safeguards your information.
+String Homework Tutor does not collect, store, or transmit any personal data. The app is designed to work completely offline and does not connect to any external servers or services.
 
-## Information We Collect
+## Local Storage
 
-### No Personal Data Collection
-
-String Homework Tutor does not collect, store, or transmit any personal data. We do not have access to your personal information, and we do not track your usage patterns.
-
-### Local Device Storage
-
-The app stores the following data locally on your device only:
+The app stores the following data locally on your device:
 
 - Quiz settings and preferences
 - Statistics and progress tracking
-- Custom instrument tunings
-- Audio and haptic feedback preferences
-- App configuration settings
+- Custom tunings and configurations
+- Audio preferences and settings
+- Accessibility settings
 
-This data remains on your device and is never transmitted to our servers or third parties.
+This data remains on your device and is never transmitted to external servers.
 
-## Permissions and Device Access
+## Permissions
 
-### Microphone Access
+The app may request the following permissions:
 
-- **Purpose**: Used for voice input and pitch detection features
-- **Usage**: Optional feature for hands-free note input
-- **Data**: Audio is processed locally and not stored or transmitted
-- **Control**: You can disable microphone access in your device settings
+- **Microphone**: Used for voice input and pitch detection (optional feature)
+- **Audio**: Used for playing notes and feedback sounds
+- **Haptic Feedback**: Used for tactile feedback on correct/incorrect answers
 
-### Audio Access
-
-- **Purpose**: Used for playing musical notes and feedback sounds
-- **Usage**: Essential for the app's educational functionality
-- **Data**: No audio data is collected or stored
-- **Control**: You can mute the app in your device settings
-
-### Haptic Feedback
-
-- **Purpose**: Used for tactile feedback on correct/incorrect answers
-- **Usage**: Enhances the learning experience with vibration feedback
-- **Data**: No data is collected or stored
-- **Control**: You can disable haptic feedback in the app settings
+All permissions are optional and the app functions fully without them.
 
 ## Third-Party Services
 
-String Homework Tutor does not use any third-party services that collect data, including:
-
-- No analytics services
-- No advertising networks
-- No crash reporting services
-- No user tracking
-- No data transmission to external servers
-
-## Data Security
-
-Since we do not collect personal data, there is no risk of data breaches or unauthorized access to your personal information. All app data remains securely stored on your device.
+This app does not use any third-party analytics, advertising, or tracking services. No data is shared with third parties.
 
 ## Children's Privacy
 
-String Homework Tutor is suitable for users of all ages, including children under 13. We do not collect any personal information from any users, including children.
+This app is suitable for all ages and does not collect any personal information from children or adults.
 
-## Your Rights
+## Data Security
 
-Since we do not collect personal data, there are no data processing activities to opt out of or request deletion of. All app data is stored locally on your device and can be deleted by uninstalling the app.
+Since no personal data is collected or transmitted, there are no data security concerns. All app data is stored locally on your device using standard iOS security measures.
 
-## Changes to This Privacy Policy
+## Changes to This Policy
 
-We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy in the app and updating the "Last updated" date.
+We may update this privacy policy from time to time. Any changes will be posted in the app and on our website.
 
-## Contact Information
+## Contact
 
-If you have any questions about this Privacy Policy, please contact us at:
-
-- Email: [your-email@example.com]
-- Website: [your-website.com]
-
-## Compliance
-
-This Privacy Policy complies with:
-
-- Apple App Store Review Guidelines
-- General Data Protection Regulation (GDPR)
-- California Consumer Privacy Act (CCPA)
-- Children's Online Privacy Protection Act (COPPA)
+For questions about this privacy policy, contact: stringhomeworktutor@ledentsov.de
 
 ---
 
-**String Homework Tutor** - The homework tutor you always wished for! 🎸
+**String Homework Tutor** - The homework tutor you always wished for!

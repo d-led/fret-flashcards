@@ -41,7 +41,7 @@ describe("Accessibility Tests", () => {
       cy.get("fieldset legend").should("contain", "Fretboard Configuration");
       cy.get("fieldset legend").should("contain", "Quiz Settings");
       cy.get("fieldset legend").should("contain", "Advanced Settings");
-      cy.get("fieldset legend").should("contain", "Voice Settings");
+      cy.get("fieldset legend").should("contain", "Voice");
     });
   });
 

@@ -1,0 +1,28 @@
+# Snapfile for String Homework Tutor
+# Configuration for fastlane snapshot
+
+workspace "./App/App.xcworkspace"
+scheme "String Homework TutorUITests"
+
+devices([
+  "iPhone 17 Pro Max",      # 6.7" display - Required for App Store
+  "iPhone 17 Pro",          # 6.1" display - Required for App Store
+  "iPad Pro 13-inch (M4)"   # 12.9" display - Required for App Store
+])
+
+languages([
+  "en-US"
+])
+
+output_directory "./screenshots"
+clear_previous_screenshots true
+stop_after_first_error false
+localize_simulator false
+erase_simulator false
+reinstall_app false
+headless true
+skip_open_summary true
+
+# Screenshot generation settings
+override_status_bar true
+override_status_bar_arguments "time=9:41,date=1/1/2020,batteryLevel=100,batteryCharging=true,bluetooth=off,wifi=3,cellular=4,cellularBars=4"

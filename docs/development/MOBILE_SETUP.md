@@ -50,6 +50,7 @@ npm run ios:dev
 - `npm run ios:dev` - Build and run on iOS device/simulator
 - `npm run ios:build` - Build iOS app
 - `npm run mobile:sync` - Sync web assets to mobile platforms
+- `npm run mobile:sync:ios` - Sync web assets to iOS with framework path preservation
 
 ## Mobile Features
 
@@ -82,9 +83,11 @@ npm run ios:dev
 ### iOS
 
 1. Build the web assets: `npm run build`
-2. Sync with iOS: `npx cap sync ios`
+2. Sync with iOS: `npm run mobile:sync:ios` (preserves CocoaPods settings)
 3. Open in Xcode: `npx cap open ios`
 4. In Xcode, archive and upload to App Store
+
+**Note**: Use `npm run mobile:sync:ios` instead of `npx cap sync ios` to preserve important CocoaPods framework settings that get removed by the standard sync command.
 
 ## Troubleshooting
 
@@ -99,6 +102,7 @@ npm run ios:dev
 - **Pod install failed**: Run `sudo gem install cocoapods`
 - **Xcode build failed**: Update Xcode to latest version
 - **Simulator issues**: Reset iOS Simulator
+- **CocoaPods framework paths missing**: Use `npm run mobile:sync:ios` instead of `npm run mobile:sync`
 
 ### General Issues
 
@@ -125,7 +129,8 @@ npm run ios:dev
 ## Development Tips
 
 - Use `npm run watch` for web development
-- Use `npm run mobile:sync` after web changes
+- Use `npm run mobile:sync:ios` after web changes (preserves CocoaPods settings)
+- Use `npm run mobile:sync` for Android-only changes
 - Test on real devices for best experience
 - Use Chrome DevTools for debugging web content
 - Check Capacitor logs for native issues

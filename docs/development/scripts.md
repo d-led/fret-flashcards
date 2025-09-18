@@ -132,6 +132,39 @@ npm run android:dev      # Build and run on Android emulator
 npm run android:build    # Build Android app
 ```
 
+### Mobile Sync
+
+#### Standard Sync
+
+```bash
+npm run mobile:sync
+```
+
+**Purpose**: Syncs web assets to all mobile platforms (iOS, Android, Web).
+
+**What it does**:
+- Copies web assets from `dist/` to platform-specific directories
+- Updates Capacitor configuration files
+- Runs `pod install` for iOS dependencies
+- Updates native plugins
+
+#### iOS-Specific Sync with Framework Fix
+
+```bash
+npm run mobile:sync:ios
+```
+
+**Purpose**: Syncs web assets to iOS and preserves important CocoaPods framework settings.
+
+**What it does**:
+1. Runs standard `npm run mobile:sync`
+2. Automatically restores CocoaPods framework paths that get removed by sync
+3. Ensures `[CP] Embed Pods Frameworks` build phase has correct `inputPaths` and `outputPaths`
+
+**Why needed**: The standard `npx cap sync` command removes important CocoaPods framework settings from `project.pbxproj`. This script restores them automatically.
+
+**Location**: `scripts/fix-frameworks.sh`
+
 ## App Store Preparation
 
 ### Setup App Store Assets
@@ -183,6 +216,7 @@ All scripts are organized in the `scripts/` directory:
 - `setup-app-store.sh` - App Store preparation (shell)
 - `app-store-prep.js` - App Store preparation (Node.js)
 - `accessibility-cypress-check.js` - Cypress test validation
+- `fix-frameworks.sh` - iOS CocoaPods framework path restoration
 
 ## Development Workflow
 
