@@ -43,6 +43,15 @@
     "ccpa_compliant": true,
     "encryption_exempt": true
   },
+  "licensing": {
+    "license_type": "Commercial License",
+    "license_file": "LICENSE-COMMERCIAL",
+    "dual_licensed": true,
+    "open_source_alternative": "Mozilla Public License 2.0 (MPLv2)",
+    "commercial_use_restricted": true,
+    "app_store_distribution_prohibited": true,
+    "license_contact": "stringhomeworktutor@ledentsov.de"
+  },
   "screenshots": {
     "required_devices": [
       "iPhone 17 Pro Max",

@@ -120,6 +120,13 @@ For comprehensive mobile development instructions, see [mobile_development.md](.
 
 - On iOS devices you may need to tap the "enable sound" banner to hear tones.
 
-## License
+## 📄 Licensing
+
+This project uses **dual licensing** (similar to VLC):
+
+- **🌐 Web Version**: [Mozilla Public License 2.0 (MPLv2)](LICENSE) - Open source
+- **📱 App Store Version**: [Commercial License](LICENSE-COMMERCIAL) - Proprietary
+
+See [LICENSING.md](docs/development/LICENSING.md) for detailed information.
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards?ref=badge_large)

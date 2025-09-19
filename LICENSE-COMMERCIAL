@@ -1,0 +1,98 @@
+String Homework Tutor - Commercial License
+==========================================
+
+Copyright (c) 2025 Dmitry Ledentsov. All rights reserved.
+
+This software is dual-licensed under the Mozilla Public License Version 2.0 
+(MPLv2) and this Commercial License. You may choose to be licensed under 
+the terms of either the MPLv2 or this Commercial License.
+
+COMMERCIAL LICENSE TERMS
+========================
+
+Subject to the terms and conditions of this Commercial License, Dmitry Ledentsov 
+("Licensor") hereby grants you ("Licensee") a non-exclusive, non-transferable, 
+revocable license to use, copy, and distribute the Software solely for 
+non-commercial purposes, subject to the following restrictions:
+
+1. COMMERCIAL USE RESTRICTION
+   You may NOT use, copy, modify, or distribute the Software for any commercial 
+   purpose, including but not limited to:
+   - Selling the Software or any derivative works
+   - Distributing the Software through app stores or marketplaces
+   - Using the Software in any commercial product or service
+   - Charging fees for access to or use of the Software
+
+2. APP STORE DISTRIBUTION PROHIBITION
+   You may NOT submit, publish, or distribute the Software or any derivative 
+   works through any app store, marketplace, or distribution platform, including 
+   but not limited to:
+   - Apple App Store
+   - Google Play Store
+   - Microsoft Store
+   - Amazon Appstore
+   - Any other commercial distribution platform
+
+3. DERIVATIVE WORKS RESTRICTION
+   You may NOT create derivative works based on the Software for commercial 
+   purposes or distribution through app stores.
+
+4. COMPETING PRODUCTS PROHIBITION
+   You may NOT use the Software to create competing products or services that 
+   would compete with the official String Homework Tutor applications.
+
+5. TRADEMARK RESTRICTION
+   You may NOT use the name "String Homework Tutor" or any related trademarks 
+   in connection with any commercial use or distribution of the Software.
+
+6. REVERSE ENGINEERING
+   You may NOT reverse engineer, decompile, or disassemble the Software for 
+   commercial purposes.
+
+7. TERMINATION
+   This license automatically terminates if you violate any of these terms. 
+   Upon termination, you must cease all use of the Software and destroy all 
+   copies in your possession.
+
+8. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+9. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+   THE SOFTWARE.
+
+10. GOVERNING LAW
+    This license shall be governed by and construed in accordance with the laws 
+    of the jurisdiction where the Licensor resides, without regard to conflict 
+    of law principles.
+
+For commercial licensing inquiries, please contact: stringhomeworktutor@ledentsov.de
+
+OPEN SOURCE ALTERNATIVE
+=======================
+
+If you prefer to use this software under open source terms, you may instead 
+use it under the Mozilla Public License Version 2.0 (MPLv2). The MPLv2 
+allows for more permissive use, including commercial use and distribution, 
+but requires that derivative works also be licensed under MPLv2 and that 
+source code be made available.
+
+To use under MPLv2, see the LICENSE file in this repository.
+
+DUAL LICENSING NOTICE
+=====================
+
+This software is available under both licenses. You may choose which license 
+to follow based on your intended use:
+
+- For open source projects and non-commercial use: Use MPLv2
+- For commercial use or App Store distribution: Contact for commercial license
+- For web distribution: Use MPLv2
+- For mobile app stores: Commercial license required
+
+The choice of license is at your discretion, but you must comply with the 
+terms of whichever license you choose to follow.

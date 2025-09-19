@@ -1,3 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * This file is also available under a commercial license. For commercial
+ * use or App Store distribution, please contact stringhomeworktutor@ledentsov.de
+ * for licensing terms.
+ *
+ * Copyright (c) 2025 Dmitry Ledentsov. All rights reserved.
+ */
+
 /**
  * Application Configuration Module
  * Handles all application settings, tuning configurations, and persistence
