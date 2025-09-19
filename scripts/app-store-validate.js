@@ -315,7 +315,7 @@ class AppStoreValidate {
         this.log("Next steps:", "info");
         this.log("1. Run 'npm run app-store:testflight' to upload to TestFlight", "info");
         this.log("2. Test on real devices", "info");
-        this.log("3. Run 'npm run app-store:submit' to submit to App Store", "info");
+        this.log("3. Run 'npm run app-store:release' to submit to App Store", "info");
       } else {
         this.log(`❌ Validation failed with ${this.errors.length} errors`, "error");
         this.log("Please fix the errors before submitting", "error");

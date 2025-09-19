@@ -68,7 +68,6 @@ npm run app-store:release
 |--------|---------|
 | `scripts/app-store-validate.js` | Comprehensive validation |
 | `scripts/app-store-prep.js` | Asset preparation |
-| `scripts/app-store-submit.js` | Submission automation |
 
 ## 📱 App Information
 
@@ -85,12 +84,12 @@ npm run app-store:release
 
 - **Fastfile**: `ios/fastlane/Fastfile`
 - **Snapfile**: `ios/fastlane/Snapfile`
-- **Metadata**: `fastlane/metadata/en-US/`
+- **Metadata**: `ios/fastlane/metadata/en-US/`
 
 ### App Store Metadata
 
 - **JSON**: `app-store-metadata.json` (comprehensive metadata)
-- **Individual files**: `fastlane/metadata/en-US/*.txt`
+- **Individual files**: `ios/fastlane/metadata/en-US/*.txt`
 
 ## 📸 Screenshot Requirements
 
@@ -344,7 +343,7 @@ cat app-store-validation-report.json
 
 Common fixes:
 - Missing screenshots: Run `npm run screenshots`
-- Missing metadata: Check `fastlane/metadata/en-US/` files
+- Missing metadata: Check `ios/fastlane/metadata/en-US/` files
 - Build issues: Run `npm run build:mobile`
 
 ## 📈 Post-Submission

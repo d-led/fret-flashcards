@@ -10,7 +10,7 @@ Metadata sync ensures that your local metadata files match exactly what's curren
 
 ### **Primary Files (Used by Fastlane)**
 ```
-fastlane/metadata/en-US/
+ios/fastlane/metadata/en-US/
 ├── name.txt              # App name
 ├── subtitle.txt          # App subtitle
 ├── description.txt       # Full app description
@@ -102,7 +102,7 @@ npm run app-store:sync:download
 ```
 
 ### **2. Make Local Changes**
-Edit the metadata files in `fastlane/metadata/en-US/` as needed.
+Edit the metadata files in `ios/fastlane/metadata/en-US/` as needed.
 
 ### **3. Validate Changes**
 ```bash
@@ -134,7 +134,7 @@ Our validation script checks:
 
 ### **Manual Comparison**
 Compare values between:
-- `fastlane/metadata/en-US/*.txt` files
+- `ios/fastlane/metadata/en-US/*.txt` files
 - `app-store-metadata.json`
 - App Store Connect (via web interface)
 
@@ -237,7 +237,7 @@ APP_STORE_CONNECT_API_ISSUER_ID=your-issuer-id-uuid
 npm run app-store:sync:download
 
 # 2. Make changes
-# Edit fastlane/metadata/en-US/*.txt files
+# Edit ios/fastlane/metadata/en-US/*.txt files
 
 # 3. Validate
 npm run app-store:validate
@@ -255,7 +255,7 @@ npm run app-store:sync:download
 npm run app-store:validate
 
 # 3. Submit to TestFlight
-npm run app-store:submit:testflight
+npm run app-store:testflight
 ```
 
 ## 📚 **Related Documentation**
