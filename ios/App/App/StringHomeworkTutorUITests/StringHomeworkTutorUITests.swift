@@ -47,6 +47,96 @@ final class StringHomeworkTutorUITests: XCTestCase {
             }
         }
     }
+    
+    private func tryToToggleScoreNotation(_ app: XCUIApplication) -> Bool {
+        // Method 1: Try to find and click the label (most reliable for HTML checkboxes)
+        let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "score notation")
+        
+        // Try staticTexts (labels) first - this is most likely what we need to click
+        var scoreNotationElement = app.staticTexts.containing(scoreNotationPredicate).firstMatch
+        var scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 2)
+        
+        // If not found as staticText, try checkBoxes
+        if !scoreNotationExists {
+            scoreNotationElement = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+            scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 2)
+        }
+        
+        // If not found as checkbox, try as button
+        if !scoreNotationExists {
+            scoreNotationElement = app.buttons.containing(scoreNotationPredicate).firstMatch
+            scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 2)
+        }
+        
+        // If not found as button, try as switch
+        if !scoreNotationExists {
+            scoreNotationElement = app.switches.containing(scoreNotationPredicate).firstMatch
+            scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 2)
+        }
+        
+        // Try alternative text patterns
+        if !scoreNotationExists {
+            let altPredicate = NSPredicate(format: "label CONTAINS[c] %@", "Show score")
+            scoreNotationElement = app.staticTexts.containing(altPredicate).firstMatch
+            scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 2)
+        }
+        
+        if scoreNotationExists {
+            print("Found score notation element: \(scoreNotationElement.label)")
+            print("Element exists: \(scoreNotationElement.exists)")
+            print("Element is hittable: \(scoreNotationElement.isHittable)")
+            
+            // Scroll a bit more to ensure the element is fully visible and clickable
+            scrollMultipleTimes(app, direction: "down", times: 1)
+            sleep(1)
+            
+            // Method 1: Try direct tap
+            if scoreNotationElement.isHittable {
+                print("Tapping score notation element directly: \(scoreNotationElement.label)")
+                scoreNotationElement.tap()
+                sleep(2)
+                return verifyScoreNotationToggled(app)
+            }
+            
+            // Method 2: Try coordinate-based tapping
+            print("Element not hittable, trying coordinate tap")
+            let frame = scoreNotationElement.frame
+            let centerX = frame.midX
+            let centerY = frame.midY
+            print("Attempting coordinate tap at (\(centerX), \(centerY))")
+            app.coordinate(withNormalizedOffset: CGVector(dx: centerX / app.frame.width, dy: centerY / app.frame.height)).tap()
+            sleep(2)
+            return verifyScoreNotationToggled(app)
+        }
+        
+        return false
+    }
+    
+    private func verifyScoreNotationToggled(_ app: XCUIApplication) -> Bool {
+        // Check if the checkbox value changed or if music staff appears
+        let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "score notation")
+        let checkbox = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
+        
+        if checkbox.exists {
+            // Check the value attribute - "1" means checked, "0" means unchecked
+            if let value = checkbox.value as? String {
+                let isChecked = value == "1"
+                print("Checkbox value: \(value), isChecked: \(isChecked)")
+                return isChecked
+            }
+        }
+        
+        // Alternative: Check if music staff appears
+        let musicStaffPredicate = NSPredicate(format: "label CONTAINS[c] %@", "treble clef")
+        let musicStaff = app.staticTexts.containing(musicStaffPredicate).firstMatch
+        if musicStaff.waitForExistence(timeout: 3) {
+            print("Music staff found - score notation is enabled")
+            return true
+        }
+        
+        print("Could not verify score notation toggle")
+        return false
+    }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
@@ -73,72 +163,52 @@ final class StringHomeworkTutorUITests: XCTestCase {
         // Scroll down to find the "Show score notation" checkbox - try multiple scroll amounts
         var scoreNotationFound = false
         var scrollAttempts = 0
-        let maxScrollAttempts = 5
+        let maxScrollAttempts = 8  // Increased attempts for larger screens
         
         while !scoreNotationFound && scrollAttempts < maxScrollAttempts {
             scrollAttempts += 1
             print("Scroll attempt \(scrollAttempts) to find score notation")
             scrollMultipleTimes(app, direction: "down", times: 2)
             
-            // Try multiple element types for score notation - try labels first since HTML uses label elements
-            let scoreNotationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "score notation")
+            // Try multiple approaches to find and interact with the checkbox
+            scoreNotationFound = tryToToggleScoreNotation(app)
             
-            // Try staticTexts (labels) first - this is most likely what we need to click
-            var scoreNotationElement = app.staticTexts.containing(scoreNotationPredicate).firstMatch
-            var scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
-            
-            // If not found as staticText, try checkBoxes
-            if !scoreNotationExists {
-                scoreNotationElement = app.checkBoxes.containing(scoreNotationPredicate).firstMatch
-                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
-            }
-            
-            // If not found as checkbox, try as button
-            if !scoreNotationExists {
-                scoreNotationElement = app.buttons.containing(scoreNotationPredicate).firstMatch
-                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
-            }
-            
-            // If not found as button, try as switch
-            if !scoreNotationExists {
-                scoreNotationElement = app.switches.containing(scoreNotationPredicate).firstMatch
-                scoreNotationExists = scoreNotationElement.waitForExistence(timeout: 3)
-            }
-            
-            if scoreNotationExists {
-                print("Found score notation element: \(scoreNotationElement.label)")
-                print("Element exists: \(scoreNotationElement.exists)")
-                print("Element is hittable: \(scoreNotationElement.isHittable)")
-                
-                // Scroll a bit more to ensure the element is fully visible and clickable
-                scrollMultipleTimes(app, direction: "down", times: 1)
-                sleep(1)
-                
-                // Use predicate-based waiting for better reliability
-                let predicate = NSPredicate(format: "exists == true AND isHittable == true")
-                let expectation = XCTNSPredicateExpectation(predicate: predicate, object: scoreNotationElement)
-                let result = XCTWaiter().wait(for: [expectation], timeout: 3)
-                
-                if result == .completed {
-                    print("Tapping score notation element: \(scoreNotationElement.label)")
-                    scoreNotationElement.tap()
-                    sleep(2)
-                    scoreNotationFound = true
-                } else {
-                    print("Score notation element found but not hittable after waiting, trying to scroll more")
-                }
-            } else {
+            if !scoreNotationFound {
                 print("Score notation not found on attempt \(scrollAttempts)")
             }
         }
         
         if !scoreNotationFound {
             print("Score notation switch not found after \(maxScrollAttempts) scroll attempts")
+            // Try one more time with different approach - scroll to very bottom and work backwards
+            print("Trying alternative approach - scrolling to bottom and working backwards")
+            scrollMultipleTimes(app, direction: "down", times: 10)
+            sleep(2)
+            
+            scoreNotationFound = tryToToggleScoreNotation(app)
         }
 
+        // Verify that score notation was actually enabled by checking for music staff
+        print("Verifying score notation was enabled...")
+        let musicStaffPredicate = NSPredicate(format: "label CONTAINS[c] %@", "treble clef")
+        let musicStaff = app.staticTexts.containing(musicStaffPredicate).firstMatch
+        let musicStaffExists = musicStaff.waitForExistence(timeout: 5)
+        
+        if musicStaffExists {
+            print("Music staff found - score notation is enabled")
+        } else {
+            print("Music staff not found - score notation may not be enabled")
+            // Try to find any musical notation elements
+            let notationPredicate = NSPredicate(format: "label CONTAINS[c] %@", "clef")
+            let notation = app.staticTexts.containing(notationPredicate).firstMatch
+            if notation.waitForExistence(timeout: 2) {
+                print("Found musical notation element: \(notation.label)")
+            }
+        }
+        
         // Now scroll back up to show the main content better for the snapshot
-        scrollMultipleTimes(app, direction: "up", times: 5)
-        sleep(2)
+        scrollMultipleTimes(app, direction: "up", times: 6)  // Increased scroll up
+        sleep(3)  // Increased sleep time
         
         snapshot("01MainScreen")
     }
