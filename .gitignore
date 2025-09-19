@@ -464,3 +464,4 @@ app-store-submission-report.json
 fastlane/report.xml
 screenshots.html
 .DS_Store
+ios/fastlane/Preview.html
