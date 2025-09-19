@@ -19,7 +19,7 @@
   "privacy_url": "https://github.com/dledentsov/fret-flashcards/blob/main/docs/development/privacy-policy.md",
   "support_url": "https://github.com/dledentsov/fret-flashcards",
   "version": {
-    "number": "1.0.1",
+    "number": "1.0.2",
     "release_notes": "Update release of String Homework Tutor - Master guitar fretboard notes with interactive flashcards and sheet music practice.\nUpdated:\n- Improved app minimization handling."
   },
   "permissions": {
