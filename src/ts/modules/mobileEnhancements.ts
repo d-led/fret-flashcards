@@ -321,63 +321,75 @@ export class MobileEnhancements {
   }
 
   /**
-   * Handle app going to background - disable microphone if active
+   * Handle app going to background - disable audio, voice, and microphone if active
    */
   private handleAppBackgrounded(): void {
-    // Check if microphone is currently active by looking for the global pitchDetecting variable
-    // and the mic toggle button state
+    // Check if any features are currently active
     const micButton = document.getElementById("mic-toggle");
     const isMicActive = micButton && micButton.textContent?.includes("Disable Mic");
-    
-    // Also check if there's an active MediaStream (more reliable)
     const hasActiveMicStream = this.checkForActiveMicrophoneStream();
     
-    console.log("Checking microphone state for backgrounding:", {
+    // Check audio and TTS state from global variables
+    const audioEnabled = !!(window as any).audioEnabled;
+    const enableTTS = !!(window as any).enableTTS;
+    
+    console.log("Checking features state for backgrounding:", {
       isMicActive,
       hasActiveMicStream,
       pitchDetecting: !!(window as any).pitchDetecting,
-      micStream: !!(window as any).micStream
+      micStream: !!(window as any).micStream,
+      audioEnabled,
+      enableTTS
     });
     
-    if (isMicActive || hasActiveMicStream) {
-      console.log("App backgrounded - disabling microphone to prevent access issues");
+    // If any features are active, dispatch the event to disable them
+    if (isMicActive || hasActiveMicStream || audioEnabled || enableTTS) {
+      console.log("App backgrounded - disabling audio, voice, and microphone to prevent access issues");
       // Dispatch a custom event that the main app can listen to
       window.dispatchEvent(new CustomEvent('appBackgrounded', { 
         detail: { action: 'disableMicrophone' } 
       }));
     } else {
-      console.log("No active microphone detected - no action needed");
+      console.log("No active features detected - no action needed");
     }
   }
 
   /**
-   * Directly disable microphone when app becomes inactive
+   * Directly disable audio, voice, and microphone when app becomes inactive
    * This can be called directly without relying on custom events
    */
   public disableMicrophoneOnInactive(): void {
-    console.log("Directly disabling microphone due to app inactivity");
+    console.log("Directly disabling audio, voice, and microphone due to app inactivity");
     
-    // Check if microphone is currently active
-    const micButton = document.getElementById("mic-toggle");
-    const isMicActive = micButton && micButton.textContent?.includes("Disable Mic");
-    const hasActiveMicStream = this.checkForActiveMicrophoneStream();
-    
-    if (isMicActive || hasActiveMicStream) {
-      console.log("Disabling microphone due to app inactivity");
+    // Call the unified function if it exists
+    if (typeof (window as any).handleAppBackgroundedUnified === 'function') {
+      (window as any).handleAppBackgroundedUnified();
+    } else {
+      // Fallback to old behavior if unified function doesn't exist
+      console.log("Unified function not available, falling back to microphone-only handling");
       
-      // Call the global stopMic function if it exists
-      if (typeof (window as any).stopMic === 'function') {
-        (window as any).stopMic();
-      }
+      // Check if microphone is currently active
+      const micButton = document.getElementById("mic-toggle");
+      const isMicActive = micButton && micButton.textContent?.includes("Disable Mic");
+      const hasActiveMicStream = this.checkForActiveMicrophoneStream();
       
-      // Update button state if it exists
-      if (micButton) {
-        micButton.textContent = "🎤 Enable Mic";
-      }
-      
-      // Show notification
-      if (typeof (window as any).showMicrophoneLossNotification === 'function') {
-        (window as any).showMicrophoneLossNotification();
+      if (isMicActive || hasActiveMicStream) {
+        console.log("Disabling microphone due to app inactivity");
+        
+        // Call the global stopMic function if it exists
+        if (typeof (window as any).stopMic === 'function') {
+          (window as any).stopMic();
+        }
+        
+        // Update button state if it exists
+        if (micButton) {
+          micButton.textContent = "🎤 Enable Mic";
+        }
+        
+        // Show notification
+        if (typeof (window as any).showMicrophoneLossNotification === 'function') {
+          (window as any).showMicrophoneLossNotification();
+        }
       }
     }
   }

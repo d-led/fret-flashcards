@@ -22,99 +22,24 @@ A compact browser-based tool to practice and memorize notes on a 3- to 12-string
 
 - Live at: https://d-led.github.io/fret-flashcards
 
-## Quick start
+## Quick Start
 
-- run `npm i && npm build`
-- Open `src/dist/index.html` in a browser for a quick run.
-- Or serve the dist folder with a simple static server:
-  - Python 3: `python3 -m http.server 8000 -d dist` then open `http://localhost:8000`
-  - Node: `npx http-server ./dist` then open the corresponding URL. (`npm run serve`)
+For developers, see the [Quick Start Guide](./docs/development/QUICK_START.md) for setup instructions.
+
+**Basic web usage:**
+- Run `npm i && npm run build`
+- Or serve with: `npm run serve` then open the corresponding URL, e.g. http://localhost:8080
 
 ## Inspiration
 
 Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani: "learn all notes on the fretboard".
 
-## Tests
+## Development
 
-- Cypress spec: `cypress/e2e/spec.cy.js`.
-- Run tests:
-  - Interactive: `npm run cy` or `npx cypress open --e2e`
-  - Headless: `npm run e2e`or `npx cypress run --e2e`
-
-## Mobile Apps (Android & iOS)
-
-**String Homework Tutor** is now available as native mobile apps for Android and iOS! Built with Capacitor for maximum code reuse (95%+ of your existing code works unchanged).
-
-### 🚀 Quick Mobile Start
-
-```bash
-# Install dependencies
-npm install
-
-# Build and sync for mobile
-npm run build:mobile
-
-# Run on Android (requires Android Studio)
-npm run android:dev
-
-# Run on iOS (requires Xcode on macOS)
-npm run ios:dev
-```
-
-### 📱 Mobile Features
-
-- **Haptic Feedback**: Vibration for correct/incorrect answers and button taps
-- **Native Performance**: Full native app experience with web development speed
-- **App Store Ready**: Deploy to Google Play Store and Apple App Store
-- **Touch Optimized**: All interactions work perfectly on touch screens
-- **Enhanced Storage**: Better data persistence with native APIs
-- **App Lifecycle**: Smart audio pause/resume when app goes to background
-
-### 🛠️ Development Commands
-
-| Command                 | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `npm run build:mobile`  | Build web assets + sync to mobile platforms |
-| `npm run android:dev`   | Build and run on Android device/emulator    |
-| `npm run ios:dev`       | Build and run on iOS device/simulator       |
-| `npm run android:build` | Build Android APK for production            |
-| `npm run ios:build`     | Build iOS app for production                |
-| `npm run mobile:sync`   | Sync web assets to mobile platforms         |
-| `npm run mobile:sync:ios` | Sync web assets to iOS (preserves CocoaPods settings) |
-
-### 📋 Prerequisites
-
-#### Android Development
-
-- Android Studio (latest version)
-- Android SDK (API level 33+)
-- Java Development Kit (JDK 11+)
-
-#### iOS Development (macOS only)
-
-- Xcode (latest version)
-- iOS SDK (iOS 13.0+)
-- CocoaPods: `sudo gem install cocoapods`
-
-### 🏗️ Building for Production
-
-#### Android (Google Play Store)
-
-1. Run `npm run build:mobile`
-2. Open in Android Studio: `npx cap open android`
-3. Generate signed AAB file in Android Studio
-4. Upload to Google Play Console
-
-#### iOS (App Store)
-
-1. Run `npm run build:mobile`
-2. Open in Xcode: `npx cap open ios`
-3. Archive and upload from Xcode
-4. Submit for review in App Store Connect
-
-### 📖 Detailed Mobile Guide
-
-For comprehensive mobile development instructions, see [mobile_development.md](./docs/development/mobile_development.md)
+- **Quick Start**: [QUICK_START.md](./docs/development/QUICK_START.md)
+- **Mobile Development**: [mobile_development.md](./docs/development/mobile_development.md)
+- **Testing**: [accessibility-testing.md](./docs/development/accessibility-testing.md)
+- **App Store**: [APP_STORE_SUBMISSION.md](./docs/development/APP_STORE_SUBMISSION.md)
 
 ## Notes for iOS users
 

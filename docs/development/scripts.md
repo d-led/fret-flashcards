@@ -194,6 +194,88 @@ node scripts/app-store-prep.js
 
 **Location**: `scripts/app-store-prep.js`
 
+## Version Management
+
+### Set Version Across All Platforms
+
+```bash
+npm run version:set 1.0.1
+```
+
+**Purpose**: Updates version numbers consistently across the entire project.
+
+**What it updates**:
+
+1. **Package Files**:
+   - Main `package.json` version field
+   - `app-store-metadata.json` version number
+
+2. **iOS Configuration**:
+   - `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj`
+   - `CURRENT_PROJECT_VERSION` (build number) in Xcode project
+
+3. **Android Configuration**:
+   - `versionName` in `android/app/build.gradle`
+   - `versionCode` (build number) in `android/app/build.gradle`
+
+**Features**:
+
+- ✅ **Version format validation** (must be X.Y.Z format)
+- ✅ **Automatic build number calculation** (X×10000 + Y×100 + Z)
+- ✅ **Updates all relevant files in one command**
+- ✅ **Clear success messages and next steps**
+- ✅ **Error handling with helpful messages**
+
+**Build Number Calculation**:
+
+The script automatically calculates build numbers from version strings:
+- Version `1.0.1` → Build number `10001`
+- Version `1.2.3` → Build number `10203`
+- Version `2.0.0` → Build number `20000`
+
+**Example Usage**:
+
+```bash
+# Set version to 1.0.1
+npm run version:set 1.0.1
+
+# Set version to 1.2.3
+npm run version:set 1.2.3
+
+# Set version to 2.0.0
+npm run version:set 2.0.0
+```
+
+**Output Example**:
+
+```
+🔄 Updating version from 1.0.0 to 1.0.1...
+📱 Build number will be: 10001
+📦 Updating main package.json...
+📦 Skipping quasar-project (removed)...
+📱 Updating app-store-metadata.json...
+🍎 Updating iOS Xcode project...
+🤖 Updating Android build.gradle...
+
+✅ Version update complete!
+📊 Summary:
+   • Version: 1.0.0 → 1.0.1
+   • Build number: 10001
+   • Files updated:
+     - package.json
+     - quasar-project/package.json (removed)
+     - app-store-metadata.json
+     - ios/App/App.xcodeproj/project.pbxproj
+     - android/app/build.gradle
+
+🚀 Next steps:
+   1. Commit changes: git add . && git commit -m "Bump version to 1.0.1"
+   2. Upload screenshots: npm run app-store:screenshots:add
+   3. Build and upload: npm run ios:build && npm run android:build
+```
+
+**Location**: `scripts/set-version.sh`
+
 ## Utility Scripts
 
 ### SSL Certificate Generation
@@ -213,6 +295,7 @@ All scripts are organized in the `scripts/` directory:
 - `build.mjs` - Main build script
 - `generate-icons.js` - Asset generation
 - `generate-cert.sh` - SSL certificate generation
+- `set-version.sh` - Version management across all platforms
 - `setup-app-store.sh` - App Store preparation (shell)
 - `app-store-prep.js` - App Store preparation (Node.js)
 - `accessibility-cypress-check.js` - Cypress test validation

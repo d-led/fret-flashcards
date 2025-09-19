@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Generate screenshots for App Store
 
+### ios test_auth
+
+```sh
+[bundle exec] fastlane ios test_auth
+```
+
+Test authentication with App Store Connect
+
 ### ios release
 
 ```sh
@@ -38,6 +46,22 @@ Build and upload to App Store Connect
 ```
 
 Upload metadata only to App Store Connect
+
+### ios upload_screenshots
+
+```sh
+[bundle exec] fastlane ios upload_screenshots
+```
+
+Upload screenshots to App Store Connect
+
+### ios upload_screenshots_add
+
+```sh
+[bundle exec] fastlane ios upload_screenshots_add
+```
+
+Upload screenshots without replacing existing ones
 
 ### ios build_testflight
 

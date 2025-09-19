@@ -1,0 +1,22 @@
+# Local iOS Device Configuration
+# This file contains the device ID for local development deployment
+# Copy this file and replace the DEVICE_ID with your actual device ID
+
+# Get your device ID by running: npm run ios:list
+# Or by running: xcrun simctl list devices
+
+# Device ID (replace with your actual device ID)
+DEVICE_ID=589FBB3D-EF4B-5FF7-A745-AB2693F305EE
+
+# Optional: Device name for reference
+DEVICE_NAME=DPhoMit (iPhone 13 mini)
+
+# Optional: iOS version
+IOS_VERSION=17.0
+
+# Example device IDs from your existing scripts:
+# iPhone 17 Pro: 53EE584B-475E-4C73-A9D6-D2BC7C9397EB
+# iPhone 17 Pro Max: 8985F7BF-92A1-4379-A360-6FBE13322081
+# iPhone 17: 6E0EAB2B-2587-406F-9033-FD9D5AC51114
+# iPad Pro 13-inch: 7D528078-7E96-4104-8DE2-EDBC96545DBE
+# iPad Pro 11-inch: 7A7BC037-94C9-4A57-B17A-4B69A0E9A29C

@@ -30,11 +30,11 @@ export PROVISIONING_PROFILE_UUID="your-provisioning-profile-uuid"
 # Step 1: Validate everything is ready
 npm run app-store:validate
 
-# Step 2: Prepare all assets
+# Step 2: Prepare all assets (⚠️ WARNING: This deletes old screenshots!)
 npm run app-store:prep
 
 # Step 3: Submit to TestFlight first
-npm run app-store:submit:testflight
+npm run app-store:testflight
 
 # Step 4: Upload screenshots to App Store Connect
 npm run app-store:screenshots
@@ -43,7 +43,7 @@ npm run app-store:screenshots
 npm run app-store:metadata
 
 # Step 6: After testing, submit to App Store
-npm run app-store:submit:appstore
+npm run app-store:release
 ```
 
 ## 🚀 Available Commands
@@ -53,15 +53,14 @@ npm run app-store:submit:appstore
 | Command | Purpose | Description |
 |---------|---------|-------------|
 | `npm run app-store:validate` | Validation | Validates all assets, metadata, and compliance |
-| `npm run app-store:prep` | Preparation | Generates screenshots and prepares all assets |
-| `npm run app-store:submit:testflight` | TestFlight | Builds and uploads to TestFlight |
-| `npm run app-store:submit:appstore` | App Store | Builds and uploads to App Store |
+| `npm run app-store:prep` | Preparation | **⚠️ WARNING: Deletes old screenshots!** Generates screenshots and prepares all assets |
+| `npm run app-store:testflight` | TestFlight | **✅ WORKING** - Builds and uploads to TestFlight |
+| `npm run app-store:release` | App Store | Builds and uploads to App Store |
 | `npm run app-store:metadata` | Metadata | Upload metadata only to App Store Connect |
 | `npm run app-store:screenshots` | Screenshots | Upload screenshots (replaces existing) |
 | `npm run app-store:screenshots:add` | Screenshots | Upload screenshots (adds to existing) |
-| `npm run app-store:testflight` | Direct Fastlane | Direct fastlane TestFlight upload |
-| `npm run app-store:release` | Direct Fastlane | Direct fastlane App Store release |
-| `npm run screenshots` | Screenshots | Generate screenshots only |
+| `npm run screenshots` | Screenshots | Generate screenshots only (fastlane) |
+| `npm run screenshots:fastlane` | Screenshots | Generate screenshots using fastlane script |
 
 ### Individual Scripts
 
@@ -127,9 +126,11 @@ npm run app-store:screenshots:add
 
 1. **Generate Screenshots**:
    ```bash
-   npm run app-store:prep  # Includes screenshot generation
+   npm run app-store:prep  # ⚠️ WARNING: Deletes old screenshots! Includes screenshot generation
    # OR
-   npm run screenshots     # Screenshots only
+   npm run screenshots     # Screenshots only (fastlane)
+   # OR
+   npm run screenshots:fastlane  # Screenshots using fastlane script
    ```
 
 2. **Upload Screenshots**:
@@ -268,7 +269,7 @@ npm run app-store:validate
 
 ```bash
 # Upload to TestFlight
-npm run app-store:submit:testflight
+npm run app-store:testflight
 
 # Test on real devices
 # - iPhone SE (smallest screen)
@@ -282,7 +283,7 @@ npm run app-store:submit:testflight
 
 ```bash
 # After successful TestFlight testing
-npm run app-store:submit:appstore
+npm run app-store:release
 ```
 
 ## 🚨 Troubleshooting

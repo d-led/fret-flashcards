@@ -11,10 +11,10 @@ platform :ios do
 
   desc "Test authentication with App Store Connect"
   lane :test_auth do
-    # Clear any API key environment variables to force username/password auth
-    ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
-    ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
-    ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    # # Clear any API key environment variables to force username/password auth
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
+    # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
     
     # Test authentication by connecting to App Store Connect
     require 'spaceship'
@@ -39,9 +39,11 @@ platform :ios do
     # Build the app
     build_app(
       scheme: "App",
-      workspace: "ios/App/App.xcworkspace",
+      workspace: "./App/App.xcworkspace",
       configuration: "Release",
       export_method: "app-store",
+      export_team_id: ENV["APPLE_TEAM_ID"],
+      xcargs: "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']}",
       export_options: {
         method: "app-store",
         teamID: ENV["APPLE_TEAM_ID"],
@@ -68,6 +70,7 @@ platform :ios do
   lane :upload_metadata do
     upload_to_app_store(
       username: ENV["APPLE_ID"],
+      app_identifier: "com.dled.stringhomeworktutor",
       force: true,
       skip_binary_upload: true,
       skip_screenshots: true,
@@ -81,10 +84,10 @@ platform :ios do
 
   desc "Upload screenshots to App Store Connect"
   lane :upload_screenshots do
-    # Clear any API key environment variables to force username/password auth
-    ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
-    ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
-    ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    # # Clear any API key environment variables to force username/password auth
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
+    # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
     
     deliver(
       username: ENV["APPLE_ID"],
@@ -103,10 +106,10 @@ platform :ios do
 
   desc "Upload screenshots without replacing existing ones"
   lane :upload_screenshots_add do
-    # Clear any API key environment variables to force username/password auth
-    ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
-    ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
-    ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    # # Clear any API key environment variables to force username/password auth
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
+    # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
     
     deliver(
       username: ENV["APPLE_ID"],
@@ -119,17 +122,26 @@ platform :ios do
       automatic_release: false,
       overwrite_screenshots: false,
       api_key_path: nil,
-      api_key: nil
+      api_key: nil,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false
     )
   end
 
   desc "Build for TestFlight"
   lane :build_testflight do
+    # Clear any API key environment variables to force username/password auth
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
+    # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    
     build_app(
       scheme: "App", 
-      workspace: "ios/App/App.xcworkspace",
+      workspace: "./App/App.xcworkspace",
       configuration: "Release",
       export_method: "app-store",
+      export_team_id: ENV["APPLE_TEAM_ID"],
+      xcargs: "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']}",
       export_options: {
         method: "app-store",
         teamID: ENV["APPLE_TEAM_ID"],
@@ -142,8 +154,8 @@ platform :ios do
     )
     
     upload_to_testflight(
-      username: ENV["APPLE_ID"],
       app_identifier: "com.dled.stringhomeworktutor",
+      username: ENV["APPLE_ID"],
       skip_waiting_for_build_processing: true
     )
   end

@@ -22,22 +22,20 @@ $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
-  // Listen for app backgrounding events to handle microphone state
+  // Listen for app backgrounding events to handle audio, voice, and microphone state
   window.addEventListener('appBackgrounded', (event: Event) => {
     const customEvent = event as CustomEvent;
     console.log("App backgrounded event received:", {
       action: customEvent.detail?.action,
       pitchDetecting: pitchDetecting,
-      micStream: !!micStream
+      micStream: !!micStream,
+      audioEnabled: audioEnabled,
+      enableTTS: enableTTS
     });
     
-    if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
-      console.log("App backgrounded - automatically disabling microphone");
-      stopMic();
-      // Update UI to reflect microphone is off
-      updateMicrophoneButtonState(false);
-      // Show user feedback
-      showMicrophoneLossNotification();
+    if (customEvent.detail?.action === 'disableMicrophone') {
+      // Use the unified function to handle all features
+      handleAppBackgroundedUnified();
     }
   });
 
@@ -2519,6 +2517,90 @@ $(async function () {
     }, 3000);
   }
 
+  // Unified function to handle loss of audio, voice, and microphone when app is backgrounded
+  function handleAppBackgroundedUnified() {
+    console.log("App backgrounded - checking audio, voice, and microphone state");
+    
+    let disabledFeatures = [];
+    
+    // Disable audio if enabled
+    if (audioEnabled) {
+      console.log("Disabling audio due to app backgrounding");
+      audioEnabled = false;
+      disabledFeatures.push("audio");
+    }
+    
+    // Disable TTS if enabled
+    if (enableTTS) {
+      console.log("Disabling TTS due to app backgrounding");
+      // Don't disable enableTTS setting, just reset the initialized state
+      // This way the banner will show to re-enable voice
+      ttsUserInitialized = false;
+      disabledFeatures.push("voice");
+    }
+    
+    // Disable microphone if active
+    if (pitchDetecting) {
+      console.log("Disabling microphone due to app backgrounding");
+      stopMic();
+      updateMicrophoneButtonState(false);
+      disabledFeatures.push("microphone");
+    }
+    
+    // Update UI state
+    updateTestState();
+    
+    // Show unified notification if any features were disabled
+    if (disabledFeatures.length > 0) {
+      showUnifiedLossNotification(disabledFeatures);
+    }
+    
+    // Update banner to show re-enable options
+    updateUnifiedBanner();
+    
+    console.log("App backgrounded - disabled features:", disabledFeatures);
+    console.log("Banner should be visible:", !audioEnabled || (enableTTS && !ttsUserInitialized));
+  }
+
+  // Make the unified function available globally
+  (window as any).handleAppBackgroundedUnified = handleAppBackgroundedUnified;
+  
+  // Test function to simulate app backgrounding
+  (window as any).testAppBackgrounding = function() {
+    console.log("Testing app backgrounding...");
+    handleAppBackgroundedUnified();
+  };
+
+  // Show unified notification when features are lost due to app backgrounding
+  function showUnifiedLossNotification(disabledFeatures: string[]) {
+    let message = "";
+    if (disabledFeatures.length === 1) {
+      const feature = disabledFeatures[0];
+      if (feature === "audio") message = "Audio disabled - app minimized";
+      else if (feature === "voice") message = "Voice disabled - app minimized";
+      else if (feature === "microphone") message = "Microphone disabled - app minimized";
+    } else if (disabledFeatures.length === 2) {
+      if (disabledFeatures.includes("audio") && disabledFeatures.includes("voice")) {
+        message = "Audio and voice disabled - app minimized";
+      } else if (disabledFeatures.includes("audio") && disabledFeatures.includes("microphone")) {
+        message = "Audio and microphone disabled - app minimized";
+      } else if (disabledFeatures.includes("voice") && disabledFeatures.includes("microphone")) {
+        message = "Voice and microphone disabled - app minimized";
+      }
+    } else if (disabledFeatures.length === 3) {
+      message = "Audio, voice, and microphone disabled - app minimized";
+    }
+    
+    // Create a temporary notification
+    const notification = $('<div class="unified-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">' + message + '</div>');
+    $('body').append(notification);
+    
+    // Remove notification after 4 seconds (longer for multiple features)
+    setTimeout(() => {
+      notification.fadeOut(300, () => notification.remove());
+    }, 4000);
+  }
+
   // Update microphone button text and state
   function updateMicrophoneButtonState(isEnabled: boolean) {
     const micButton = $("#mic-toggle");
@@ -2849,19 +2931,45 @@ $(async function () {
   function updateUnifiedBanner() {
     const banner = $unifiedBanner;
 
+    console.log("updateUnifiedBanner called:", {
+      audioEnabled,
+      enableTTS,
+      ttsUserInitialized,
+      isIOS
+    });
+
+    // If both audio and TTS are enabled and initialized, show success message
     if (audioEnabled && ttsUserInitialized) {
       banner.addClass("enabled").text("🔊🎤 Audio and voice enabled!");
       setTimeout(() => banner.hide(), 2000);
-    } else if (isIOS && !audioEnabled) {
-      // On iOS, show banner to enable audio
-      // Only show "and voice" if TTS is enabled in settings
-      const bannerText = enableTTS ? "🔊🎤 Click here to enable audio and voice" : "🔊 Click here to enable audio";
+      return;
+    }
+
+    // Determine what needs to be enabled
+    const needsAudio = !audioEnabled;
+    const needsVoice = enableTTS && !ttsUserInitialized;
+    
+    console.log("Banner needs:", { needsAudio, needsVoice });
+    
+    // Build banner text based on what's needed
+    let bannerText = "";
+    if (needsAudio && needsVoice) {
+      bannerText = "🔊🎤 Click here to enable audio and voice";
+    } else if (needsAudio) {
+      bannerText = "🔊 Click here to enable audio";
+    } else if (needsVoice) {
+      bannerText = "🎤 Click here to enable voice";
+    }
+
+    console.log("Banner text:", bannerText);
+
+    // Show banner if there's something to enable
+    if (bannerText) {
       banner.removeClass("enabled").text(bannerText).show();
-    } else if (!isIOS && enableTTS && !ttsUserInitialized) {
-      // On desktop, show banner when TTS is enabled but not initialized by user
-      banner.removeClass("enabled").text("🔊 Click here to enable voice").show();
+      console.log("Banner shown");
     } else {
       banner.hide();
+      console.log("Banner hidden");
     }
   }
 

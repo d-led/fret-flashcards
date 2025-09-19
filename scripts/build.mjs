@@ -6,9 +6,27 @@ import { execSync } from "child_process";
 const root = path.resolve(".");
 const outdir = path.join(root, "dist");
 
+// Get the publicPath from command line arguments (e.g., --publicPath=/my-repo/)
+const publicPathArg = process.argv.find(arg => arg.startsWith('--publicPath='));
+const publicPath = publicPathArg ? publicPathArg.split('=')[1] : '';
+
 function copyFile(src, dest) {
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.copyFileSync(src, dest);
+}
+
+function updateConfigsForPublicPath() {
+  if (!publicPath) return;
+  
+  console.log(`Building with publicPath: ${publicPath}`);
+  // No additional configuration needed for publicPath
+}
+
+function restoreConfigs() {
+  if (!publicPath) return;
+  
+  console.log("Restoring original configs...");
+  // No additional configuration needed for publicPath
 }
 
 function copyVendorAssets() {
@@ -93,6 +111,9 @@ function minifyHTML() {
 }
 
 async function buildJS(watch = false) {
+  // Update configs if publicPath is provided
+  updateConfigsForPublicPath();
+  
   const options = {
     entryPoints: [path.join("src", "ts", "index.ts"), path.join("src", "css", "main.css"), path.join("src", "static", "index.html"), path.join("src", "logo", "logo.svg")],
     bundle: true,
@@ -143,16 +164,27 @@ async function buildJS(watch = false) {
     process.on("SIGINT", async () => {
       console.log("\nStopping watch mode...");
       await ctx.dispose();
+      restoreConfigs();
       process.exit(0);
     });
   } else {
-    copyVendorAssets();
-    await build(options);
-    replaceBuildInfo();
-    if (!watch) {
-      // JS and CSS are already minified by esbuild when !watch
-      // Minify the copied HTML without external dependencies
-      minifyHTML();
+    try {
+      copyVendorAssets();
+      await build(options);
+      replaceBuildInfo();
+      if (!watch) {
+        // JS and CSS are already minified by esbuild when !watch
+        // Minify the copied HTML without external dependencies
+        minifyHTML();
+      }
+      
+      console.log("✅ Build complete!");
+      if (publicPath) {
+        console.log(`Your app will be available at: https://yourusername.github.io${publicPath}`);
+      }
+    } finally {
+      // Always restore configs
+      restoreConfigs();
     }
   }
 }

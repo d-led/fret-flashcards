@@ -259,7 +259,7 @@ class AppStoreValidate {
 
     try {
       // Check if iOS project syncs
-      execSync("npx cap sync ios", { stdio: "pipe" });
+      execSync("npm run mobile:sync", { stdio: "pipe" });
       this.log("iOS sync validation passed", "success");
     } catch (error) {
       // Check if it's the known CocoaPods Xcode 26 compatibility issue

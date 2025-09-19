@@ -92,6 +92,45 @@ npx cap ls
 npm run build:mobile
 ```
 
+## 🚀 Quick Mobile Start
+
+For developers who want to get up and running quickly:
+
+```bash
+# Install dependencies
+npm install
+
+# Build and sync for mobile
+npm run build:mobile
+
+# Run on Android (requires Android Studio)
+npm run android:dev
+
+# Run on iOS (requires Xcode on macOS)
+npm run ios:dev
+```
+
+## 📱 Mobile Features
+
+- **Haptic Feedback**: Vibration for correct/incorrect answers and button taps
+- **Native Performance**: Full native app experience with web development speed
+- **App Store Ready**: Deploy to Google Play Store and Apple App Store
+- **Touch Optimized**: All interactions work perfectly on touch screens
+- **Enhanced Storage**: Better data persistence with native APIs
+- **App Lifecycle**: Smart audio pause/resume when app goes to background
+
+## 🛠️ Development Commands
+
+| Command                 | Description                                 |
+| ----------------------- | ------------------------------------------- |
+| `npm run build:mobile`  | Build web assets + sync to mobile platforms |
+| `npm run android:dev`   | Build and run on Android device/emulator    |
+| `npm run ios:dev`       | Build and run on iOS device/simulator       |
+| `npm run android:build` | Build Android APK for production            |
+| `npm run ios:build`     | Build iOS app for production                |
+| `npm run mobile:sync`   | Sync web assets to mobile platforms         |
+| `npm run mobile:sync:ios` | Sync web assets to iOS (preserves CocoaPods settings) |
+
 ## Mobile-Specific Features
 
 ### Haptic Feedback System
@@ -227,7 +266,23 @@ fret-flashcards/
 
 ## Building for Production
 
-### Android Production Build
+### Android (Google Play Store)
+
+1. Run `npm run build:mobile`
+2. Open in Android Studio: `npx cap open android`
+3. Generate signed AAB file in Android Studio
+4. Upload to Google Play Console
+
+### iOS (App Store)
+
+1. Run `npm run build:mobile`
+2. Open in Xcode: `npx cap open ios`
+3. Archive and upload from Xcode
+4. Submit for review in App Store Connect
+
+### Detailed Production Build Process
+
+#### Android Production Build
 
 1. **Prepare for release:**
 
@@ -253,7 +308,7 @@ fret-flashcards/
    ./gradlew assembleRelease
    ```
 
-### iOS Production Build
+#### iOS Production Build
 
 1. **Prepare for release:**
 
