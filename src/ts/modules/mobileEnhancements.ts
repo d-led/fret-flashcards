@@ -30,13 +30,13 @@ export class MobileEnhancements {
     if (this.isInitialized) return;
 
     try {
-      // Only initialize touch handling on non-iOS platforms for now
-      // iOS seems to have conflicts with the touch handler
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      if (!isIOS) {
+      // Only initialize touch handling on native platforms
+      // This prevents context menu disabling in browsers while keeping it on mobile
+      if (Capacitor.isNativePlatform()) {
+        // Initialize touch handling on all native platforms (including iOS)
         touchHandler.initialize();
       } else {
-        console.log("Skipping touch handler on iOS to avoid conflicts");
+        console.log("Skipping touch handler in browser - context menu will be available");
       }
 
       // Only run on native platforms
