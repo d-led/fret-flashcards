@@ -56,6 +56,10 @@ echo "🤖 Updating Android build.gradle..."
 sed -i '' "s/versionName \"[^\"]*\"/versionName \"$NEW_VERSION\"/" android/app/build.gradle
 sed -i '' "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
 
+# Update iOS Fastfile
+echo "🍎 Updating iOS Fastfile..."
+sed -i '' "s/app_version: \"[^\"]*\"/app_version: \"$NEW_VERSION\"/" ios/fastlane/Fastfile
+
 echo ""
 echo "✅ Version update complete!"
 echo "📊 Summary:"
@@ -67,6 +71,7 @@ echo "     - quasar-project/package.json (removed)"
 echo "     - app-store-metadata.json"
 echo "     - ios/App/App.xcodeproj/project.pbxproj"
 echo "     - android/app/build.gradle"
+echo "     - ios/fastlane/Fastfile"
 echo ""
 echo "🚀 Next steps:"
 echo "   1. Commit changes: git add . && git commit -m \"Bump version to $NEW_VERSION\""
