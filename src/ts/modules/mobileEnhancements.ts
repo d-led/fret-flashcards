@@ -361,36 +361,11 @@ export class MobileEnhancements {
   public disableMicrophoneOnInactive(): void {
     console.log("Directly disabling audio, voice, and microphone due to app inactivity");
     
-    // Call the unified function if it exists
+    // Always use the unified function to prevent duplicate notifications
     if (typeof (window as any).handleAppBackgroundedUnified === 'function') {
       (window as any).handleAppBackgroundedUnified();
     } else {
-      // Fallback to old behavior if unified function doesn't exist
-      console.log("Unified function not available, falling back to microphone-only handling");
-      
-      // Check if microphone is currently active
-      const micButton = document.getElementById("mic-toggle");
-      const isMicActive = micButton && micButton.textContent?.includes("Disable Mic");
-      const hasActiveMicStream = this.checkForActiveMicrophoneStream();
-      
-      if (isMicActive || hasActiveMicStream) {
-        console.log("Disabling microphone due to app inactivity");
-        
-        // Call the global stopMic function if it exists
-        if (typeof (window as any).stopMic === 'function') {
-          (window as any).stopMic();
-        }
-        
-        // Update button state if it exists
-        if (micButton) {
-          micButton.textContent = "🎤 Enable Mic";
-        }
-        
-        // Show notification
-        if (typeof (window as any).showMicrophoneLossNotification === 'function') {
-          (window as any).showMicrophoneLossNotification();
-        }
-      }
+      console.error("Unified function not available - this should not happen");
     }
   }
 

@@ -2507,8 +2507,11 @@ $(async function () {
 
   // Show notification when microphone access is lost
   function showMicrophoneLossNotification() {
-    // Create a temporary notification
-    const notification = $('<div class="mic-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">Microphone access lost - disabled automatically</div>');
+    // Remove any existing notifications to prevent overlapping
+    $('.unified-loss-notification, .mic-loss-notification').remove();
+    
+    // Create a temporary notification with neutral styling
+    const notification = $('<div class="mic-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">Microphone access lost - disabled automatically</div>');
     $('body').append(notification);
     
     // Remove notification after 3 seconds
@@ -2565,7 +2568,7 @@ $(async function () {
   // Make the unified function available globally
   (window as any).handleAppBackgroundedUnified = handleAppBackgroundedUnified;
   
-  // Test function to simulate app backgrounding
+  // Test function to simulate app backgrounding (development only)
   (window as any).testAppBackgrounding = function() {
     console.log("Testing app backgrounding...");
     handleAppBackgroundedUnified();
@@ -2573,6 +2576,9 @@ $(async function () {
 
   // Show unified notification when features are lost due to app backgrounding
   function showUnifiedLossNotification(disabledFeatures: string[]) {
+    // Remove any existing notifications to prevent overlapping
+    $('.unified-loss-notification, .mic-loss-notification').remove();
+    
     let message = "";
     if (disabledFeatures.length === 1) {
       const feature = disabledFeatures[0];
@@ -2591,8 +2597,8 @@ $(async function () {
       message = "Audio, voice, and microphone disabled - app minimized";
     }
     
-    // Create a temporary notification
-    const notification = $('<div class="unified-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #ff6b6b; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">' + message + '</div>');
+    // Create a temporary notification with neutral styling and better positioning
+    const notification = $('<div class="unified-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">' + message + '</div>');
     $('body').append(notification);
     
     // Remove notification after 4 seconds (longer for multiple features)
