@@ -60,7 +60,8 @@
     "app-store:sync:upload": "cd ios && fastlane deliver --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\"",
     "app-store:sync:check": "npm run app-store:validate",
     "app-store:clean": "./scripts/clean-metadata.sh",
-    "app-store:remove": "node scripts/remove-submission.js"
+    "app-store:remove": "node scripts/remove-submission.js",
+    "generate:oss": "node scripts/generate-oss.js"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
