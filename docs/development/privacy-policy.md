@@ -11,7 +11,7 @@ String Homework Tutor does not collect, store, or transmit any personal data. Th
 The app stores the following data locally on your device:
 
 - Quiz settings and preferences
-- Statistics and progress tracking
+- Quiz events for customized quiz randomization
 - Custom tunings and configurations
 - Audio preferences and settings
 - Accessibility settings
