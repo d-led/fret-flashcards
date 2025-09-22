@@ -36,6 +36,9 @@ platform :ios do
 
   desc "Build and upload to App Store Connect"
   lane :release do
+    # Build web assets first
+    sh("cd .. && npm run build:mobile")
+    
     # Build the app
     build_app(
       scheme: "App",
@@ -135,6 +138,9 @@ platform :ios do
     # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
     # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
     # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    
+    # Build web assets first
+    sh("cd .. && npm run build:mobile")
     
     build_app(
       scheme: "App", 
