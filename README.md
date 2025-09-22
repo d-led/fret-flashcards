@@ -45,6 +45,15 @@ Inspired by Steve Vai's anecdote about the first homework given to him by Joe Sa
 
 - On iOS devices you may need to tap the "enable sound" banner to hear tones.
 
+## Prominent Dependencies
+
+This app wouldn't be possible without the work of thousands of OSS contributors. The prominent OSS used in this app:
+
+- UI: [jQuery](https://jquery.com/)
+- Cross-Platform Mobile App Builds: [Capacitor](https://capacitorjs.com/)
+- Pitch detection: [pitchy](https://github.com/ianprime0509/pitchy)
+- Score notation rendering: [vexflow](https://github.com/vexflow)
+
 ## 📄 Licensing
 
 This project uses **dual licensing** (similar to VLC):
