@@ -15,9 +15,9 @@
   },
   "keywords": "guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings",
   "promotional_text": "Master guitar fretboard notes with interactive flashcards. Perfect for students, teachers, and self-taught musicians. Full accessibility support included!",
-  "marketing_url": "https://github.com/dledentsov/fret-flashcards",
-  "privacy_url": "https://github.com/dledentsov/fret-flashcards/blob/main/docs/development/privacy-policy.md",
-  "support_url": "https://github.com/dledentsov/fret-flashcards",
+  "marketing_url": "https://github.com/d-led/fret-flashcards",
+  "privacy_url": "https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md",
+  "support_url": "https://github.com/d-led/fret-flashcards",
   "version": {
     "number": "1.0.2",
     "release_notes": "Update release of String Homework Tutor - Master guitar fretboard notes with interactive flashcards and sheet music practice.\nUpdated:\n- Improved app minimization handling."

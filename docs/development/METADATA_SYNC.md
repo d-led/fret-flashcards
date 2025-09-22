@@ -148,9 +148,9 @@ Compare values between:
 - **Age Rating**: 4+
 
 ### **URLs**
-- **Marketing**: https://github.com/dledentsov/fret-flashcards
-- **Privacy**: https://github.com/dledentsov/fret-flashcards/blob/main/docs/development/privacy-policy.md
-- **Support**: https://github.com/dledentsov/fret-flashcards
+- **Marketing**: https://github.com/d-led/fret-flashcards
+- **Privacy**: https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md
+- **Support**: https://github.com/d-led/fret-flashcards
 
 ### **Keywords**
 ```

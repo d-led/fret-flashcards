@@ -135,7 +135,7 @@ The dual licensing model provides several enforcement mechanisms:
 
 For commercial licensing inquiries:
 - **Email:** stringhomeworktutor@ledentsov.de
-- **Project:** https://github.com/dledentsov/fret-flashcards
+- **Project:** https://github.com/d-led/fret-flashcards
 
 ## Frequently Asked Questions
 

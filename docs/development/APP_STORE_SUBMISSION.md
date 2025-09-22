@@ -220,9 +220,9 @@ guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings
 ```
 
 ### URLs
-- **Marketing**: https://github.com/dledentsov/fret-flashcards
-- **Privacy Policy**: https://github.com/dledentsov/fret-flashcards/blob/main/docs/development/privacy-policy.md
-- **Support**: https://github.com/dledentsov/fret-flashcards
+- **Marketing**: https://github.com/d-led/fret-flashcards
+- **Privacy Policy**: https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md
+- **Support**: https://github.com/d-led/fret-flashcards
 
 ## 🔒 Permissions
 
