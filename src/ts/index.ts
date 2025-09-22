@@ -22,6 +22,18 @@ $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
+  // If we're not running as a native app, show the mobile app store links
+  try {
+    const mobileLinksEl = document.getElementById("mobile-links");
+    if (mobileLinksEl && !mobileEnhancements.isMobile()) {
+      // Remove inline display:none if present and make element visible
+      mobileLinksEl.style.display = "block";
+    }
+  } catch (e) {
+    // Defensive: don't break initialization if DOM isn't available yet
+    console.warn("Could not update #mobile-links visibility:", e);
+  }
+
   // Listen for app backgrounding events to handle audio, voice, and microphone state
   window.addEventListener('appBackgrounded', (event: Event) => {
     const customEvent = event as CustomEvent;
