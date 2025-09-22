@@ -212,9 +212,11 @@ describe("Accessibility Tests", () => {
     });
 
     it("should have proper alt text and descriptions", () => {
-      // Check that images have alt attributes (if any exist)
-      // This app doesn't have images, so we'll just verify no images are present
-      cy.get("img").should("not.exist");
+      // Check that any images have proper alt attributes
+      cy.get("img").each(($img) => {
+        cy.wrap($img).should("have.attr", "alt");
+        cy.wrap($img).should("have.attr", "alt").and("not.be.empty");
+      });
     });
   });
 
