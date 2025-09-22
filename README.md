@@ -5,6 +5,20 @@ A compact browser-based tool to practice and memorize notes on a 3- to 12-string
 ![screenshot](./docs/img/app-screenshot-auto.png)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fd-led%2Ffret-flashcards?ref=badge_shield)
 
+## Web Version
+
+- [d-led.github.io/fret-flashcards](https://d-led.github.io/fret-flashcards/)
+
+## Mobile Version
+
+If you need to be offline or not have to carry the computer out in the open with you:
+
+[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/string-homework-tutor/id6752674139)
+
+<!-- [![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=com.dled.stringhomeworktutor)
+
+-->
+
 ## Features
 
 - Practice identifying notes on any string and fret.
