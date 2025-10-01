@@ -120,11 +120,6 @@ export class MobileEnhancements {
         this.resumeAudio();
       });
 
-      // Handle back button on Android
-      App.addListener("backButton", () => {
-        // Handle back button - could show exit confirmation
-        this.handleBackButton();
-      });
 
       // Add Page Visibility API fallback for browser compatibility
       this.setupPageVisibilityListener();
@@ -204,26 +199,6 @@ export class MobileEnhancements {
     window.dispatchEvent(event);
   }
 
-  /**
-   * Handle Android back button
-   */
-  private handleBackButton(): void {
-    // Check if we're in a modal or special view
-    const modal = document.querySelector(".modal, .overlay, .popup");
-    if (modal) {
-      // Close modal instead of exiting app
-      const closeButton = modal.querySelector("[data-dismiss], .close, .cancel");
-      if (closeButton) {
-        (closeButton as HTMLElement).click();
-        return;
-      }
-    }
-
-    // Default: show exit confirmation
-    if (confirm("Are you sure you want to exit String Homework Tutor?")) {
-      App.exitApp();
-    }
-  }
 
   /**
    * Enhanced storage using Capacitor Preferences

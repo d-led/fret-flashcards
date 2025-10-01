@@ -83,7 +83,7 @@ button,
 #### **Touch Sensitivity Settings**
 
 - **Configurable thresholds** for different gesture types
-- **Platform-specific optimizations** for iOS and Android
+- **Platform-specific optimizations** for iOS
 - **Device-specific adjustments** for different screen sizes
 
 #### **Accessibility Support**
@@ -247,12 +247,6 @@ console.log("Is scroll:", mobileEnhancements.isScrollGesture());
 - **3D Touch support** (if available)
 - **Haptic feedback** integration
 
-#### **Android**
-
-- **Chrome touch handling** optimized
-- **Material Design** touch targets respected
-- **Vibration feedback** integration
-- **Accessibility services** support
 
 ---
 

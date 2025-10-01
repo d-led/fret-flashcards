@@ -93,7 +93,7 @@ Builds the application and watches for changes, rebuilding automatically.
 npm run build:mobile
 ```
 
-Builds the application and generates mobile assets for iOS and Android.
+Builds the application and generates mobile assets for iOS.
 
 ## Asset Generation
 
@@ -109,7 +109,7 @@ npm run generate:assets
 
 1. Copies the logo from `src/logo/logo.svg` to `assets/`
 2. Runs `@capacitor/assets generate` to create all required sizes
-3. Generates icons for iOS, Android, and PWA
+3. Generates icons for iOS and PWA
 4. Creates splash screens for all platforms and orientations
 
 **Location**: `scripts/generate-icons.js`
@@ -125,12 +125,6 @@ npm run ios:open         # Open in Xcode
 npm run ios:list         # List available simulators
 ```
 
-### Android Development
-
-```bash
-npm run android:dev      # Build and run on Android emulator
-npm run android:build    # Build Android app
-```
 
 ### Mobile Sync
 
@@ -140,7 +134,7 @@ npm run android:build    # Build Android app
 npm run mobile:sync
 ```
 
-**Purpose**: Syncs web assets to all mobile platforms (iOS, Android, Web).
+**Purpose**: Syncs web assets to all mobile platforms (iOS, Web).
 
 **What it does**:
 - Copies web assets from `dist/` to platform-specific directories
@@ -214,9 +208,6 @@ npm run version:set 1.0.1
    - `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj`
    - `CURRENT_PROJECT_VERSION` (build number) in Xcode project
 
-3. **Android Configuration**:
-   - `versionName` in `android/app/build.gradle`
-   - `versionCode` (build number) in `android/app/build.gradle`
 
 **Features**:
 
@@ -255,7 +246,6 @@ npm run version:set 2.0.0
 📦 Skipping quasar-project (removed)...
 📱 Updating app-store-metadata.json...
 🍎 Updating iOS Xcode project...
-🤖 Updating Android build.gradle...
 
 ✅ Version update complete!
 📊 Summary:
@@ -266,12 +256,11 @@ npm run version:set 2.0.0
      - quasar-project/package.json (removed)
      - app-store-metadata.json
      - ios/App/App.xcodeproj/project.pbxproj
-     - android/app/build.gradle
 
 🚀 Next steps:
    1. Commit changes: git add . && git commit -m "Bump version to 1.0.1"
    2. Upload screenshots: npm run app-store:screenshots:add
-   3. Build and upload: npm run ios:build && npm run android:build
+   3. Build and upload: npm run ios:build
 ```
 
 **Location**: `scripts/set-version.sh`
@@ -309,7 +298,7 @@ All scripts are organized in the `scripts/` directory:
 2. **Run tests**: `npm test`
 3. **Test accessibility**: `npm run test:accessibility`
 4. **Run E2E tests**: `npm run test:e2e`
-5. **Test mobile**: `npm run ios:dev` or `npm run android:dev`
+5. **Test mobile**: `npm run ios:dev`
 
 ### Pre-deployment Checklist
 

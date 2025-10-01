@@ -51,7 +51,6 @@ sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/" ios/Ap
 # Update CURRENT_PROJECT_VERSION (build number)
 sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/" ios/App/App.xcodeproj/project.pbxproj
 
-# Note: Android support has been removed
 
 # Update iOS Fastfile
 echo "🍎 Updating iOS Fastfile..."

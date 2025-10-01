@@ -48,7 +48,7 @@ We take security seriously and appreciate your efforts to responsibly disclose y
 
 This security policy applies to:
 - The Fret Flashcards web application
-- Mobile applications (iOS/Android)
+- Mobile applications (iOS)
 - All dependencies and third-party libraries
 - The build and deployment infrastructure
 

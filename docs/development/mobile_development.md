@@ -95,7 +95,7 @@ npm run ios:dev
 
 - **Haptic Feedback**: Vibration for correct/incorrect answers and button taps
 - **Native Performance**: Full native app experience with web development speed
-- **App Store Ready**: Deploy to Google Play Store and Apple App Store
+- **App Store Ready**: Deploy to Apple App Store
 - **Touch Optimized**: All interactions work perfectly on touch screens
 - **Enhanced Storage**: Better data persistence with native APIs
 - **App Lifecycle**: Smart audio pause/resume when app goes to background
@@ -155,7 +155,6 @@ Custom branded loading screen:
 SplashScreen: {
   launchShowDuration: 2000,
   backgroundColor: "#222222",
-  androidSplashResourceName: "splash",
   // ... more options
 }
 ```
@@ -208,9 +207,6 @@ const settings = await mobileEnhancements.getPreference("settings");
 4. **Test on device/emulator:**
 
    ```bash
-   # Android
-   npm run android:dev
-
    # iOS (macOS only)
    npm run ios:dev
    ```
@@ -222,9 +218,7 @@ const settings = await mobileEnhancements.getPreference("settings");
 | `npm run build`         | Build web assets only               |
 | `npm run build:mobile`  | Build web assets + sync to mobile   |
 | `npm run mobile:sync`   | Sync web assets to mobile platforms |
-| `npm run android:dev`   | Build and run on Android            |
 | `npm run ios:dev`       | Build and run on iOS                |
-| `npm run android:build` | Build Android APK                   |
 | `npm run ios:build`     | Build iOS app                       |
 
 ### File Structure
@@ -233,10 +227,6 @@ const settings = await mobileEnhancements.getPreference("settings");
 fret-flashcards/
 ├── src/ts/modules/
 │   └── mobileEnhancements.ts    # Mobile-specific features
-├── android/                     # Android project
-│   └── app/src/main/
-│       ├── AndroidManifest.xml  # Permissions & config
-│       └── res/                 # Android resources
 ├── ios/                        # iOS project
 │   └── App/App/                # iOS app files
 ├── capacitor.config.ts         # Capacitor configuration
