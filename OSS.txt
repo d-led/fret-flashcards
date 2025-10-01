@@ -8,18 +8,11 @@ Description: Guitar Fretboard Flashcard Game
 This document contains information about the open source software
 components used in this project and their respective licenses.
 
-Generated on: 2025-09-22T18:51:00.236Z
+Generated on: 2025-10-01T23:53:04.975Z
 
 ==================================================
 DEPENDENCIES
 ==================================================
-
-
-@capacitor/android (^7.4.3)
-----------------------------------------
-License: See package documentation
-Source: https://www.npmjs.com/package/@capacitor/android
-Version: ^7.4.3
 
 
 @capacitor/app (^7.1.0)
