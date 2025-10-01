@@ -43,11 +43,6 @@ npx http-server ./dist
 
 ### Prerequisites
 
-#### Android Development
-- Android Studio (latest version)
-- Android SDK (API level 33+)
-- Java Development Kit (JDK 11+)
-
 #### iOS Development (macOS only)
 - Xcode (latest version)
 - iOS SDK (iOS 13.0+)
@@ -61,9 +56,6 @@ npm install
 
 # Build and sync for mobile
 npm run build:mobile
-
-# Run on Android (requires Android Studio)
-npm run android:dev
 
 # Run on iOS (requires Xcode on macOS)
 npm run ios:dev
@@ -86,7 +78,6 @@ npm run ios:dev
 |---------|-------------|
 | `npm run build` | Build web assets only |
 | `npm run build:mobile` | Build web assets + sync to mobile |
-| `npm run android:dev` | Build and run on Android |
 | `npm run ios:dev` | Build and run on iOS |
 | `npm run mobile:sync` | Sync web assets to mobile platforms |
 | `npm run cy` | Run Cypress tests interactively |

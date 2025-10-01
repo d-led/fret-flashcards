@@ -5,7 +5,6 @@ const config: CapacitorConfig = {
   appName: "String Homework Tutor",
   webDir: "dist",
   server: {
-    androidScheme: "https",
     iosScheme: "https",
   },
   plugins: {
@@ -13,10 +12,7 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: "#222222",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
       showSpinner: false,
-      androidSpinnerStyle: "large",
       iosSpinnerStyle: "small",
       spinnerColor: "#3498db",
       splashFullScreen: true,

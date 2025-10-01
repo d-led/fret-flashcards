@@ -1,6 +1,6 @@
 # Mobile Development Guide
 
-This guide covers everything you need to know about developing, building, and deploying the String Homework Tutor mobile app for Android and iOS.
+This guide covers everything you need to know about developing, building, and deploying the String Homework Tutor mobile app for iOS.
 
 ## Table of Contents
 
@@ -17,16 +17,6 @@ This guide covers everything you need to know about developing, building, and de
 ## Prerequisites
 
 ### Required Software
-
-#### Android Development
-
-- **Android Studio** (latest version)
-  - Download from: https://developer.android.com/studio
-  - Includes Android SDK, emulator, and build tools
-- **Java Development Kit (JDK) 11+**
-  - Android Studio usually includes this
-- **Android SDK API Level 33+**
-  - Install via Android Studio SDK Manager
 
 #### iOS Development (macOS only)
 
@@ -45,12 +35,6 @@ This guide covers everything you need to know about developing, building, and de
 - **Git** for version control
 
 ### System Requirements
-
-#### Android
-
-- **OS**: Windows 10+, macOS 10.14+, or Linux
-- **RAM**: 8GB minimum, 16GB recommended
-- **Storage**: 10GB free space for Android Studio and SDK
 
 #### iOS
 
@@ -103,9 +87,6 @@ npm install
 # Build and sync for mobile
 npm run build:mobile
 
-# Run on Android (requires Android Studio)
-npm run android:dev
-
 # Run on iOS (requires Xcode on macOS)
 npm run ios:dev
 ```
@@ -124,9 +105,7 @@ npm run ios:dev
 | Command                 | Description                                 |
 | ----------------------- | ------------------------------------------- |
 | `npm run build:mobile`  | Build web assets + sync to mobile platforms |
-| `npm run android:dev`   | Build and run on Android device/emulator    |
 | `npm run ios:dev`       | Build and run on iOS device/simulator       |
-| `npm run android:build` | Build Android APK for production            |
 | `npm run ios:build`     | Build iOS app for production                |
 | `npm run mobile:sync`   | Sync web assets to mobile platforms         |
 | `npm run mobile:sync:ios` | Sync web assets to iOS (preserves CocoaPods settings) |
@@ -266,13 +245,6 @@ fret-flashcards/
 
 ## Building for Production
 
-### Android (Google Play Store)
-
-1. Run `npm run build:mobile`
-2. Open in Android Studio: `npx cap open android`
-3. Generate signed AAB file in Android Studio
-4. Upload to Google Play Console
-
 ### iOS (App Store)
 
 1. Run `npm run build:mobile`
@@ -281,32 +253,6 @@ fret-flashcards/
 4. Submit for review in App Store Connect
 
 ### Detailed Production Build Process
-
-#### Android Production Build
-
-1. **Prepare for release:**
-
-   ```bash
-   npm run build:mobile
-   ```
-
-2. **Open in Android Studio:**
-
-   ```bash
-   npx cap open android
-   ```
-
-3. **In Android Studio:**
-   - Go to `Build` → `Generate Signed Bundle/APK`
-   - Create or use existing keystore
-   - Select `Android App Bundle (AAB)` for Play Store
-   - Build and save the AAB file
-
-4. **Alternative command line build:**
-   ```bash
-   cd android
-   ./gradlew assembleRelease
-   ```
 
 #### iOS Production Build
 
@@ -335,37 +281,6 @@ fret-flashcards/
    ```
 
 ## Testing
-
-### Android Testing
-
-#### Using Android Studio
-
-1. Open project: `npx cap open android`
-2. Click "Run" button or press `Ctrl+R`
-3. Select device/emulator
-
-#### Using Command Line
-
-```bash
-# List available devices
-adb devices
-
-# Run on specific device
-npx cap run android --target=device-id
-
-# Run on emulator
-npx cap run android --target=emulator
-```
-
-#### Testing Checklist
-
-- [ ] App launches successfully
-- [ ] Haptic feedback works on correct/incorrect answers
-- [ ] Audio plays correctly
-- [ ] Microphone input works
-- [ ] Settings persist between sessions
-- [ ] App handles background/foreground transitions
-- [ ] All UI elements are touch-friendly
 
 ### iOS Testing
 
@@ -405,29 +320,6 @@ npm run serve
 ```
 
 ## Troubleshooting
-
-### Common Android Issues
-
-#### Gradle Sync Failed
-
-```bash
-# Clean and rebuild
-cd android
-./gradlew clean
-./gradlew build
-```
-
-#### App Crashes on Launch
-
-- Check Android logs: `adb logcat`
-- Verify all permissions in `AndroidManifest.xml`
-- Ensure web assets are synced: `npm run mobile:sync`
-
-#### Build Errors
-
-- Update Android Studio and SDK
-- Check Java version (should be JDK 11+)
-- Clear Gradle cache: `./gradlew clean`
 
 ### Common iOS Issues
 
@@ -471,7 +363,6 @@ xcrun simctl list devices
 npm run mobile:sync
 
 # Or manually
-npx cap sync android
 npx cap sync ios
 ```
 
@@ -495,26 +386,6 @@ npm run build:mobile
 ```
 
 ## App Store Deployment
-
-### Google Play Store (Android)
-
-1. **Create Developer Account**
-   - Go to https://play.google.com/console
-   - Pay $25 one-time fee
-   - Complete developer profile
-
-2. **Prepare App Listing**
-   - App name: "String Homework Tutor"
-   - Short description: "The homework tutor you always wished for"
-   - Full description: Include features, screenshots, etc.
-   - Screenshots: Take from Android device/emulator
-   - App icon: 512x512 PNG
-
-3. **Upload AAB File**
-   - Generated from Android Studio
-   - Upload to Play Console
-   - Complete store listing
-   - Submit for review
 
 ### Apple App Store (iOS)
 
@@ -540,7 +411,6 @@ npm run build:mobile
 
 - **App Icon**: 1024x1024 PNG (no transparency)
 - **Screenshots**: Various device sizes
-- **Feature Graphic**: 1024x500 PNG (Android)
 
 #### App Information
 
@@ -580,13 +450,6 @@ npm run build:mobile  # Includes asset generation
 
 The script automatically creates:
 
-**Android (87 files):**
-
-- Adaptive icons for all densities (ldpi, mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
-- Regular app icons for all densities
-- Splash screens for all orientations and densities
-- Dark mode splash screens
-
 **iOS (10 files):**
 
 - App icons for all required sizes
@@ -601,17 +464,6 @@ The script automatically creates:
 #### Manual Asset Management
 
 If you need to manually replace specific assets:
-
-**Android Icons:**
-
-```
-android/app/src/main/res/
-├── mipmap-hdpi/ic_launcher.png     (72x72)
-├── mipmap-mdpi/ic_launcher.png     (48x48)
-├── mipmap-xhdpi/ic_launcher.png    (96x96)
-├── mipmap-xxhdpi/ic_launcher.png   (144x144)
-└── mipmap-xxxhdpi/ic_launcher.png  (192x192)
-```
 
 **iOS Icons:**
 
@@ -654,14 +506,6 @@ The `scripts/generate-icons.js` script:
 - Handles both light and dark mode variants
 
 ### Custom Splash Screens
-
-#### Android
-
-```
-android/app/src/main/res/
-├── drawable/splash.xml
-└── layout/launch_screen.xml
-```
 
 #### iOS
 
@@ -787,7 +631,6 @@ npm run ios:run "1D9323A4-D5B5-4709-AE4E-90820CF7523A"  # iPhone 13 mini
 ### Documentation
 
 - [Capacitor Documentation](https://capacitorjs.com/docs)
-- [Android Development Guide](https://developer.android.com/guide)
 - [iOS Development Guide](https://developer.apple.com/ios/)
 
 ### Community
@@ -798,7 +641,6 @@ npm run ios:run "1D9323A4-D5B5-4709-AE4E-90820CF7523A"  # iPhone 13 mini
 
 ### Tools
 
-- [Android Studio](https://developer.android.com/studio)
 - [Xcode](https://developer.apple.com/xcode/)
 - [Capacitor CLI](https://capacitorjs.com/docs/cli)
 

@@ -28,7 +28,7 @@ try {
   });
 
   console.log("✅ App icons and splash screens generated successfully!");
-  console.log("📱 Icons and splash screens have been updated for both iOS and Android");
+  console.log("📱 Icons and splash screens have been updated for iOS");
 } catch (error) {
   console.error("❌ Error generating assets:", error.message);
   process.exit(1);

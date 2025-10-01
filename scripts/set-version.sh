@@ -51,10 +51,7 @@ sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/" ios/Ap
 # Update CURRENT_PROJECT_VERSION (build number)
 sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/" ios/App/App.xcodeproj/project.pbxproj
 
-# Update Android build.gradle
-echo "🤖 Updating Android build.gradle..."
-sed -i '' "s/versionName \"[^\"]*\"/versionName \"$NEW_VERSION\"/" android/app/build.gradle
-sed -i '' "s/versionCode [0-9]*/versionCode $BUILD_NUMBER/" android/app/build.gradle
+# Note: Android support has been removed
 
 # Update iOS Fastfile
 echo "🍎 Updating iOS Fastfile..."
@@ -70,10 +67,10 @@ echo "     - package.json"
 echo "     - quasar-project/package.json (removed)"
 echo "     - app-store-metadata.json"
 echo "     - ios/App/App.xcodeproj/project.pbxproj"
-echo "     - android/app/build.gradle"
+echo ""
 echo "     - ios/fastlane/Fastfile"
 echo ""
 echo "🚀 Next steps:"
 echo "   1. Commit changes: git add . && git commit -m \"Bump version to $NEW_VERSION\""
 echo "   2. Upload screenshots: npm run app-store:screenshots:add"
-echo "   3. Build and upload: npm run ios:build && npm run android:build"
+echo "   3. Build and upload: npm run ios:build"

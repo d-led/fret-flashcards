@@ -1,14 +1,8 @@
 # String Homework Tutor - Mobile Setup
 
-This document explains how to build and run the String Homework Tutor app on Android and iOS devices.
+This document explains how to build and run the String Homework Tutor app on iOS devices.
 
 ## Prerequisites
-
-### Android Development
-
-- Android Studio (latest version)
-- Android SDK (API level 33 or higher)
-- Java Development Kit (JDK) 11 or higher
 
 ### iOS Development (macOS only)
 
@@ -30,13 +24,7 @@ npm install
 npm run build:mobile
 ```
 
-### 3. Run on Android
-
-```bash
-npm run android:dev
-```
-
-### 4. Run on iOS (macOS only)
+### 3. Run on iOS (macOS only)
 
 ```bash
 npm run ios:dev
@@ -45,8 +33,6 @@ npm run ios:dev
 ## Available Scripts
 
 - `npm run build:mobile` - Build web assets and sync with mobile platforms
-- `npm run android:dev` - Build and run on Android device/emulator
-- `npm run android:build` - Build Android APK
 - `npm run ios:dev` - Build and run on iOS device/simulator
 - `npm run ios:build` - Build iOS app
 - `npm run mobile:sync` - Sync web assets to mobile platforms
@@ -73,13 +59,6 @@ npm run ios:dev
 
 ## Building for Production
 
-### Android
-
-1. Build the web assets: `npm run build`
-2. Sync with Android: `npx cap sync android`
-3. Open in Android Studio: `npx cap open android`
-4. In Android Studio, generate signed APK or AAB
-
 ### iOS
 
 1. Build the web assets: `npm run build`
@@ -90,12 +69,6 @@ npm run ios:dev
 **Note**: Use `npm run mobile:sync:ios` instead of `npx cap sync ios` to preserve important CocoaPods framework settings that get removed by the standard sync command.
 
 ## Troubleshooting
-
-### Android Issues
-
-- **Gradle sync failed**: Update Android Studio and SDK
-- **Build failed**: Check Java version (should be JDK 11+)
-- **App crashes**: Check device logs in Android Studio
 
 ### iOS Issues
 
@@ -112,13 +85,6 @@ npm run ios:dev
 
 ## App Store Preparation
 
-### Android (Google Play Store)
-
-1. Generate signed AAB file
-2. Create app listing with screenshots
-3. Set up app signing
-4. Upload to Google Play Console
-
 ### iOS (App Store)
 
 1. Create app in App Store Connect
@@ -130,7 +96,6 @@ npm run ios:dev
 
 - Use `npm run watch` for web development
 - Use `npm run mobile:sync:ios` after web changes (preserves CocoaPods settings)
-- Use `npm run mobile:sync` for Android-only changes
 - Test on real devices for best experience
 - Use Chrome DevTools for debugging web content
 - Check Capacitor logs for native issues
@@ -140,5 +105,5 @@ npm run ios:dev
 - **App Name**: String Homework Tutor
 - **Package ID**: com.dled.stringhomeworktutor
 - **Description**: The homework tutor you always wished for
-- **Platforms**: Android, iOS, Web
+- **Platforms**: iOS, Web
 - **Framework**: Capacitor + TypeScript + jQuery

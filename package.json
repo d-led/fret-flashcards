@@ -22,8 +22,6 @@
     "screenshot": "npm run build && cypress run --e2e --browser chrome --spec cypress/e2e/screenshot.cy.js",
     "generate:assets": "node scripts/generate-icons.js",
     "build:mobile": "npm run build && npm run generate:assets && npm run mobile:sync",
-    "android:dev": "npm run build:mobile && npx cap run android",
-    "android:build": "npm run build:mobile && npx cap build android",
     "ios:dev": "npm run build:mobile && npx cap run ios",
     "ios:build": "npm run build:mobile && npx cap build ios",
     "ios:list": "npx cap run ios --list",
@@ -78,7 +76,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
