@@ -64,14 +64,14 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@types/jquery": "^3.5.33",
-    "cypress": "^15.2.0",
+    "cypress": "^15.3.0",
     "esbuild": "^0.25.10",
     "esbuild-plugin-tsc": "^0.5.0",
     "jsdom": "^27.0.0",
     "mocha-junit-reporter": "^2.2.1",
     "prettier": "^3.6.2",
     "sirv": "^3.0.2",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "vite": "^7.1.7",
     "vitest": "^3.2.4"
   },
