@@ -22,12 +22,6 @@ $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
-  // Web-only initializations
-  webOnlyInitializations();
-
-  // Mobile-only initializations
-  mobileOnlyInitializations();
-
   // Listen for app backgrounding events to handle audio, voice, and microphone state
   window.addEventListener('appBackgrounded', (event: Event) => {
     const customEvent = event as CustomEvent;
@@ -55,15 +49,14 @@ $(async function () {
   function webOnlyInitializations() {
     try {
       if (!mobileEnhancements.isMobile()) {
-        // Show the mobile app store links for web users
-        $("#mobile-links").show();
-        
-        // Show the inspired-by section for web users
-        $("#inspired-by").show();
+        initializeWebUIElements();
+        initializeWebAudio();
+        initializeWebTTS();
+        initializeWebTTSSupport();
       }
     } catch (e) {
       // Defensive: don't break initialization if DOM isn't available yet
-      console.warn("Could not update web-only elements visibility:", e);
+      console.warn("Could not perform web-only initializations:", e);
     }
   }
 
@@ -71,13 +64,101 @@ $(async function () {
   function mobileOnlyInitializations() {
     try {
       if (mobileEnhancements.isMobile()) {
-        // Mobile-specific initializations can be added here
-        // Currently no mobile-only initializations needed
+        initializeMobileAudio();
+        initializeMobileTTS();
+        initializeMobileUI();
       }
     } catch (e) {
       // Defensive: don't break initialization if mobile detection fails
       console.warn("Could not perform mobile-only initializations:", e);
     }
+  }
+
+  // Web-specific UI initialization
+  function initializeWebUIElements() {
+    // Show the mobile app store links for web users
+    $("#mobile-links").show();
+    
+    // Show the inspired-by section for web users
+    $("#inspired-by").show();
+  }
+
+  // Web-specific audio initialization
+  function initializeWebAudio() {
+    // On non-iOS devices, enable audio automatically (no need to test actual playback)
+    if (!isIOS) {
+      audioEnabled = true;
+      updateTestState();
+    }
+  }
+
+  // Web-specific TTS initialization
+  function initializeWebTTS() {
+    // Initialize TTS if enabled in settings (but not on iOS - requires user interaction)
+    if (enableTTS && isTTSSupported() && !isIOS) {
+      initializeTTS();
+    }
+    
+    // Update unified banner for web browsers when TTS is enabled
+    updateUnifiedBanner();
+  }
+
+  // Web-specific TTS support initialization
+  function initializeWebTTSSupport() {
+    // Check TTS support and conditionally show/hide the option
+    const $ttsOption = $("#enable-tts").closest("label");
+    const $ttsUnavailable = $("#tts-unavailable");
+
+    if (isTTSSupported()) {
+      $ttsOption.show();
+      $ttsUnavailable.hide();
+
+      // Initialize voice selection
+      populateVoiceSelection();
+      updateVoiceSelectionVisibility();
+
+      // Force early voice loading for better cross-browser compatibility
+      if ("speechSynthesis" in window) {
+        // Call getVoices() immediately to trigger loading - based on Stack Overflow solution
+        speechSynthesis.cancel(); // removes anything 'stuck'
+        speechSynthesis.getVoices();
+
+        // Listen for voice changes
+        speechSynthesis.addEventListener("voiceschanged", () => {
+          populateVoiceSelection();
+        });
+      }
+    } else {
+      $ttsOption.hide();
+      $ttsUnavailable.show();
+      enableTTS = false; // Force disable TTS on unsupported browsers
+      $("#enable-tts").prop("checked", false);
+    }
+  }
+
+  // Mobile-specific audio initialization
+  function initializeMobileAudio() {
+    // Don't auto-initialize on iOS - require user action
+    updateUnifiedBanner();
+  }
+
+  // Mobile-specific TTS initialization
+  function initializeMobileTTS() {
+    // TTS initialization is handled differently on mobile (requires user interaction)
+    // This is intentionally minimal as mobile TTS is handled in user interaction callbacks
+  }
+
+  // Mobile-specific UI initialization
+  function initializeMobileUI() {
+    // Show unified banner on iOS if audio is not enabled
+    updateUnifiedBanner();
+  }
+
+  // Main platform-specific initialization orchestrator
+  function runPlatformSpecificInitializations() {
+    // Run platform-specific initializations based on mobile detection
+    webOnlyInitializations();
+    mobileOnlyInitializations();
   }
 
   const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
@@ -2974,61 +3055,19 @@ $(async function () {
   $(function () {
     // Detect iOS and show banner if needed
     isIOS = detectIOS();
-    if (isIOS) {
-      // Don't auto-initialize on iOS - require user action
-      updateUnifiedBanner();
-    } else {
-      // On non-iOS devices, enable audio automatically (no need to test actual playback)
-      audioEnabled = true;
-      updateTestState();
-    }
-
+    
+    // Load settings and statistics first
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
 
     // Check microphone support and update UI
     checkMicrophoneSupport();
 
-    // Initialize TTS if enabled in settings (but not on iOS - requires user interaction)
-    if (enableTTS && isTTSSupported() && !isIOS) {
-      initializeTTS();
-    }
-
     // Update test state after all initialization is complete
     updateTestState();
 
-    // Show unified banner on iOS if audio is not enabled
-    updateUnifiedBanner();
-
-    // Check TTS support and conditionally show/hide the option
-    const $ttsOption = $("#enable-tts").closest("label");
-    const $ttsUnavailable = $("#tts-unavailable");
-
-    if (isTTSSupported()) {
-      $ttsOption.show();
-      $ttsUnavailable.hide();
-
-      // Initialize voice selection
-      populateVoiceSelection();
-      updateVoiceSelectionVisibility();
-
-      // Force early voice loading for better cross-browser compatibility
-      if ("speechSynthesis" in window) {
-        // Call getVoices() immediately to trigger loading - based on Stack Overflow solution
-        speechSynthesis.cancel(); // removes anything 'stuck'
-        speechSynthesis.getVoices();
-
-        // Listen for voice changes
-        speechSynthesis.addEventListener("voiceschanged", () => {
-          populateVoiceSelection();
-        });
-      }
-    } else {
-      $ttsOption.hide();
-      $ttsUnavailable.show();
-      enableTTS = false; // Force disable TTS on unsupported browsers
-      $("#enable-tts").prop("checked", false);
-    }
+    // Run platform-specific initializations
+    runPlatformSpecificInitializations();
 
     updateTuningUI(); // Initialize tuning UI
     makeSession();
