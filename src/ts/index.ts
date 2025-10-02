@@ -24,10 +24,9 @@ $(async function () {
 
   // If we're not running as a native app, show the mobile app store links
   try {
-    const mobileLinksEl = document.getElementById("mobile-links");
-    if (mobileLinksEl && !mobileEnhancements.isMobile()) {
-      // Remove inline display:none if present and make element visible
-      mobileLinksEl.style.display = "block";
+    if (!mobileEnhancements.isMobile()) {
+      // Show the mobile links using jQuery
+      $("#mobile-links").show();
     }
   } catch (e) {
     // Defensive: don't break initialization if DOM isn't available yet
@@ -66,10 +65,7 @@ $(async function () {
   const STATS_KEY = "guitar_flashcard_stats_v1";
 
   // Fill build info
-  const buildInfoElement = document.getElementById("build-info");
-  if (buildInfoElement) {
-    buildInfoElement.textContent = buildInfo;
-  }
+  $("#build-info").text(buildInfo);
 
   const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
   const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -150,14 +146,16 @@ $(async function () {
   }
 
   function renderNoteScore(note: string, stringIndex: number, frets: number[]) {
-    const trebleContainer = document.getElementById("treble-score")!;
-    const bassContainer = document.getElementById("bass-score")!;
+    const $trebleContainer = $("#treble-score");
+    const $bassContainer = $("#bass-score");
+    const trebleContainer = $trebleContainer[0];
+    const bassContainer = $bassContainer[0];
 
     // Completely clear and reset containers
-    trebleContainer.innerHTML = "";
-    bassContainer.innerHTML = "";
-    trebleContainer.removeAttribute("style");
-    bassContainer.removeAttribute("style");
+    $trebleContainer.empty();
+    $bassContainer.empty();
+    $trebleContainer.removeAttr("style");
+    $bassContainer.removeAttr("style");
 
     if (!note || !frets || frets.length === 0) return;
 
@@ -608,21 +606,13 @@ $(async function () {
 
   // Test state update functions
   function updateTestState() {
-    const audioEnabledEl = document.getElementById("audio-enabled");
-    const ttsEnabledEl = document.getElementById("tts-enabled");
-    const ttsInitializedEl = document.getElementById("tts-initialized");
-    const selectedVoiceEl = document.getElementById("selected-voice");
-    const ttsQueueLengthEl = document.getElementById("tts-queue-length");
-    const ttsCurrentlyPlayingEl = document.getElementById("tts-currently-playing");
-    const utteranceLogEl = document.getElementById("utterance-log");
-
-    if (audioEnabledEl) audioEnabledEl.setAttribute("data-enabled", audioEnabled.toString());
-    if (ttsEnabledEl) ttsEnabledEl.setAttribute("data-enabled", enableTTS.toString());
-    if (ttsInitializedEl) ttsInitializedEl.setAttribute("data-initialized", ttsInitialized.toString());
-    if (selectedVoiceEl) selectedVoiceEl.setAttribute("data-voice", selectedVoice || "");
-    if (ttsQueueLengthEl) ttsQueueLengthEl.setAttribute("data-length", ttsQueue.length.toString());
-    if (ttsCurrentlyPlayingEl) ttsCurrentlyPlayingEl.setAttribute("data-playing", ttsCurrentlyPlaying.toString());
-    if (utteranceLogEl) utteranceLogEl.setAttribute("data-log", JSON.stringify(utteranceLog));
+    $("#audio-enabled").attr("data-enabled", audioEnabled.toString());
+    $("#tts-enabled").attr("data-enabled", enableTTS.toString());
+    $("#tts-initialized").attr("data-initialized", ttsInitialized.toString());
+    $("#selected-voice").attr("data-voice", selectedVoice || "");
+    $("#tts-queue-length").attr("data-length", ttsQueue.length.toString());
+    $("#tts-currently-playing").attr("data-playing", ttsCurrentlyPlaying.toString());
+    $("#utterance-log").attr("data-log", JSON.stringify(utteranceLog));
   }
 
   function logUtterance(text: string) {
@@ -1627,14 +1617,8 @@ $(async function () {
       makeSession();
     }
     // Clear mic feedback and status when moving to new question
-    const feedbackEl = document.getElementById("mic-feedback");
-    if (feedbackEl) {
-      feedbackEl.textContent = "";
-    }
-    const statusEl = document.getElementById("mic-status");
-    if (statusEl) {
-      statusEl.textContent = "";
-    }
+    $("#mic-feedback").text("");
+    $("#mic-status").text("");
     // Reset mic detection state to allow fresh submissions for the new card
     displayedNoteId = null;
     // Reset consecutive mistakes counter for new card
@@ -1766,14 +1750,12 @@ $(async function () {
     if (!currentCard) return false;
 
     // Clear mic feedback when an answer is submitted
-    const feedbackEl = document.getElementById("mic-feedback");
-    if (feedbackEl && source !== "mic") {
-      feedbackEl.textContent = "";
+    if (source !== "mic") {
+      $("#mic-feedback").text("");
     }
     // Clear detected note status when a manual answer is submitted
-    const statusEl = document.getElementById("mic-status");
-    if (statusEl && source !== "mic") {
-      statusEl.textContent = "";
+    if (source !== "mic") {
+      $("#mic-status").text("");
     }
 
     // If a note name was provided, convert it to the appropriate fret on the current string
@@ -1793,11 +1775,9 @@ $(async function () {
       if (!variant) {
         console.warn(`Unknown detected note name: ${detectedNote}`);
         trackMistakeAndHandleTTS(false, source);
-        const feedbackEl = document.getElementById("mic-feedback");
-        if (feedbackEl) {
-          feedbackEl.textContent = `Unknown note: ${detectedNote}`;
-          feedbackEl.style.color = "#f44336";
-        }
+        const $feedbackEl = $("#mic-feedback");
+        $feedbackEl.text(`Unknown note: ${detectedNote}`);
+        $feedbackEl.css("color", "#f44336");
         return false;
       }
 
@@ -1817,20 +1797,18 @@ $(async function () {
           consecutiveOctaveMistakes++;
           trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
-          const feedbackEl = document.getElementById("mic-feedback");
-          if (feedbackEl) {
-            // Calculate octave difference: remove note difference (mod 12) and focus on octave steps
-            const octaveDiff = Math.floor(fretDiff / 12);
-            const hint = octaveDiff < 0 ? "try octave higher" : "try octave lower";
+          const $feedbackEl = $("#mic-feedback");
+          // Calculate octave difference: remove note difference (mod 12) and focus on octave steps
+          const octaveDiff = Math.floor(fretDiff / 12);
+          const hint = octaveDiff < 0 ? "try octave higher" : "try octave lower";
 
-            // Calculate expected octave for this note on this string
-            const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
-            const expectedMidi = openMidi + currentCard.frets[0]; // Use first valid fret position
-            const expectedOctave = Math.floor(expectedMidi / 12) - 1;
+          // Calculate expected octave for this note on this string
+          const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+          const expectedMidi = openMidi + currentCard.frets[0]; // Use first valid fret position
+          const expectedOctave = Math.floor(expectedMidi / 12) - 1;
 
-            feedbackEl.textContent = `${namePart}${octavePart} - ${hint} (need ~${expectedOctave})`;
-            feedbackEl.style.color = "#f44336";
-          }
+          $feedbackEl.text(`${namePart}${octavePart} - ${hint} (need ~${expectedOctave})`);
+          $feedbackEl.css("color", "#f44336");
           return false;
         }
       } else {
@@ -1851,8 +1829,8 @@ $(async function () {
         stringIdx = currentCard.string; // Force to current quiz string
 
         // Check for approximate octave feedback - if detected note is roughly an octave off from expected
-        const feedbackEl = document.getElementById("mic-feedback");
-        if (feedbackEl && source === "mic") {
+        const $feedbackEl = $("#mic-feedback");
+        if (source === "mic") {
           // Calculate expected MIDI range for the current quiz note
           const expectedMidiValues = currentCard.frets.map((f: number) => openMidi + f);
           const minExpected = Math.min(...expectedMidiValues);
@@ -1873,21 +1851,21 @@ $(async function () {
             consecutiveOctaveMistakes++;
             trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
-            feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave lower`;
-            feedbackEl.style.color = "#f44336";
+            $feedbackEl.text(`${namePart}${octavePart || ""} - try octave lower`);
+            $feedbackEl.css("color", "#f44336");
             return false; // Don't process as valid answer
           } else if (isExpectedOctaveHigher) {
             // Track octave mistake
             consecutiveOctaveMistakes++;
             trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
-            feedbackEl.textContent = `${namePart}${octavePart || ""} - try octave higher`;
-            feedbackEl.style.color = "#f44336";
+            $feedbackEl.text(`${namePart}${octavePart || ""} - try octave higher`);
+            $feedbackEl.css("color", "#f44336");
             return false; // Don't process as valid answer
           } else if (octavePart !== null) {
             // Show normal detection feedback only if no octave issue detected
-            feedbackEl.textContent = `detected ${namePart}${octavePart} → fret ${fret}`;
-            feedbackEl.style.color = "#4caf50";
+            $feedbackEl.text(`detected ${namePart}${octavePart} → fret ${fret}`);
+            $feedbackEl.css("color", "#4caf50");
           }
         }
       } else {
@@ -2512,19 +2490,16 @@ $(async function () {
   function handleMicrophoneMuted() {
     console.log("Microphone muted");
     // Optionally show a notification that microphone is muted
-    const statusEl = document.getElementById("mic-status");
-    if (statusEl) {
-      statusEl.textContent = "Microphone muted";
-    }
+    $("#mic-status").text("Microphone muted");
   }
 
   // Handle microphone being unmuted
   function handleMicrophoneUnmuted() {
     console.log("Microphone unmuted");
     // Clear any muted status
-    const statusEl = document.getElementById("mic-status");
-    if (statusEl && statusEl.textContent === "Microphone muted") {
-      statusEl.textContent = "";
+    const $statusEl = $("#mic-status");
+    if ($statusEl.text() === "Microphone muted") {
+      $statusEl.text("");
     }
   }
 
@@ -2728,12 +2703,12 @@ $(async function () {
     micBaselineRms = 0;
     baselineSamplesCount = 0;
     collectBaselineUntil = Date.now() + 300; // collect baseline for first 300ms
-    const statusEl = document.getElementById("mic-status");
-    const meterEl = document.getElementById("mic-meter");
-    const feedbackEl = document.getElementById("mic-feedback");
-    if (statusEl) statusEl.style.display = "inline";
-    if (meterEl) meterEl.style.display = "inline-block";
-    if (feedbackEl) feedbackEl.style.display = "inline";
+    const $statusEl = $("#mic-status");
+    const $meterEl = $("#mic-meter");
+    const $feedbackEl = $("#mic-feedback");
+    $statusEl.show();
+    $meterEl.css("display", "inline-block");
+    $feedbackEl.show();
 
     // statusEl already declared above
 
@@ -2817,36 +2792,30 @@ $(async function () {
       if (rms < adjustedNoiseFloor) {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
-        const meterFillSilent = document.getElementById("mic-meter-fill");
-        const meterEl = document.getElementById("mic-meter");
-        if (meterFillSilent) {
-          meterFillSilent.style.width = `0%`;
-          meterFillSilent.style.background = "#4caf50";
-        }
+        const $meterFillSilent = $("#mic-meter-fill");
+        $meterFillSilent.css({
+          width: "0%",
+          background: "#4caf50"
+        });
         // Change meter border to indicate no input
-        if (meterEl) {
-          meterEl.style.borderColor = "#555";
-        }
+        $meterEl.css("border-color", "#555");
       } else if (stable && currentNoteId !== null) {
         // Show note and update meter when stable
         const midiRound = currentNoteId;
         const noteName = allNotes[((midiRound % 12) + 12) % 12];
         const octave = Math.floor(midiRound / 12) - 1;
-        if (statusEl) statusEl.textContent = `${noteName}${octave}`;
+        $statusEl.text(`${noteName}${octave}`);
         // Update meter immediately when stable (use smoothedLevel)
-        const meterFillStable = document.getElementById("mic-meter-fill");
-        const meterEl = document.getElementById("mic-meter");
-        if (meterFillStable) {
+        const $meterFillStable = $("#mic-meter-fill");
+        if ($meterFillStable.length) {
           const pct = Math.round(smoothedLevel * 100);
-          meterFillStable.style.width = `${pct}%`;
-          if (smoothedLevel < 0.4) meterFillStable.style.background = "#4caf50";
-          else if (smoothedLevel < 0.8) meterFillStable.style.background = "#ffeb3b";
-          else meterFillStable.style.background = "#f44336";
+          $meterFillStable.css("width", `${pct}%`);
+          if (smoothedLevel < 0.4) $meterFillStable.css("background", "#4caf50");
+          else if (smoothedLevel < 0.8) $meterFillStable.css("background", "#ffeb3b");
+          else $meterFillStable.css("background", "#f44336");
         }
         // Change meter border to indicate stable note detection
-        if (meterEl) {
-          meterEl.style.borderColor = "#4caf50";
-        }
+        $meterEl.css("border-color", "#4caf50");
         // Submit this stable detected note to the quiz flow once
         const now = Date.now();
         if (displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) {
@@ -2861,10 +2830,7 @@ $(async function () {
         }
       } else {
         // Change meter border to indicate detecting/unstable
-        const meterEl = document.getElementById("mic-meter");
-        if (meterEl) {
-          meterEl.style.borderColor = "#ffeb3b";
-        }
+        $meterEl.css("border-color", "#ffeb3b");
       }
       pitchAnimFrame = requestAnimationFrame(loop);
     };
@@ -2909,21 +2875,11 @@ $(async function () {
       clearInterval((window as any).micStateMonitor);
       (window as any).micStateMonitor = null;
     }
-    const statusEl = document.getElementById("mic-status");
-    if (statusEl) {
-      statusEl.textContent = "";
-      statusEl.style.display = "none";
-    }
-    const meterEl = document.getElementById("mic-meter");
-    if (meterEl) {
-      meterEl.style.display = "none";
-      meterEl.style.borderColor = "#777"; // Reset border color
-    }
-    const feedbackEl = document.getElementById("mic-feedback");
-    if (feedbackEl) feedbackEl.style.display = "none";
+    $statusEl.text("").hide();
+    $meterEl.hide().css("border-color", "#777"); // Reset border color
+    $feedbackEl.hide();
     // clear meter
-    const meterFill = document.getElementById("mic-meter-fill");
-    if (meterFill) meterFill.style.width = "0%";
+    $("#mic-meter-fill").css("width", "0%");
     micBaselineRms = 0;
     baselineSamplesCount = 0;
     collectBaselineUntil = 0;
