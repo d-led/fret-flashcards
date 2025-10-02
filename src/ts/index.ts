@@ -12,7 +12,6 @@
 
 import { PitchDetector } from "pitchy";
 import { mobileEnhancements } from "./modules/mobileEnhancements";
-import { touchHandler } from "./modules/touchHandler";
 
 const buildInfo = "Build: unknown";
 
