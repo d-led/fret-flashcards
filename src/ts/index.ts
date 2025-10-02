@@ -22,27 +22,11 @@ $(async function () {
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
-  // If we're not running as a native app, show the mobile app store links
-  try {
-    if (!mobileEnhancements.isMobile()) {
-      // Show the mobile links using jQuery
-      $("#mobile-links").show();
-    }
-  } catch (e) {
-    // Defensive: don't break initialization if DOM isn't available yet
-    console.warn("Could not update #mobile-links visibility:", e);
-  }
+  // Web-only initializations
+  webOnlyInitializations();
 
-  // Show "#inspired-by" section only in web version (not in mobile app)
-  try {
-    if (!mobileEnhancements.isMobile()) {
-      // Show the inspired-by section using jQuery
-      $("#inspired-by").show();
-    }
-  } catch (e) {
-    // Defensive: don't break initialization if DOM isn't available yet
-    console.warn("Could not update #inspired-by visibility:", e);
-  }
+  // Mobile-only initializations
+  mobileOnlyInitializations();
 
   // Listen for app backgrounding events to handle audio, voice, and microphone state
   window.addEventListener('appBackgrounded', (event: Event) => {
@@ -66,6 +50,35 @@ $(async function () {
 
   // Fill build info
   $("#build-info").text(buildInfo);
+
+  // Web-only initializations function
+  function webOnlyInitializations() {
+    try {
+      if (!mobileEnhancements.isMobile()) {
+        // Show the mobile app store links for web users
+        $("#mobile-links").show();
+        
+        // Show the inspired-by section for web users
+        $("#inspired-by").show();
+      }
+    } catch (e) {
+      // Defensive: don't break initialization if DOM isn't available yet
+      console.warn("Could not update web-only elements visibility:", e);
+    }
+  }
+
+  // Mobile-only initializations function
+  function mobileOnlyInitializations() {
+    try {
+      if (mobileEnhancements.isMobile()) {
+        // Mobile-specific initializations can be added here
+        // Currently no mobile-only initializations needed
+      }
+    } catch (e) {
+      // Defensive: don't break initialization if mobile detection fails
+      console.warn("Could not perform mobile-only initializations:", e);
+    }
+  }
 
   const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
   const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -2875,9 +2888,9 @@ $(async function () {
       clearInterval((window as any).micStateMonitor);
       (window as any).micStateMonitor = null;
     }
-    $statusEl.text("").hide();
-    $meterEl.hide().css("border-color", "#777"); // Reset border color
-    $feedbackEl.hide();
+    $("#mic-status").text("").hide();
+    $("#mic-meter").hide().css("border-color", "#777"); // Reset border color
+    $("#mic-feedback").hide();
     // clear meter
     $("#mic-meter-fill").css("width", "0%");
     micBaselineRms = 0;
