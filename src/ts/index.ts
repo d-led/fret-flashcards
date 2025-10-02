@@ -164,7 +164,6 @@ $(async function () {
   const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
   const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   const flatNotes = ["Db", "Eb", "Gb", "Ab", "Bb"];
-  const sharpNotes = ["C#", "D#", "F#", "G#", "A#"];
   const noteVariants = [
     { name: "C", idx: 0 },
     { name: "C#", idx: 1 },

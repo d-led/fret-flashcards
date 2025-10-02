@@ -51,7 +51,6 @@ export interface AppConfig {
     allNotes: string[];
     naturalNotes: string[];
     flatNotes: string[];
-    sharpNotes: string[];
   };
 }
 
@@ -115,7 +114,6 @@ export class AppConfigManager {
       allNotes: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
       naturalNotes: ["C", "D", "E", "F", "G", "A", "B"],
       flatNotes: ["Db", "Eb", "Gb", "Ab", "Bb"],
-      sharpNotes: ["C#", "D#", "F#", "G#", "A#"],
     };
   }
 
