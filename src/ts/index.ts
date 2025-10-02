@@ -34,6 +34,17 @@ $(async function () {
     console.warn("Could not update #mobile-links visibility:", e);
   }
 
+  // Show "#inspired-by" section only in web version (not in mobile app)
+  try {
+    if (!mobileEnhancements.isMobile()) {
+      // Show the inspired-by section using jQuery
+      $("#inspired-by").show();
+    }
+  } catch (e) {
+    // Defensive: don't break initialization if DOM isn't available yet
+    console.warn("Could not update #inspired-by visibility:", e);
+  }
+
   // Listen for app backgrounding events to handle audio, voice, and microphone state
   window.addEventListener('appBackgrounded', (event: Event) => {
     const customEvent = event as CustomEvent;
