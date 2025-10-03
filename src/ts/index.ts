@@ -3131,6 +3131,14 @@ $(async function () {
           }
         }
       } else {
+        // Update meter during detection/unstable phase to show audio level feedback
+        const $meterFillDetecting = $("#mic-meter-fill");
+        if ($meterFillDetecting.length) {
+          const pct = Math.round(smoothedLevel * 100);
+          $meterFillDetecting.css("width", `${pct}%`);
+          // Use yellow color during detection to match the border
+          $meterFillDetecting.css("background", "#ffeb3b");
+        }
         // Change meter border to indicate detecting/unstable
         $meterEl.css("border-color", "#ffeb3b");
       }
