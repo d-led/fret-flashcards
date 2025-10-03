@@ -807,8 +807,9 @@ $(async function () {
     // Adjust TTS volume based on iOS and microphone state
     if (isIOS) {
       const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
-      // When mic is active, iOS uses .playAndRecord which is louder, so reduce volume
-      utterance.volume = isMicActive ? 0.6 : 1.0;
+      // When mic is active, iOS uses .playAndRecord which is louder, but we need clear voice feedback
+      // Increase volume to maintain good voice level while balancing with audio notes
+      utterance.volume = isMicActive ? 0.8 : 1.0;
     } else {
       utterance.volume = 0.9;
     }
@@ -982,8 +983,9 @@ $(async function () {
       // Adjust TTS volume based on iOS and microphone state
       if (isIOS) {
         const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
-        // When mic is active, iOS uses .playAndRecord which is louder, so reduce volume
-        utterance.volume = isMicActive ? 0.6 : 1.0;
+        // When mic is active, iOS uses .playAndRecord which is louder, but we need clear voice feedback
+        // Increase volume to maintain good voice level while balancing with audio notes
+        utterance.volume = isMicActive ? 0.8 : 1.0;
       } else {
         utterance.volume = 0.9;
       }

@@ -220,10 +220,11 @@ export class AudioManager {
     if (this.config.isIOS) {
       // Check if microphone is active (which changes audio session to .playAndRecord)
       const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
-      // When mic is active, iOS uses .playAndRecord which is louder, so reduce amplitude
-      amp = isMicActive ? 0.25 : 0.75;
+      // When mic is active, iOS uses .playAndRecord which is louder, but we need audible feedback
+      // Increase amplitude to make notes clearly audible while maintaining balance with voice
+      amp = isMicActive ? 0.5 : 0.75;
     } else {
-      amp = 0.25;
+      amp = 0.4;
     }
 
     // Generate wave data (triangle for octaves 1-2, sine otherwise)
