@@ -465,3 +465,4 @@ fastlane/report.xml
 screenshots.html
 .DS_Store
 ios/fastlane/Preview.html
+ios/App/App.xcarchive/
