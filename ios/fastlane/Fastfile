@@ -132,6 +132,65 @@ platform :ios do
     )
   end
 
+  desc "Check build status in App Store Connect"
+  lane :check_build_status do
+    # Clear any API key environment variables to force username/password auth
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    # ENV.delete("APP_STORE_CONNECT_API_KEY_ID")
+    # ENV.delete("APP_STORE_CONNECT_API_ISSUER_ID")
+    
+    UI.message("🔍 Checking build status in App Store Connect...")
+    
+    # Login to App Store Connect
+    UI.message("Logging in to App Store Connect...")
+    Spaceship::ConnectAPI.login(ENV["APPLE_ID"])
+    UI.success("✅ Authentication successful!")
+    
+    # Get the app
+    app = Spaceship::ConnectAPI::App.find("com.dled.stringhomeworktutor")
+    UI.message("App: #{app.name} (#{app.bundle_id})")
+    
+    # Get builds
+    UI.message("Checking builds...")
+    builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-version")
+    
+    if builds.empty?
+      UI.error("❌ No builds found for this app")
+    else
+      UI.message("Found #{builds.length} build(s):")
+      builds.first(5).each_with_index do |build, index|
+        status = case build.processing_state
+        when "PROCESSING"
+          "🔄 Processing"
+        when "VALID"
+          "✅ Ready for TestFlight"
+        when "INVALID"
+          "❌ Invalid"
+        when "FAILED"
+          "❌ Failed"
+        else
+          "❓ #{build.processing_state}"
+        end
+        
+        UI.message("#{index + 1}. Version #{build.version} (#{build.version}) - #{status}")
+        UI.message("   Uploaded: #{build.uploaded_date}")
+        
+        if build.processing_state == "PROCESSING"
+          UI.message("   ⏳ This build is still being processed by Apple...")
+        elsif build.processing_state == "VALID"
+          UI.message("   🎉 This build is ready for TestFlight!")
+        end
+      end
+      
+      # Check if any builds are processing
+      if builds.any? { |build| build.processing_state == "PROCESSING" }
+        UI.message("\n💡 Tip: Builds usually take 5-30 minutes to process. Check back later!")
+      elsif builds.any? { |build| build.processing_state == "VALID" }
+        UI.success("\n🎉 Your build is ready for TestFlight!")
+      end
+    end
+  end
+
   desc "Build for TestFlight"
   lane :build_testflight do
     # Clear any API key environment variables to force username/password auth

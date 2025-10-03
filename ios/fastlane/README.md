@@ -63,6 +63,14 @@ Upload screenshots to App Store Connect
 
 Upload screenshots without replacing existing ones
 
+### ios check_build_status
+
+```sh
+[bundle exec] fastlane ios check_build_status
+```
+
+Check build status in App Store Connect
+
 ### ios build_testflight
 
 ```sh

@@ -52,6 +52,7 @@
     "app-store:screenshots": "cd ios && bundle exec fastlane upload_screenshots",
     "app-store:screenshots:add": "cd ios && bundle exec fastlane upload_screenshots_add",
     "app-store:test-auth": "cd ios && bundle exec fastlane test_auth",
+    "app-store:check-build": "cd ios && bundle exec fastlane check_build_status",
     "app-store:prep": "node scripts/app-store-prep.js",
     "app-store:validate": "node scripts/app-store-validate.js",
     "app-store:sync:download": "cd ios && bundle exec fastlane deliver download_metadata --username \"$APPLE_ID\" --app_identifier \"com.dled.stringhomeworktutor\" && cd .. && ./scripts/clean-metadata.sh",
