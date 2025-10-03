@@ -118,6 +118,8 @@ export class MobileEnhancements {
       App.addListener("resume", () => {
         console.log("App resumed - resuming audio if needed");
         this.resumeAudio();
+        // Note: We don't re-enable microphone button here because iOS requires
+        // microphone access to be initiated during a user interaction (user gesture)
       });
 
 

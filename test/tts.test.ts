@@ -48,22 +48,22 @@ describe("TTSManager", () => {
       expect(ttsManager.isSupported()).toBe(true);
     });
 
-    it("should initialize TTS", () => {
-      const result = ttsManager.initialize();
+    it("should initialize TTS", async () => {
+      const result = await ttsManager.initialize();
       expect(result).toBe(true);
       expect(mockSpeechSynthesis.cancel).toHaveBeenCalled();
       expect(mockSpeechSynthesis.getVoices).toHaveBeenCalled();
       expect(stateChangeCallback).toHaveBeenCalled();
     });
 
-    it("should return false if TTS is not supported", () => {
+    it("should return false if TTS is not supported", async () => {
       // Create a mock that doesn't support TTS by making isSupported return false
       const noTTSManager = new TTSManager({ enabled: false, selectedVoice: null }, stateChangeCallback, mockSpeechSynthesis);
 
       // Mock the isSupported method to return false
       vi.spyOn(noTTSManager, "isSupported").mockReturnValue(false);
 
-      const result = noTTSManager.initialize();
+      const result = await noTTSManager.initialize();
       expect(result).toBe(false);
     });
   });

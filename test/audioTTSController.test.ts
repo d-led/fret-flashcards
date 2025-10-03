@@ -147,8 +147,8 @@ describe("AudioTTSController", () => {
   });
 
   describe("TTS management", () => {
-    it("should enable TTS", () => {
-      const result = controller.enableTTS();
+    it("should enable TTS", async () => {
+      const result = await controller.enableTTS();
 
       expect(result).toBe(true);
       expect(stateChangeCallback).toHaveBeenCalled();

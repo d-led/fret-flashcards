@@ -13,6 +13,8 @@
 // Audio Module
 // Provides a clean, unit-testable interface for audio functionality
 
+// AudioSessionPlugin removed - using AppDelegate configuration instead
+
 export interface AudioState {
   enabled: boolean;
   currentlyPlaying: boolean;
@@ -45,6 +47,11 @@ export class AudioManager {
   // Initialize audio context (requires user interaction on some browsers)
   async initialize(): Promise<boolean> {
     try {
+      // On iOS, audio session is pre-configured in AppDelegate
+      if (this.config.isIOS) {
+        console.log("iOS detected - audio session pre-configured in AppDelegate");
+      }
+
       // Create a short silent audio element and play it
       const testAudio = new Audio();
       testAudio.src =
@@ -176,7 +183,10 @@ export class AudioManager {
   // Generate a WAV data URL for a given frequency
   private generateToneDataURL(freq: number, duration = 0.8, sampleRate = 44100): string {
     const length = Math.floor(sampleRate * duration);
-    const buffer = new ArrayBuffer(44 + length * 2);
+    
+    // Ensure minimum length to prevent zero buffer size issues
+    const minLength = Math.max(length, 1);
+    const buffer = new ArrayBuffer(44 + minLength * 2);
     const view = new DataView(buffer);
 
     // WAV header
@@ -204,11 +214,20 @@ export class AudioManager {
     const midi = 69 + 12 * Math.log2(freq / 440);
     const octave = Math.floor(midi / 12) - 1;
     const useTriangle = octave === 1 || octave === 2;
-    // Boost amplitude on iOS where overall output is quieter
-    const amp = this.config.isIOS ? 0.75 : 0.25;
+    
+    // Adjust amplitude based on iOS and microphone state
+    let amp: number;
+    if (this.config.isIOS) {
+      // Check if microphone is active (which changes audio session to .playAndRecord)
+      const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
+      // When mic is active, iOS uses .playAndRecord which is louder, so reduce amplitude
+      amp = isMicActive ? 0.25 : 0.75;
+    } else {
+      amp = 0.25;
+    }
 
     // Generate wave data (triangle for octaves 1-2, sine otherwise)
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < minLength; i++) {
       let sample: number;
       if (useTriangle) {
         sample = (4 * Math.abs((((i * freq) / sampleRate) % 1) - 0.5) - 1) * amp * 32767;
@@ -228,7 +247,10 @@ export class AudioManager {
   // Generate a brief "clack" sound
   private generateClickDataURL(duration = 0.05, sampleRate = 44100): string {
     const length = Math.floor(sampleRate * duration);
-    const buffer = new ArrayBuffer(44 + length * 2);
+    
+    // Ensure minimum length to prevent zero buffer size issues
+    const minLength = Math.max(length, 1);
+    const buffer = new ArrayBuffer(44 + minLength * 2);
     const view = new DataView(buffer);
 
     // WAV header
@@ -239,7 +261,7 @@ export class AudioManager {
     };
 
     writeString(0, "RIFF");
-    view.setUint32(4, 36 + length * 2, true);
+    view.setUint32(4, 36 + minLength * 2, true);
     writeString(8, "WAVE");
     writeString(12, "fmt ");
     view.setUint32(16, 16, true);
@@ -250,10 +272,10 @@ export class AudioManager {
     view.setUint16(32, 2, true);
     view.setUint16(34, 16, true);
     writeString(36, "data");
-    view.setUint32(40, length * 2, true);
+    view.setUint32(40, minLength * 2, true);
 
     // Generate "clack" sound: sharp attack with mixed frequencies for woody/clicky sound
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < minLength; i++) {
       // Mix of high and mid frequencies for "clack" character
       const t = i / sampleRate;
 
@@ -268,10 +290,10 @@ export class AudioManager {
       let sample = highFreq + midFreq + lowFreq;
 
       // Very sharp exponential decay for percussive "clack"
-      const decay = Math.exp(-i / (length * 0.05));
+      const decay = Math.exp(-i / (minLength * 0.05));
 
       // Additional sharp attack envelope
-      const attack = i < length * 0.02 ? i / (length * 0.02) : 1;
+      const attack = i < minLength * 0.02 ? i / (minLength * 0.02) : 1;
 
       // Scale to 16-bit range with twice the volume
       const amplification = 0.24;

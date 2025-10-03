@@ -90,8 +90,8 @@ export class AudioTTSController {
   }
 
   // Enable TTS
-  enableTTS(): boolean {
-    const success = this.ttsManager.initialize();
+  async enableTTS(): Promise<boolean> {
+    const success = await this.ttsManager.initialize();
     this.settingsManager.updateSetting("enableTTS", true);
     this.settingsManager.saveSettings();
     this.ttsManager.updateConfig({ enabled: true });

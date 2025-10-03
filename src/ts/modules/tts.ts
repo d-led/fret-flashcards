@@ -1,6 +1,8 @@
 // TTS (Text-to-Speech) Module
 // Provides a clean, unit-testable interface for TTS functionality
 
+// AudioSessionPlugin removed - using AppDelegate configuration instead
+
 export interface TTSQueueItem {
   text: string;
   priority: number; // Lower numbers = higher priority
@@ -68,14 +70,30 @@ export class TTSManager {
     this.speechSynthesis = speechSynthesis || new BrowserSpeechSynthesisWrapper();
   }
 
+  // Sanitize text to prevent iOS SSML parsing errors
+  private sanitizeTextForTTS(text: string): string {
+    return text
+      .replace(/[<>]/g, '') // Remove angle brackets that might be interpreted as SSML tags
+      .replace(/&/g, 'and') // Replace ampersands that might be interpreted as HTML entities
+      .replace(/"/g, "'") // Replace double quotes with single quotes to avoid SSML attribute issues
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+  }
+
   // Check if TTS is supported in the current browser
   isSupported(): boolean {
     return "speechSynthesis" in window;
   }
 
   // Initialize TTS (requires user interaction on some browsers)
-  initialize(): boolean {
+  async initialize(): Promise<boolean> {
     if (!this.isSupported()) return false;
+
+    // On iOS, audio session is pre-configured in AppDelegate
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isiOS) {
+      console.log("iOS detected - audio session pre-configured in AppDelegate");
+    }
 
     this.speechSynthesis.cancel(); // removes anything 'stuck'
     this.speechSynthesis.getVoices();
@@ -127,7 +145,9 @@ export class TTSManager {
     this.notifyStateChange();
     const item = this.queue.shift()!;
 
-    const utterance = new SpeechSynthesisUtterance(item.text);
+    // Sanitize text to prevent iOS SSML parsing errors
+    const sanitizedText = this.sanitizeTextForTTS(item.text);
+    const utterance = new SpeechSynthesisUtterance(sanitizedText);
 
     // Set voice if available
     const voices = this.speechSynthesis.getVoices();

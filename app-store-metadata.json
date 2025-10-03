@@ -19,8 +19,8 @@
   "privacy_url": "https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md",
   "support_url": "https://github.com/d-led/fret-flashcards",
   "version": {
-    "number": "1.0.3",
-    "release_notes": "Update release of String Homework Tutor - Master guitar fretboard notes with interactive flashcards and sheet music practice.\nUpdated:\n- Improved app minimization handling."
+    "number": "1.0.4",
+    "release_notes": "Update release of String Homework Tutor - Master guitar fretboard notes with interactive flashcards and sheet music practice.\nUpdated:\n- Removed unnecessary text.\n- iOS 26 readiness.\n- Improved accessibility features.\n- Bug fixes and performance improvements."
   },
   "permissions": {
     "microphone": "This app uses the microphone for pitch detection for touch-free operation to help you learn notes on your instrument.",
