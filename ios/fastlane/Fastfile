@@ -163,7 +163,8 @@ platform :ios do
     upload_to_testflight(
       app_identifier: "com.dled.stringhomeworktutor",
       username: ENV["APPLE_ID"],
-      skip_waiting_for_build_processing: true
+      skip_waiting_for_build_processing: false,
+      changelog: "Build #{ENV['BUILD_NUMBER'] || '1.0.4'} - #{Time.now.strftime('%Y-%m-%d %H:%M')}"
     )
   end
 end
