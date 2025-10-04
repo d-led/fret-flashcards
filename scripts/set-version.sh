@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # set-version.sh - Update version numbers across the entire project
+# Build numbers are automatically incremented from the current build number
 # Usage: ./scripts/set-version.sh 1.0.1
 
 set -e  # Exit on any error
@@ -22,14 +23,14 @@ fi
 
 echo "🔄 Updating version from $OLD_VERSION to $NEW_VERSION..."
 
-# Extract version components for build number calculation
-IFS='.' read -ra VERSION_PARTS <<< "$NEW_VERSION"
-MAJOR="${VERSION_PARTS[0]}"
-MINOR="${VERSION_PARTS[1]}"
-PATCH="${VERSION_PARTS[2]}"
+# Get current build number from iOS project and increment it
+CURRENT_BUILD=$(grep -o "CURRENT_PROJECT_VERSION = [0-9]*" ios/App/App.xcodeproj/project.pbxproj | head -1 | grep -o "[0-9]*")
+if [ -z "$CURRENT_BUILD" ]; then
+    CURRENT_BUILD=10000  # Default starting build number
+fi
 
-# Calculate build number (major * 10000 + minor * 100 + patch)
-BUILD_NUMBER=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+# Increment build number
+BUILD_NUMBER=$((CURRENT_BUILD + 1))
 
 echo "📱 Build number will be: $BUILD_NUMBER"
 
@@ -60,7 +61,7 @@ echo ""
 echo "✅ Version update complete!"
 echo "📊 Summary:"
 echo "   • Version: $OLD_VERSION → $NEW_VERSION"
-echo "   • Build number: $BUILD_NUMBER"
+echo "   • Build number: $CURRENT_BUILD → $BUILD_NUMBER (incremented)"
 echo "   • Files updated:"
 echo "     - package.json"
 echo "     - quasar-project/package.json (removed)"
