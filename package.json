@@ -44,6 +44,7 @@
     "mobile:sync": "npx cap sync && ./scripts/fix-frameworks.sh",
     "screenshots": "cd ios && bundle exec fastlane screenshots",
     "version:set": "./scripts/set-version.sh",
+    "bump:build": "./scripts/bump-build.sh",
     "screenshots:generate": "node scripts/generate-screenshots.js",
     "screenshots:fastlane": "bash scripts/fastlane-snapshot.sh",
     "app-store:testflight": "npm run build:mobile && cd ios && bundle exec fastlane build_testflight",
