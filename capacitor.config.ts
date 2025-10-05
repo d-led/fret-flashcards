@@ -32,6 +32,9 @@ const config: CapacitorConfig = {
     Haptics: {
       // Enable haptic feedback
     },
+    MicrophonePlugin: {
+      // Custom microphone plugin for iOS
+    },
   },
   ios: {
     contentInset: "automatic",

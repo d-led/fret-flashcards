@@ -2688,6 +2688,74 @@ $(async function () {
   // Make the function globally available (but not automatically called due to iOS requirements)
   (window as any).checkAndReenableMicrophoneButton = checkAndReenableMicrophoneButton;
 
+  // Native microphone fallback for iOS 26 WebView issues
+  async function tryNativeMicrophoneFallback() {
+    try {
+      console.log("🎤 Attempting native microphone plugin...");
+      const { default: MicrophonePlugin } = await import('./plugins/microphone-plugin');
+      
+      // Start native recording
+      await MicrophonePlugin.startRecording();
+      console.log("🎤 Native microphone started successfully");
+      
+      // Listen for audio data from native plugin
+      MicrophonePlugin.addListener('audioData', (data) => {
+        if (pitchDetecting) {
+          // Process the audio data from native plugin
+          const rms = data.rms;
+          const samples = data.samples;
+          
+          // Update our pitch buffer with native data
+          if (samples.length > 0) {
+            for (let i = 0; i < Math.min(samples.length, pitchBuffer.length); i++) {
+              pitchBuffer[i] = samples[i];
+            }
+            
+            // Process pitch detection with native data
+            const [frequency, clarity] = detector.findPitch(pitchBuffer, 44100);
+            
+            // Update UI with pitch detection results
+            updatePitchDetectionUI(frequency, clarity, rms);
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error("🎤 Native microphone fallback failed:", error);
+    }
+  }
+
+  // Update pitch detection UI with results
+  function updatePitchDetectionUI(frequency: number, clarity: number, rms: number) {
+    // This function will be called with pitch detection results from native plugin
+    // You can add UI updates here similar to the existing pitch detection loop
+    console.log("🎤 Native audio - Frequency:", frequency, "Clarity:", clarity, "RMS:", rms);
+  }
+
+  // Show iOS 26 WebView microphone limitation message
+  function showIOS26MicrophoneLimitation() {
+    // Replace the microphone button with a static message for iOS 26
+    const micButton = $("#mic-toggle");
+    const micControls = $("#mic-controls");
+    const micStatus = $("#mic-status");
+    const micMeter = $("#mic-meter");
+    const micFeedback = $("#mic-feedback");
+    
+    // Hide all microphone-related UI elements
+    micButton.hide();
+    micControls.hide();
+    micStatus.hide();
+    micMeter.hide();
+    micFeedback.hide();
+    
+    // Create a static message instead
+    const staticMessage = $('<div class="ios26-mic-message" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin: 8px 0; text-align: center; color: #374151; font-size: 14px; line-height: 1.4;"><span style="font-size: 16px; margin-right: 8px;">🎤</span>Unfortunately, microphone access is currently unavailable in iOS 26</div>');
+    
+    // Insert the message after the microphone button
+    micButton.after(staticMessage);
+    
+    console.log("🎤 Replaced microphone button and controls with iOS 26 static message");
+  }
 
   // Show notification when microphone access is lost
   function showMicrophoneLossNotification() {
@@ -2843,7 +2911,9 @@ $(async function () {
 
   // Start microphone and pitch detection using pitchy
   async function startMic() {
+    console.log("🎤 startMic() called");
     if (pitchDetecting) {
+      console.log("🎤 Already detecting pitch, returning");
       return;
     }
 
@@ -2854,15 +2924,19 @@ $(async function () {
 
     // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.error("getUserMedia not supported");
+      console.error("🎤 getUserMedia not supported");
       throw new Error("getUserMedia not supported");
     }
+
+    console.log("🎤 getUserMedia is supported, proceeding...");
 
     try {
       // On iOS, ensure audio session is properly configured for microphone access
       if (isIOS) {
+        console.log("🎤 iOS detected - audio session should be pre-configured in AppDelegate");
         // Add a small delay to ensure audio session is fully configured
         await new Promise(resolve => setTimeout(resolve, 100));
+        console.log("🎤 Delay completed, proceeding with microphone request");
       }
 
       // Try iOS-specific constraints that work better with WebView
@@ -2878,7 +2952,7 @@ $(async function () {
         } : true
       };
       
-      // Enhanced permission handling for iOS
+      // For iOS 26+, we need to handle permission requests more carefully
       if (isIOS) {
         // First check if we already have permission using Capacitor API if available
         try {
@@ -2904,14 +2978,26 @@ $(async function () {
         }
       }
       
+      console.log("🎤 About to call getUserMedia...");
       micStream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      console.log("🎤 getUserMedia succeeded! Stream:", micStream);
       
       // Test if we're getting actual audio data
       await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      console.log("🎤 Testing audio data after 1 second...");
       
       // Add event listener to detect when microphone access is cut off
       if (micStream && micStream.getAudioTracks().length > 0) {
         const audioTrack = micStream.getAudioTracks()[0];
+        console.log("🎤 Audio track details:", {
+          id: audioTrack.id,
+          kind: audioTrack.kind,
+          label: audioTrack.label,
+          enabled: audioTrack.enabled,
+          muted: audioTrack.muted,
+          readyState: audioTrack.readyState,
+          settings: audioTrack.getSettings()
+        });
         
         audioTrack.addEventListener('ended', handleMicrophoneEnded);
         audioTrack.addEventListener('mute', handleMicrophoneMuted);
@@ -2930,9 +3016,9 @@ $(async function () {
         (window as any).micStateMonitor = stateMonitor;
       }
     } catch (error) {
-      // Enhanced error handling for iOS specific issues
+      // Enhanced error handling for iOS 26+ specific issues
       if (error instanceof Error) {
-        // Check for specific iOS error patterns
+        // Check for specific iOS 26+ error patterns
         if (error.name === 'NotAllowedError' || error.message.includes('Permission denied')) {
           showMicrophonePermissionNotification("Microphone access denied. Please enable microphone permissions for this app.");
           throw new Error("Microphone access denied. Please enable microphone permissions in Settings > Privacy & Security > Microphone for this app.");
@@ -2944,7 +3030,7 @@ $(async function () {
           throw new Error("Microphone is being used by another app. Please close other apps using the microphone and try again.");
         } else if (error.name === 'OverconstrainedError') {
           console.log("Advanced constraints failed, trying with basic constraints...");
-          // Fallback to basic constraints for iOS
+          // Fallback to basic constraints for iOS 26+
           try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Successfully got microphone with basic constraints");
@@ -2971,20 +3057,30 @@ $(async function () {
         throw new Error(`Microphone access failed: ${error}`);
       }
     }
+    console.log("🎤 Setting up pitch detection...");
     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+    console.log("🎤 AudioContext available:", !!AC);
     audioContextForPitch = new AC();
+    console.log("🎤 AudioContext created, state:", audioContextForPitch.state);
     
     const src = audioContextForPitch.createMediaStreamSource(micStream);
+    console.log("🎤 MediaStreamSource created:", !!src);
+    console.log("🎤 MediaStreamSource active:", src.mediaStream.active);
+    console.log("🎤 MediaStreamSource tracks:", src.mediaStream.getTracks().length);
     
     analyserForPitch = audioContextForPitch.createAnalyser();
     analyserForPitch.fftSize = 2048;
+    console.log("🎤 Analyser created, fftSize:", analyserForPitch.fftSize);
     
     src.connect(analyserForPitch);
+    console.log("🎤 Source connected to analyser");
     
     detector = PitchDetector.forFloat32Array(analyserForPitch.fftSize);
+    console.log("🎤 PitchDetector created:", !!detector);
     
     pitchBuffer = new Float32Array(analyserForPitch.fftSize);
     pitchDetecting = true;
+    console.log("🎤 Pitch detection setup complete, pitchDetecting:", pitchDetecting);
     
     // Check if we're getting audio data after setup
     setTimeout(() => {
@@ -2993,6 +3089,12 @@ $(async function () {
         const testSamples = Array.from(pitchBuffer.slice(0, 100));
         const hasNonZeroSamples = testSamples.some(sample => Math.abs(sample) > 0.0001);
         
+        if (!hasNonZeroSamples) {
+          console.log("🎤 WebView audio is silent - iOS 26 WebView limitation detected");
+          showIOS26MicrophoneLimitation();
+        } else {
+          console.log("🎤 WebView audio is working - samples detected");
+        }
       }
     }, 2000);
     smoothedLevel = 0;
@@ -3010,13 +3112,19 @@ $(async function () {
 
     // Ensure AudioContext is running (user gesture should have started it)
     if (audioContextForPitch && audioContextForPitch.state === "suspended") {
-      audioContextForPitch.resume().catch((err) => {
-        console.error("Failed to resume AudioContext:", err);
+      console.log("🎤 AudioContext was suspended, resuming...");
+      audioContextForPitch.resume().then(() => {
+        console.log("🎤 AudioContext resumed successfully");
+      }).catch((err) => {
+        console.error("🎤 Failed to resume AudioContext:", err);
       });
     }
+    
+    console.log("🎤 Starting pitch detection loop...");
 
     const loop = () => {
       if (!pitchDetecting) {
+        console.log("🎤 Loop stopped - pitchDetecting is false");
         return;
       }
 
@@ -3036,6 +3144,10 @@ $(async function () {
       
       // Debug: Log RMS every 60 frames (about once per second)
       if (Math.random() < 0.016) { // ~1/60 chance
+        console.log("🎤 RMS level:", rms.toFixed(6), "AudioContext state:", audioContextForPitch.state);
+        // Also log some raw audio data samples
+        const sampleValues = Array.from(pitchBuffer.slice(0, 10)).map(v => v.toFixed(6));
+        console.log("🎤 Raw audio samples:", sampleValues);
       }
 
       // Use pitchy correctly: pass sampleRate as second arg
@@ -3498,13 +3610,30 @@ $(async function () {
       updateTestState();
     });
 
+    // Test if microphone button exists
+    console.log("🎤 Microphone button element:", $("#mic-toggle").length, $("#mic-toggle")[0]);
+    
+    
+    // Add a simple test click handler
+    $(document).on("click", "#mic-toggle", function() {
+      console.log("🎤 Document click handler triggered for mic-toggle");
+    });
     
     // Mic toggle handler
     $("#mic-toggle").on("click", async function () {
+      console.log("🎤 Microphone button clicked!");
       const $btn = $(this);
+      
+      console.log("🎤 Button state:", {
+        disabled: $btn.prop("disabled"),
+        text: $btn.text(),
+        title: $btn.attr("title"),
+        pitchDetecting: pitchDetecting
+      });
 
       // Check if button is disabled
       if ($btn.prop("disabled")) {
+        console.log("🎤 Button is disabled, title:", $btn.attr("title"));
         const title = $btn.attr("title");
         if (title) {
           alert(title);
@@ -3513,8 +3642,10 @@ $(async function () {
       }
 
       if (!pitchDetecting) {
+        console.log("🎤 Starting microphone...");
         try {
           await startMic();
+          console.log("🎤 Microphone started successfully!");
           updateMicrophoneButtonState(true);
           updateMicSensitivityVisibility();
         } catch (e) {
