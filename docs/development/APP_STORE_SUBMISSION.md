@@ -36,6 +36,8 @@ npm run app-store:prep
 # Step 3: Submit to TestFlight first
 npm run app-store:testflight
 
+one potential error: [rsync is installed from homebrew](https://stackoverflow.com/questions/57292882/xcode-organizer-copy-failed) &rarr; fix: `brew unlink rsync`
+
 # Step 4: Upload screenshots to App Store Connect
 npm run app-store:screenshots
 
