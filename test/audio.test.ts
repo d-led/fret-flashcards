@@ -55,9 +55,11 @@ describe("AudioManager", () => {
       // Mock Audio to throw error
       const originalAudio = window.Audio;
       // @ts-ignore
-      window.Audio = vi.fn(() => {
-        throw new Error("Audio creation failed");
-      });
+      window.Audio = class MockAudioError {
+        constructor() {
+          throw new Error("Audio creation failed");
+        }
+      };
 
       const result = await errorManager.initialize();
       expect(result).toBe(false);
@@ -100,7 +102,11 @@ describe("AudioManager", () => {
       };
 
       // @ts-ignore
-      window.Audio = vi.fn(() => mockAudio);
+      window.Audio = class MockAudioClass {
+        constructor() {
+          return mockAudio;
+        }
+      };
 
       audioManager.playTone(440, 0.5);
 
@@ -128,7 +134,11 @@ describe("AudioManager", () => {
       };
 
       // @ts-ignore
-      window.Audio = vi.fn(() => mockAudio);
+      window.Audio = class MockAudioClass {
+        constructor() {
+          return mockAudio;
+        }
+      };
 
       audioManager.playClick();
       // Should not throw error

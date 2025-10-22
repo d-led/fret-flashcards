@@ -55,7 +55,11 @@ const mockSettingsManager = {
 };
 
 vi.mock("../src/ts/modules/tts", () => ({
-  TTSManager: vi.fn(() => mockTTSManager),
+  TTSManager: class MockTTSManager {
+    constructor() {
+      return mockTTSManager;
+    }
+  },
   TTS_PRIORITIES: {
     SYSTEM: 1,
     QUIZ_REPEAT: 2,
@@ -67,12 +71,20 @@ vi.mock("../src/ts/modules/tts", () => ({
 }));
 
 vi.mock("../src/ts/modules/audio", () => ({
-  AudioManager: vi.fn(() => mockAudioManager),
+  AudioManager: class MockAudioManager {
+    constructor() {
+      return mockAudioManager;
+    }
+  },
   detectIOS: vi.fn(() => false),
 }));
 
 vi.mock("../src/ts/modules/settings", () => ({
-  SettingsManager: vi.fn(() => mockSettingsManager),
+  SettingsManager: class MockSettingsManager {
+    constructor() {
+      return mockSettingsManager;
+    }
+  },
 }));
 
 describe("AudioTTSController", () => {
