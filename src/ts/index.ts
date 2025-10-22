@@ -3142,13 +3142,14 @@ $(async function () {
       }
       const rms = Math.sqrt(sum / pitchBuffer.length);
       
+      /*
       // Debug: Log RMS every 60 frames (about once per second)
       if (Math.random() < 0.016) { // ~1/60 chance
         console.log("🎤 RMS level:", rms.toFixed(6), "AudioContext state:", audioContextForPitch.state);
         // Also log some raw audio data samples
         const sampleValues = Array.from(pitchBuffer.slice(0, 10)).map(v => v.toFixed(6));
         console.log("🎤 Raw audio samples:", sampleValues);
-      }
+      }*/
 
       // Use pitchy correctly: pass sampleRate as second arg
       const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
@@ -3234,12 +3235,17 @@ $(async function () {
         $meterEl.css("border-color", "#4caf50");
         // Submit this stable detected note to the quiz flow once
         const now = Date.now();
-        if (displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) {
+        if (
+          (displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS))
+          &&
+          (countdownValue <= 0)
+        ) {
           try {
-            // Map to nearest fret and submit via unified handler
-            submitDetectedNote(midiRound);
-            displayedNoteId = currentNoteId;
-            lastSubmissionTime = now;
+            // Only process microphone input when countdown is not active
+              // Map to nearest fret and submit via unified handler
+              submitDetectedNote(midiRound);
+              displayedNoteId = currentNoteId;
+              lastSubmissionTime = now;
           } catch (e) {
             console.error("submitDetectedNote error", e);
           }
