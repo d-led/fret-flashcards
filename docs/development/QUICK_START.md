@@ -28,12 +28,14 @@ npm run build
 ```
 
 **Python 3:**
+
 ```bash
 python3 -m http.server 8000 -d dist
 # Then open http://localhost:8000
 ```
 
 **Node:**
+
 ```bash
 npx http-server ./dist
 # Then open the corresponding URL (npm run serve)
@@ -44,6 +46,7 @@ npx http-server ./dist
 ### Prerequisites
 
 #### iOS Development (macOS only)
+
 - Xcode (latest version)
 - iOS SDK (iOS 13.0+)
 - CocoaPods: `sudo gem install cocoapods`
@@ -74,14 +77,14 @@ npm run ios:dev
 
 ## Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Build web assets only |
-| `npm run build:mobile` | Build web assets + sync to mobile |
-| `npm run ios:dev` | Build and run on iOS |
-| `npm run mobile:sync` | Sync web assets to mobile platforms |
-| `npm run cy` | Run Cypress tests interactively |
-| `npm run e2e` | Run Cypress tests headlessly |
+| Command                | Description                         |
+| ---------------------- | ----------------------------------- |
+| `npm run build`        | Build web assets only               |
+| `npm run build:mobile` | Build web assets + sync to mobile   |
+| `npm run ios:dev`      | Build and run on iOS                |
+| `npm run mobile:sync`  | Sync web assets to mobile platforms |
+| `npm run cy`           | Run Cypress tests interactively     |
+| `npm run e2e`          | Run Cypress tests headlessly        |
 
 ## Next Steps
 

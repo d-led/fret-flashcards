@@ -22,17 +22,17 @@ $(async function () {
   await mobileEnhancements.initialize();
 
   // Listen for app backgrounding events to handle audio, voice, and microphone state
-  window.addEventListener('appBackgrounded', (event: Event) => {
+  window.addEventListener("appBackgrounded", (event: Event) => {
     const customEvent = event as CustomEvent;
     console.log("App backgrounded event received:", {
       action: customEvent.detail?.action,
       pitchDetecting: pitchDetecting,
       micStream: !!micStream,
       audioEnabled: audioEnabled,
-      enableTTS: enableTTS
+      enableTTS: enableTTS,
     });
-    
-    if (customEvent.detail?.action === 'disableMicrophone') {
+
+    if (customEvent.detail?.action === "disableMicrophone") {
       // Only disable microphone, not audio or TTS
       if (pitchDetecting) {
         stopMic();
@@ -82,7 +82,7 @@ $(async function () {
   function initializeWebUIElements() {
     // Show the mobile app store links for web users
     $("#mobile-links").show();
-    
+
     // Show the inspired-by section for web users
     $("#inspired-by").show();
   }
@@ -102,7 +102,7 @@ $(async function () {
     if (enableTTS && isTTSSupported() && !isIOS) {
       await initializeTTS();
     }
-    
+
     // Update unified banner for web browsers when TTS is enabled
     updateUnifiedBanner();
   }
@@ -733,10 +733,10 @@ $(async function () {
   // Sanitize text to prevent iOS SSML parsing errors
   function sanitizeTextForTTS(text: string): string {
     return text
-      .replace(/[<>]/g, '') // Remove angle brackets that might be interpreted as SSML tags
-      .replace(/&/g, 'and') // Replace ampersands that might be interpreted as HTML entities
+      .replace(/[<>]/g, "") // Remove angle brackets that might be interpreted as SSML tags
+      .replace(/&/g, "and") // Replace ampersands that might be interpreted as HTML entities
       .replace(/"/g, "'") // Replace double quotes with single quotes to avoid SSML attribute issues
-      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 
@@ -744,10 +744,10 @@ $(async function () {
   async function initializeTTS() {
     if (!("speechSynthesis" in window)) return false;
 
-      // On iOS, audio session is pre-configured in AppDelegate
-      if (isIOS) {
-        console.log("iOS detected - audio session pre-configured in AppDelegate");
-      }
+    // On iOS, audio session is pre-configured in AppDelegate
+    if (isIOS) {
+      console.log("iOS detected - audio session pre-configured in AppDelegate");
+    }
 
     speechSynthesis.cancel(); // removes anything 'stuck'
     speechSynthesis.getVoices();
@@ -2253,7 +2253,6 @@ $(async function () {
   let audioCurrentlyPlaying = false; // Flag to track if audio is playing
   let resumeMicTimeout = null; // Timeout for resuming mic after audio
 
-
   // Pitch detection state (pitchy)
   let micStream = null;
   let audioContextForPitch = null;
@@ -2594,7 +2593,7 @@ $(async function () {
     //   micButton.prop("disabled", true);
     //   micButton.attr("title", "Microphone access requires HTTPS. Please access this app via HTTPS.");
     //   micButton.html('<span aria-hidden="true">🎤</span> Mic (HTTPS Required)');
-    // } else 
+    // } else
     if (!hasGetUserMedia) {
       micButton.prop("disabled", true);
       micButton.attr("title", "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.");
@@ -2621,8 +2620,8 @@ $(async function () {
   // Show user-friendly notification for microphone permission issues
   function showMicrophonePermissionNotification(message: string) {
     // Remove any existing notifications
-    $('.mic-permission-notification').remove();
-    
+    $(".mic-permission-notification").remove();
+
     const notification = $(`
       <div class="mic-permission-notification" style="
         position: fixed; 
@@ -2647,9 +2646,9 @@ $(async function () {
         </div>
       </div>
     `);
-    
-    $('body').append(notification);
-    
+
+    $("body").append(notification);
+
     // Remove notification after 8 seconds
     setTimeout(() => {
       notification.fadeOut(300, () => notification.remove());
@@ -2692,34 +2691,33 @@ $(async function () {
   async function tryNativeMicrophoneFallback() {
     try {
       console.log("🎤 Attempting native microphone plugin...");
-      const { default: MicrophonePlugin } = await import('./plugins/microphone-plugin');
-      
+      const { default: MicrophonePlugin } = await import("./plugins/microphone-plugin");
+
       // Start native recording
       await MicrophonePlugin.startRecording();
       console.log("🎤 Native microphone started successfully");
-      
+
       // Listen for audio data from native plugin
-      MicrophonePlugin.addListener('audioData', (data) => {
+      MicrophonePlugin.addListener("audioData", (data) => {
         if (pitchDetecting) {
           // Process the audio data from native plugin
           const rms = data.rms;
           const samples = data.samples;
-          
+
           // Update our pitch buffer with native data
           if (samples.length > 0) {
             for (let i = 0; i < Math.min(samples.length, pitchBuffer.length); i++) {
               pitchBuffer[i] = samples[i];
             }
-            
+
             // Process pitch detection with native data
             const [frequency, clarity] = detector.findPitch(pitchBuffer, 44100);
-            
+
             // Update UI with pitch detection results
             updatePitchDetectionUI(frequency, clarity, rms);
           }
         }
       });
-      
     } catch (error) {
       console.error("🎤 Native microphone fallback failed:", error);
     }
@@ -2740,32 +2738,36 @@ $(async function () {
     const micStatus = $("#mic-status");
     const micMeter = $("#mic-meter");
     const micFeedback = $("#mic-feedback");
-    
+
     // Hide all microphone-related UI elements
     micButton.hide();
     micControls.hide();
     micStatus.hide();
     micMeter.hide();
     micFeedback.hide();
-    
+
     // Create a static message instead
-    const staticMessage = $('<div class="ios26-mic-message" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin: 8px 0; text-align: center; color: #374151; font-size: 14px; line-height: 1.4;"><span style="font-size: 16px; margin-right: 8px;">🎤</span>Unfortunately, microphone access is currently unavailable in iOS 26</div>');
-    
+    const staticMessage = $(
+      '<div class="ios26-mic-message" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin: 8px 0; text-align: center; color: #374151; font-size: 14px; line-height: 1.4;"><span style="font-size: 16px; margin-right: 8px;">🎤</span>Unfortunately, microphone access is currently unavailable in iOS 26</div>',
+    );
+
     // Insert the message after the microphone button
     micButton.after(staticMessage);
-    
+
     console.log("🎤 Replaced microphone button and controls with iOS 26 static message");
   }
 
   // Show notification when microphone access is lost
   function showMicrophoneLossNotification() {
     // Remove any existing notifications to prevent overlapping
-    $('.unified-loss-notification, .mic-loss-notification').remove();
-    
+    $(".unified-loss-notification, .mic-loss-notification").remove();
+
     // Create a temporary notification with neutral styling
-    const notification = $('<div class="mic-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">Microphone access lost - disabled automatically</div>');
-    $('body').append(notification);
-    
+    const notification = $(
+      '<div class="mic-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">Microphone access lost - disabled automatically</div>',
+    );
+    $("body").append(notification);
+
     // Remove notification after 3 seconds
     setTimeout(() => {
       notification.fadeOut(300, () => notification.remove());
@@ -2775,16 +2777,16 @@ $(async function () {
   // Unified function to handle loss of audio, voice, and microphone when app is backgrounded
   function handleAppBackgroundedUnified() {
     console.log("App backgrounded - checking audio, voice, and microphone state");
-    
+
     let disabledFeatures = [];
-    
+
     // Disable audio if enabled
     if (audioEnabled) {
       console.log("Disabling audio due to app backgrounding");
       audioEnabled = false;
       disabledFeatures.push("audio");
     }
-    
+
     // Disable TTS if enabled
     if (enableTTS) {
       console.log("Disabling TTS due to app backgrounding");
@@ -2793,7 +2795,7 @@ $(async function () {
       ttsUserInitialized = false;
       disabledFeatures.push("voice");
     }
-    
+
     // Disable microphone if active
     if (pitchDetecting) {
       console.log("Disabling microphone due to app backgrounding");
@@ -2801,27 +2803,27 @@ $(async function () {
       updateMicrophoneButtonState(false);
       disabledFeatures.push("microphone");
     }
-    
+
     // Update UI state
     updateTestState();
-    
+
     // Show unified notification if any features were disabled
     if (disabledFeatures.length > 0) {
       showUnifiedLossNotification(disabledFeatures);
     }
-    
+
     // Update banner to show re-enable options
     updateUnifiedBanner();
-    
+
     console.log("App backgrounded - disabled features:", disabledFeatures);
     console.log("Banner should be visible:", !audioEnabled || (enableTTS && !ttsUserInitialized));
   }
 
   // Make the unified function available globally
   (window as any).handleAppBackgroundedUnified = handleAppBackgroundedUnified;
-  
+
   // Test function to simulate app backgrounding (development only)
-  (window as any).testAppBackgrounding = function() {
+  (window as any).testAppBackgrounding = function () {
     console.log("Testing app backgrounding...");
     handleAppBackgroundedUnified();
   };
@@ -2829,8 +2831,8 @@ $(async function () {
   // Show unified notification when features are lost due to app backgrounding
   function showUnifiedLossNotification(disabledFeatures: string[]) {
     // Remove any existing notifications to prevent overlapping
-    $('.unified-loss-notification, .mic-loss-notification').remove();
-    
+    $(".unified-loss-notification, .mic-loss-notification").remove();
+
     let message = "";
     if (disabledFeatures.length === 1) {
       const feature = disabledFeatures[0];
@@ -2848,11 +2850,15 @@ $(async function () {
     } else if (disabledFeatures.length === 3) {
       message = "Audio, voice, and microphone disabled - app minimized";
     }
-    
+
     // Create a temporary notification with neutral styling and better positioning
-    const notification = $('<div class="unified-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">' + message + '</div>');
-    $('body').append(notification);
-    
+    const notification = $(
+      '<div class="unified-loss-notification" style="position: fixed; top: 20px; right: 20px; background: #4a5568; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; word-wrap: break-word;">' +
+        message +
+        "</div>",
+    );
+    $("body").append(notification);
+
     // Remove notification after 4 seconds (longer for multiple features)
     setTimeout(() => {
       notification.fadeOut(300, () => notification.remove());
@@ -2935,41 +2941,43 @@ $(async function () {
       if (isIOS) {
         console.log("🎤 iOS detected - audio session should be pre-configured in AppDelegate");
         // Add a small delay to ensure audio session is fully configured
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         console.log("🎤 Delay completed, proceeding with microphone request");
       }
 
       // Try iOS-specific constraints that work better with WebView
       const audioConstraints: MediaStreamConstraints = {
-        audio: isIOS ? {
-          // iOS WebView specific constraints
-          sampleRate: 44100,
-          channelCount: 1,
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          latency: 0.01
-        } : true
+        audio: isIOS
+          ? {
+              // iOS WebView specific constraints
+              sampleRate: 44100,
+              channelCount: 1,
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
+              latency: 0.01,
+            }
+          : true,
       };
-      
+
       // For iOS 26+, we need to handle permission requests more carefully
       if (isIOS) {
         // First check if we already have permission using Capacitor API if available
         try {
-          if (typeof (window as any).Capacitor !== 'undefined') {
-            const { Permissions } = await import('@capacitor/core');
-            const permission = await Permissions.query({ name: 'microphone' });
+          if (typeof (window as any).Capacitor !== "undefined") {
+            const { Permissions } = await import("@capacitor/core");
+            const permission = await Permissions.query({ name: "microphone" });
             console.log("Capacitor microphone permission status:", permission.state);
-            
-            if (permission.state === 'denied') {
+
+            if (permission.state === "denied") {
               throw new Error("Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone");
             }
           } else {
             // Fallback to standard web API
-            const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+            const permissionStatus = await navigator.permissions.query({ name: "microphone" as PermissionName });
             console.log("Web API microphone permission status:", permissionStatus.state);
-            
-            if (permissionStatus.state === 'denied') {
+
+            if (permissionStatus.state === "denied") {
               throw new Error("Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone");
             }
           }
@@ -2977,15 +2985,15 @@ $(async function () {
           console.log("Permission query not supported or failed, proceeding with getUserMedia");
         }
       }
-      
+
       console.log("🎤 About to call getUserMedia...");
       micStream = await navigator.mediaDevices.getUserMedia(audioConstraints);
       console.log("🎤 getUserMedia succeeded! Stream:", micStream);
-      
+
       // Test if we're getting actual audio data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
       console.log("🎤 Testing audio data after 1 second...");
-      
+
       // Add event listener to detect when microphone access is cut off
       if (micStream && micStream.getAudioTracks().length > 0) {
         const audioTrack = micStream.getAudioTracks()[0];
@@ -2996,22 +3004,22 @@ $(async function () {
           enabled: audioTrack.enabled,
           muted: audioTrack.muted,
           readyState: audioTrack.readyState,
-          settings: audioTrack.getSettings()
+          settings: audioTrack.getSettings(),
         });
-        
-        audioTrack.addEventListener('ended', handleMicrophoneEnded);
-        audioTrack.addEventListener('mute', handleMicrophoneMuted);
-        audioTrack.addEventListener('unmute', handleMicrophoneUnmuted);
-        
+
+        audioTrack.addEventListener("ended", handleMicrophoneEnded);
+        audioTrack.addEventListener("mute", handleMicrophoneMuted);
+        audioTrack.addEventListener("unmute", handleMicrophoneUnmuted);
+
         // Monitor track state periodically as a fallback
         const stateMonitor = setInterval(() => {
-          if (audioTrack.readyState === 'ended' && pitchDetecting) {
+          if (audioTrack.readyState === "ended" && pitchDetecting) {
             console.log("Microphone track ended detected via polling");
             clearInterval(stateMonitor);
             handleMicrophoneEnded();
           }
         }, 1000);
-        
+
         // Store the interval ID so we can clear it when stopping
         (window as any).micStateMonitor = stateMonitor;
       }
@@ -3019,16 +3027,16 @@ $(async function () {
       // Enhanced error handling for iOS 26+ specific issues
       if (error instanceof Error) {
         // Check for specific iOS 26+ error patterns
-        if (error.name === 'NotAllowedError' || error.message.includes('Permission denied')) {
+        if (error.name === "NotAllowedError" || error.message.includes("Permission denied")) {
           showMicrophonePermissionNotification("Microphone access denied. Please enable microphone permissions for this app.");
           throw new Error("Microphone access denied. Please enable microphone permissions in Settings > Privacy & Security > Microphone for this app.");
-        } else if (error.name === 'NotFoundError' || error.message.includes('No microphone')) {
+        } else if (error.name === "NotFoundError" || error.message.includes("No microphone")) {
           showMicrophonePermissionNotification("No microphone found. Please check that your device has a working microphone.");
           throw new Error("No microphone found. Please check that your device has a working microphone.");
-        } else if (error.name === 'NotReadableError' || error.message.includes('Could not start')) {
+        } else if (error.name === "NotReadableError" || error.message.includes("Could not start")) {
           showMicrophonePermissionNotification("Microphone is being used by another app. Please close other apps using the microphone and try again.");
           throw new Error("Microphone is being used by another app. Please close other apps using the microphone and try again.");
-        } else if (error.name === 'OverconstrainedError') {
+        } else if (error.name === "OverconstrainedError") {
           console.log("Advanced constraints failed, trying with basic constraints...");
           // Fallback to basic constraints for iOS 26+
           try {
@@ -3038,12 +3046,12 @@ $(async function () {
             console.log("Basic constraints also failed, trying minimal constraints...");
             // Try even more minimal constraints
             try {
-              micStream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { 
+              micStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
                   echoCancellation: false,
                   noiseSuppression: false,
-                  autoGainControl: false
-                } 
+                  autoGainControl: false,
+                },
               });
               console.log("Successfully got microphone with minimal constraints");
             } catch (minimalError) {
@@ -3062,33 +3070,33 @@ $(async function () {
     console.log("🎤 AudioContext available:", !!AC);
     audioContextForPitch = new AC();
     console.log("🎤 AudioContext created, state:", audioContextForPitch.state);
-    
+
     const src = audioContextForPitch.createMediaStreamSource(micStream);
     console.log("🎤 MediaStreamSource created:", !!src);
     console.log("🎤 MediaStreamSource active:", src.mediaStream.active);
     console.log("🎤 MediaStreamSource tracks:", src.mediaStream.getTracks().length);
-    
+
     analyserForPitch = audioContextForPitch.createAnalyser();
     analyserForPitch.fftSize = 2048;
     console.log("🎤 Analyser created, fftSize:", analyserForPitch.fftSize);
-    
+
     src.connect(analyserForPitch);
     console.log("🎤 Source connected to analyser");
-    
+
     detector = PitchDetector.forFloat32Array(analyserForPitch.fftSize);
     console.log("🎤 PitchDetector created:", !!detector);
-    
+
     pitchBuffer = new Float32Array(analyserForPitch.fftSize);
     pitchDetecting = true;
     console.log("🎤 Pitch detection setup complete, pitchDetecting:", pitchDetecting);
-    
+
     // Check if we're getting audio data after setup
     setTimeout(() => {
       if (pitchDetecting) {
         // Test a few audio samples to see if we're getting data
         const testSamples = Array.from(pitchBuffer.slice(0, 100));
-        const hasNonZeroSamples = testSamples.some(sample => Math.abs(sample) > 0.0001);
-        
+        const hasNonZeroSamples = testSamples.some((sample) => Math.abs(sample) > 0.0001);
+
         if (!hasNonZeroSamples) {
           console.log("🎤 WebView audio is silent - iOS 26 WebView limitation detected");
           showIOS26MicrophoneLimitation();
@@ -3113,13 +3121,16 @@ $(async function () {
     // Ensure AudioContext is running (user gesture should have started it)
     if (audioContextForPitch && audioContextForPitch.state === "suspended") {
       console.log("🎤 AudioContext was suspended, resuming...");
-      audioContextForPitch.resume().then(() => {
-        console.log("🎤 AudioContext resumed successfully");
-      }).catch((err) => {
-        console.error("🎤 Failed to resume AudioContext:", err);
-      });
+      audioContextForPitch
+        .resume()
+        .then(() => {
+          console.log("🎤 AudioContext resumed successfully");
+        })
+        .catch((err) => {
+          console.error("🎤 Failed to resume AudioContext:", err);
+        });
     }
-    
+
     console.log("🎤 Starting pitch detection loop...");
 
     const loop = () => {
@@ -3141,7 +3152,7 @@ $(async function () {
         sum += pitchBuffer[i] * pitchBuffer[i];
       }
       const rms = Math.sqrt(sum / pitchBuffer.length);
-      
+
       /*
       // Debug: Log RMS every 60 frames (about once per second)
       if (Math.random() < 0.016) { // ~1/60 chance
@@ -3165,7 +3176,7 @@ $(async function () {
       // Apply sensitivity-based noise floor adjustment
       let adjustedNoiseFloor = micNoiseFloor * (1 + micSensitivity * 2); // Scale noise floor based on sensitivity
       let adjustedBaseline = (micBaselineRms || 0) * (1.05 + micSensitivity * 0.5); // Adjust baseline compensation
-      
+
       // iOS-specific optimizations for background noise filtering
       if (isIOS) {
         // Increase noise floor on iOS to filter out more background noise
@@ -3180,7 +3191,7 @@ $(async function () {
           return;
         }
       }
-      
+
       // Subtract baseline and map to 0..1 using a dB scale. Add a small floor to avoid log(0).
       const effectiveRms = Math.max(0, rms - adjustedBaseline);
       const rmsFloor = Math.max(effectiveRms, 1e-8);
@@ -3212,7 +3223,7 @@ $(async function () {
         const $meterFillSilent = $("#mic-meter-fill");
         $meterFillSilent.css({
           width: "0%",
-          background: "#4caf50"
+          background: "#4caf50",
         });
         // Change meter border to indicate no input
         $meterEl.css("border-color", "#555");
@@ -3235,17 +3246,13 @@ $(async function () {
         $meterEl.css("border-color", "#4caf50");
         // Submit this stable detected note to the quiz flow once
         const now = Date.now();
-        if (
-          (displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS))
-          &&
-          (countdownValue <= 0)
-        ) {
+        if ((displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) && countdownValue <= 0) {
           try {
             // Only process microphone input when countdown is not active
-              // Map to nearest fret and submit via unified handler
-              submitDetectedNote(midiRound);
-              displayedNoteId = currentNoteId;
-              lastSubmissionTime = now;
+            // Map to nearest fret and submit via unified handler
+            submitDetectedNote(midiRound);
+            displayedNoteId = currentNoteId;
+            lastSubmissionTime = now;
           } catch (e) {
             console.error("submitDetectedNote error", e);
           }
@@ -3291,15 +3298,15 @@ $(async function () {
         // Remove event listeners before stopping tracks
         if (micStream.getAudioTracks().length > 0) {
           const audioTrack = micStream.getAudioTracks()[0];
-          audioTrack.removeEventListener('ended', handleMicrophoneEnded);
-          audioTrack.removeEventListener('mute', handleMicrophoneMuted);
-          audioTrack.removeEventListener('unmute', handleMicrophoneUnmuted);
+          audioTrack.removeEventListener("ended", handleMicrophoneEnded);
+          audioTrack.removeEventListener("mute", handleMicrophoneMuted);
+          audioTrack.removeEventListener("unmute", handleMicrophoneUnmuted);
         }
         micStream.getTracks().forEach((t) => t.stop());
       } catch (e) {}
       micStream = null;
     }
-    
+
     // Clear the state monitoring interval
     if ((window as any).micStateMonitor) {
       clearInterval((window as any).micStateMonitor);
@@ -3350,7 +3357,7 @@ $(async function () {
       audioEnabled,
       enableTTS,
       ttsUserInitialized,
-      isIOS
+      isIOS,
     });
 
     // If both audio and TTS are enabled and initialized, show success message
@@ -3363,9 +3370,9 @@ $(async function () {
     // Determine what needs to be enabled
     const needsAudio = !audioEnabled;
     const needsVoice = enableTTS && !ttsUserInitialized;
-    
+
     console.log("Banner needs:", { needsAudio, needsVoice });
-    
+
     // Build banner text based on what's needed
     let bannerText = "";
     if (needsAudio && needsVoice) {
@@ -3391,7 +3398,7 @@ $(async function () {
   $(function () {
     // Detect iOS and show banner if needed
     isIOS = detectIOS();
-    
+
     // Load settings and statistics first
     loadSettings();
     loadStatistics(); // Load stats on init (now includes computeStringErrorCounts)
@@ -3618,23 +3625,22 @@ $(async function () {
 
     // Test if microphone button exists
     console.log("🎤 Microphone button element:", $("#mic-toggle").length, $("#mic-toggle")[0]);
-    
-    
+
     // Add a simple test click handler
-    $(document).on("click", "#mic-toggle", function() {
+    $(document).on("click", "#mic-toggle", function () {
       console.log("🎤 Document click handler triggered for mic-toggle");
     });
-    
+
     // Mic toggle handler
     $("#mic-toggle").on("click", async function () {
       console.log("🎤 Microphone button clicked!");
       const $btn = $(this);
-      
+
       console.log("🎤 Button state:", {
         disabled: $btn.prop("disabled"),
         text: $btn.text(),
         title: $btn.attr("title"),
-        pitchDetecting: pitchDetecting
+        pitchDetecting: pitchDetecting,
       });
 
       // Check if button is disabled
@@ -3684,7 +3690,7 @@ $(async function () {
 
           // Show user-friendly notification instead of alert
           showMicrophonePermissionNotification(errorMessage);
-          
+
           // Disable button for persistent errors
           if (shouldDisableButton) {
             disableMicrophoneButton(errorMessage);

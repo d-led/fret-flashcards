@@ -41,6 +41,7 @@ If you need to be offline or not have to carry the computer out in the open with
 For developers, see the [Quick Start Guide](./docs/development/QUICK_START.md) for setup instructions.
 
 **Basic web usage:**
+
 - Run `npm i && npm run build`
 - Or serve with: `npm run serve` then open the corresponding URL, e.g. http://localhost:8080
 

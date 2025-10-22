@@ -50,24 +50,24 @@ npm run app-store:release
 
 ### Package.json Scripts
 
-| Command | Purpose | Description |
-|---------|---------|-------------|
-| `npm run app-store:validate` | Validation | Validates all assets, metadata, and compliance |
-| `npm run app-store:prep` | Preparation | **⚠️ WARNING: Deletes old screenshots!** Generates screenshots and prepares all assets |
-| `npm run app-store:testflight` | TestFlight | **✅ WORKING** - Builds and uploads to TestFlight |
-| `npm run app-store:release` | App Store | Builds and uploads to App Store |
-| `npm run app-store:metadata` | Metadata | Upload metadata only to App Store Connect |
-| `npm run app-store:screenshots` | Screenshots | Upload screenshots (replaces existing) |
-| `npm run app-store:screenshots:add` | Screenshots | Upload screenshots (adds to existing) |
-| `npm run screenshots` | Screenshots | Generate screenshots only (fastlane) |
-| `npm run screenshots:fastlane` | Screenshots | Generate screenshots using fastlane script |
+| Command                             | Purpose     | Description                                                                            |
+| ----------------------------------- | ----------- | -------------------------------------------------------------------------------------- |
+| `npm run app-store:validate`        | Validation  | Validates all assets, metadata, and compliance                                         |
+| `npm run app-store:prep`            | Preparation | **⚠️ WARNING: Deletes old screenshots!** Generates screenshots and prepares all assets |
+| `npm run app-store:testflight`      | TestFlight  | **✅ WORKING** - Builds and uploads to TestFlight                                      |
+| `npm run app-store:release`         | App Store   | Builds and uploads to App Store                                                        |
+| `npm run app-store:metadata`        | Metadata    | Upload metadata only to App Store Connect                                              |
+| `npm run app-store:screenshots`     | Screenshots | Upload screenshots (replaces existing)                                                 |
+| `npm run app-store:screenshots:add` | Screenshots | Upload screenshots (adds to existing)                                                  |
+| `npm run screenshots`               | Screenshots | Generate screenshots only (fastlane)                                                   |
+| `npm run screenshots:fastlane`      | Screenshots | Generate screenshots using fastlane script                                             |
 
 ### Individual Scripts
 
-| Script | Purpose |
-|--------|---------|
+| Script                          | Purpose                  |
+| ------------------------------- | ------------------------ |
 | `scripts/app-store-validate.js` | Comprehensive validation |
-| `scripts/app-store-prep.js` | Asset preparation |
+| `scripts/app-store-prep.js`     | Asset preparation        |
 
 ## 📱 App Information
 
@@ -96,7 +96,7 @@ npm run app-store:release
 The app generates screenshots for these required devices:
 
 - iPhone 17 Pro Max (6.7" display)
-- iPhone 17 Pro (6.1" display)  
+- iPhone 17 Pro (6.1" display)
 - iPad Pro 13-inch (M4) (12.9" display)
 
 Screenshots are automatically generated using fastlane snapshot and saved to `ios/screenshots/`.
@@ -106,17 +106,21 @@ Screenshots are automatically generated using fastlane snapshot and saved to `io
 You have two options for uploading screenshots to App Store Connect:
 
 #### Option 1: Replace All Screenshots (Recommended)
+
 ```bash
 npm run app-store:screenshots
 ```
+
 - **Behavior**: Deletes ALL existing screenshots and uploads new ones
 - **Use when**: You want to completely refresh your app store screenshots
 - **Configuration**: Uses `overwrite_screenshots: true`
 
 #### Option 2: Add to Existing Screenshots
+
 ```bash
 npm run app-store:screenshots:add
 ```
+
 - **Behavior**: Adds new screenshots alongside existing ones
 - **Use when**: You want to add screenshots without affecting existing ones
 - **Configuration**: Uses `overwrite_screenshots: false`
@@ -124,6 +128,7 @@ npm run app-store:screenshots:add
 ### Screenshot Upload Workflow
 
 1. **Generate Screenshots**:
+
    ```bash
    npm run app-store:prep  # ⚠️ WARNING: Deletes old screenshots! Includes screenshot generation
    # OR
@@ -133,6 +138,7 @@ npm run app-store:screenshots:add
    ```
 
 2. **Upload Screenshots**:
+
    ```bash
    npm run app-store:screenshots  # Replace existing
    # OR
@@ -146,38 +152,45 @@ npm run app-store:screenshots:add
 The validation script (`app-store-validate.js`) checks:
 
 ### ✅ Project Structure
+
 - Required files exist
 - iOS project structure is correct
 - Fastlane configuration is present
 
 ### ✅ Screenshots
+
 - All required device screenshots exist
 - Screenshot quality (file size validation)
 - Proper language directory structure
 
 ### ✅ App Icon
+
 - App icon exists in correct location
 - Icon quality validation
 - Required sizes present
 
 ### ✅ Metadata
+
 - All required fields present
 - Bundle ID matches project
 - Character limits respected
 - Category and age rating correct
 
 ### ✅ Privacy Policy
+
 - Privacy policy exists
 - Required sections present
 - Contact information included
 
 ### ✅ App Build
+
 - App builds successfully
 - iOS sync works (with known CocoaPods exception handling)
 
 ## 📝 Metadata Details
 
 ### App Description
+
 ```
 String Homework Tutor - Master the Fretboard
 
@@ -215,11 +228,13 @@ No internet required - everything works offline!
 ```
 
 ### Keywords
+
 ```
 guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings
 ```
 
 ### URLs
+
 - **Marketing**: https://github.com/d-led/fret-flashcards
 - **Privacy Policy**: https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md
 - **Support**: https://github.com/d-led/fret-flashcards
@@ -290,6 +305,7 @@ npm run app-store:release
 ### Common Issues
 
 #### Build Failures
+
 ```bash
 # Clean and rebuild
 npm run build:mobile
@@ -297,6 +313,7 @@ npx cap sync ios
 ```
 
 #### Screenshot Generation Issues
+
 ```bash
 # Check simulator availability
 xcrun simctl list devices
@@ -306,6 +323,7 @@ xcrun simctl erase all
 ```
 
 #### Screenshot Upload Issues
+
 ```bash
 # Verify screenshots exist before upload
 ls -la ios/screenshots/en-US/
@@ -318,6 +336,7 @@ npm run app-store:screenshots:add  # Safer option
 ```
 
 #### Fastlane Issues
+
 ```bash
 # Update fastlane
 sudo gem update fastlane
@@ -327,6 +346,7 @@ cd ios && fastlane lanes
 ```
 
 #### CocoaPods Issues
+
 ```bash
 # Known issue with Xcode 26 compatibility
 # The validation script handles this automatically
@@ -337,11 +357,13 @@ cd ios/App && pod install
 ### Validation Failures
 
 If validation fails, check the generated report:
+
 ```bash
 cat app-store-validation-report.json
 ```
 
 Common fixes:
+
 - Missing screenshots: Run `npm run screenshots`
 - Missing metadata: Check `ios/fastlane/metadata/en-US/` files
 - Build issues: Run `npm run build:mobile`
@@ -349,11 +371,13 @@ Common fixes:
 ## 📈 Post-Submission
 
 ### Monitoring
+
 1. Check App Store Connect for review status
 2. Monitor for reviewer feedback
 3. Respond quickly to any requests
 
 ### Expected Timeline
+
 - **TestFlight**: Usually processed within 1-2 hours
 - **App Store Review**: 24-48 hours typically
 - **Release**: Immediate after approval (if set to automatic)

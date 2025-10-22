@@ -11,6 +11,7 @@ The fret-flashcards application implements a sophisticated audio system that mus
 **Problem**: Audio output levels vary dramatically across devices and platforms, particularly between iOS and other platforms.
 
 **Solution**: Platform-specific volume scaling with iOS-specific amplification:
+
 ```typescript
 // Boost volume on iOS where overall output is quieter
 utterance.volume = isIOS ? 1.0 : 0.9;
@@ -26,12 +27,14 @@ const amp = isIOS ? 0.75 : 0.25;
 **Problem**: Modern browsers require user interaction before allowing audio playback to prevent unwanted audio spam.
 
 **Solution**: Unified audio enablement banner system:
+
 ```typescript
 // Show banner to enable audio on first user interaction
 const bannerText = enableTTS ? "🔊🎤 Click here to enable audio and voice" : "🔊 Click here to enable audio";
 ```
 
 **Implementation Details**:
+
 - Single banner handles both audio and microphone access
 - Banner disappears after user interaction
 - Graceful fallback for browsers without audio support
@@ -42,6 +45,7 @@ const bannerText = enableTTS ? "🔊🎤 Click here to enable audio and voice" :
 **Problem**: Converting between musical notes, MIDI numbers, and audio frequencies requires precise mathematical calculations.
 
 **Solution**: Robust MIDI-to-frequency conversion with octave handling:
+
 ```typescript
 // Convert MIDI note to frequency
 const midi = 69 + 12 * Math.log2(frequency / 440);
@@ -51,6 +55,7 @@ const sample = Math.sin((2 * Math.PI * freq * i) / sampleRate) * amp * 32767;
 ```
 
 **Key Considerations**:
+
 - A4 (440 Hz) as reference point (MIDI note 69)
 - Logarithmic frequency scaling for musical accuracy
 - Triangle wave for lower octaves (1-2) to improve clarity
@@ -63,6 +68,7 @@ const sample = Math.sin((2 * Math.PI * freq * i) / sampleRate) * amp * 32767;
 **Solution**: Multi-layered approach with sensitivity controls:
 
 #### Background Noise Mitigation
+
 ```typescript
 // iOS-specific optimizations for background noise filtering
 if (isIOS) {
@@ -76,20 +82,24 @@ if (isIOS) {
 ```
 
 #### User-Configurable Sensitivity
+
 - **Sensitivity Control** (0.0-1.0): Adjusts overall microphone responsiveness
 - **Clarity Threshold** (0.0-1.0): Minimum signal quality required for processing
 - **Noise Floor** (0.0001-0.01): RMS threshold below which input is considered silence
 
 #### Audio Constraints for Better Input Quality
+
 ```typescript
 const audioConstraints: MediaStreamConstraints = {
-  audio: isIOS ? {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-    sampleRate: 44100,
-    channelCount: 1
-  } : true
+  audio: isIOS
+    ? {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        sampleRate: 44100,
+        channelCount: 1,
+      }
+    : true,
 };
 ```
 
@@ -100,6 +110,7 @@ const audioConstraints: MediaStreamConstraints = {
 **Solution**: Comprehensive TTS management system:
 
 #### Voice Selection and Platform Optimization
+
 ```typescript
 // iOS-specific voice selection
 if (isiOS && englishVoices.length > 0) {
@@ -109,12 +120,14 @@ if (isiOS && englishVoices.length > 0) {
 ```
 
 #### TTS Queue Management
+
 - Priority-based queuing system
 - Prevents audio conflicts between TTS and tone generation
 - Graceful error handling and recovery
 - User-configurable voice selection
 
 #### Platform-Specific Considerations
+
 - **iOS**: Prefers Siri voices for consistency
 - **Chrome on macOS**: Known TTS issues, shows warning message
 - **Cross-platform**: Fallback to default voices when preferred voices unavailable
@@ -126,15 +139,17 @@ if (isiOS && englishVoices.length > 0) {
 **Solution**: Comprehensive state management:
 
 #### Microphone State Tracking
+
 ```typescript
 // Automatic microphone disabling on app backgrounding
-if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
+if (customEvent.detail?.action === "disableMicrophone" && pitchDetecting) {
   stopMic();
   updateMicrophoneButtonState(false);
 }
 ```
 
 #### Audio Context Management
+
 - Automatic suspension/resumption of audio contexts
 - Proper cleanup of audio resources
 - Prevention of audio feedback loops
@@ -147,6 +162,7 @@ if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
 **Solution**: ARIA-compliant audio controls and announcements:
 
 #### Screen Reader Integration
+
 ```html
 <span id="mic-meter" aria-label="Microphone input level" role="progressbar" aria-valuemin="0" aria-valuemax="100">
   <span id="mic-meter-fill" aria-hidden="true"></span>
@@ -154,6 +170,7 @@ if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
 ```
 
 #### Audio Feedback for Visual Elements
+
 - TTS announcements for quiz state changes
 - Audio cues for correct/incorrect answers
 - Voice hints for quiz notes
@@ -166,12 +183,14 @@ if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
 **Solution**: Optimized audio processing:
 
 #### Efficient Audio Generation
+
 - Pre-generated WAV data URLs for tones
 - Minimal memory footprint for audio buffers
 - Efficient frequency calculation algorithms
 - Proper cleanup of audio objects
 
 #### Microphone Processing Optimization
+
 - RequestAnimationFrame-based processing loop
 - Efficient RMS calculation for level detection
 - Baseline noise compensation
@@ -184,6 +203,7 @@ if (customEvent.detail?.action === 'disableMicrophone' && pitchDetecting) {
 **Solution**: Comprehensive error handling:
 
 #### Microphone Error Handling
+
 ```typescript
 if (e.message.includes("Permission denied")) {
   errorMessage += "Microphone permission was denied. Please allow microphone access in your browser settings and try again.";
@@ -193,6 +213,7 @@ if (e.message.includes("Permission denied")) {
 ```
 
 #### Fallback Strategies
+
 - Graceful degradation when audio is unavailable
 - Clear error messages for users
 - Alternative input methods when microphone fails
@@ -205,6 +226,7 @@ if (e.message.includes("Permission denied")) {
 **Solution**: Comprehensive testing infrastructure:
 
 #### Test State Tracking
+
 ```typescript
 function updateTestState() {
   const audioEnabledEl = document.getElementById("audio-enabled");
@@ -214,6 +236,7 @@ function updateTestState() {
 ```
 
 #### Debug Information
+
 - Real-time audio state monitoring
 - TTS queue length tracking
 - Microphone level visualization
@@ -222,6 +245,7 @@ function updateTestState() {
 ## Technical Implementation Details
 
 ### Audio Context Initialization
+
 The application uses a careful initialization sequence that respects browser security policies while providing the best possible user experience:
 
 1. **User Interaction Detection**: Waits for user interaction before initializing audio
@@ -230,6 +254,7 @@ The application uses a careful initialization sequence that respects browser sec
 4. **Graceful Fallback**: Provides alternative experiences when audio is unavailable
 
 ### Microphone Processing Pipeline
+
 The microphone input processing follows a sophisticated pipeline:
 
 1. **Audio Capture**: Uses getUserMedia with platform-specific constraints
@@ -240,6 +265,7 @@ The microphone input processing follows a sophisticated pipeline:
 6. **User Feedback**: Provides real-time visual and audio feedback
 
 ### TTS Integration Architecture
+
 The TTS system is designed for reliability and user experience:
 
 1. **Voice Discovery**: Automatically detects available voices

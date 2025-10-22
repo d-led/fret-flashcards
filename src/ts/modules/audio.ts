@@ -183,7 +183,7 @@ export class AudioManager {
   // Generate a WAV data URL for a given frequency
   private generateToneDataURL(freq: number, duration = 0.8, sampleRate = 44100): string {
     const length = Math.floor(sampleRate * duration);
-    
+
     // Ensure minimum length to prevent zero buffer size issues
     const minLength = Math.max(length, 1);
     const buffer = new ArrayBuffer(44 + minLength * 2);
@@ -214,7 +214,7 @@ export class AudioManager {
     const midi = 69 + 12 * Math.log2(freq / 440);
     const octave = Math.floor(midi / 12) - 1;
     const useTriangle = octave === 1 || octave === 2;
-    
+
     // Adjust amplitude based on iOS and microphone state
     let amp: number;
     if (this.config.isIOS) {
@@ -248,7 +248,7 @@ export class AudioManager {
   // Generate a brief "clack" sound
   private generateClickDataURL(duration = 0.05, sampleRate = 44100): string {
     const length = Math.floor(sampleRate * duration);
-    
+
     // Ensure minimum length to prevent zero buffer size issues
     const minLength = Math.max(length, 1);
     const buffer = new ArrayBuffer(44 + minLength * 2);

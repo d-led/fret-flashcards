@@ -18,13 +18,14 @@ class RemoveSubmission {
 
   log(message, type = "info") {
     const timestamp = new Date().toISOString();
-    const prefix = {
-      info: "📱",
-      success: "✅",
-      warning: "⚠️",
-      error: "❌",
-      rocket: "🚀"
-    }[type] || "📱";
+    const prefix =
+      {
+        info: "📱",
+        success: "✅",
+        warning: "⚠️",
+        error: "❌",
+        rocket: "🚀",
+      }[type] || "📱";
 
     console.log(`${prefix} [${timestamp}] ${message}`);
   }
@@ -32,13 +33,10 @@ class RemoveSubmission {
   async checkEnvironment() {
     this.log("Checking environment variables...");
 
-    const requiredEnvVars = [
-      "APPLE_ID",
-      "APPLE_TEAM_ID"
-    ];
+    const requiredEnvVars = ["APPLE_ID", "APPLE_TEAM_ID"];
 
-    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-    
+    const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
     if (missingVars.length > 0) {
       throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`);
     }
@@ -98,7 +96,6 @@ class RemoveSubmission {
       fs.unlinkSync(scriptPath);
 
       this.log("Fastlane script completed", "success");
-
     } catch (error) {
       this.log(`Fastlane approach failed: ${error.message}`, "warning");
       this.log("Falling back to manual instructions", "info");
@@ -122,23 +119,23 @@ class RemoveSubmission {
             "3. Select 'String Homework Tutor' from the Apps section",
             "4. Click on version 1.0.1 in the sidebar",
             "5. Click 'Remove this version from review' at the top",
-            "6. Confirm by clicking 'Remove' in the dialog"
+            "6. Confirm by clicking 'Remove' in the dialog",
           ],
-          note: "This will change the status to 'Developer Rejected'"
+          note: "This will change the status to 'Developer Rejected'",
         },
         api_method: {
           description: "Using App Store Connect API DELETE endpoint",
           endpoint: "DELETE /v1/appStoreVersionSubmissions/{id}",
-          note: "Only works if review hasn't started yet"
-        }
+          note: "Only works if review hasn't started yet",
+        },
       },
       current_status: "Waiting for review or In Review",
       next_steps: [
         "Remove the submission using the web interface",
         "Fix any issues that caused the need to remove",
         "Resubmit when ready (review process will start over)",
-        "Monitor App Store Connect for new review status"
-      ]
+        "Monitor App Store Connect for new review status",
+      ],
     };
 
     const instructionsPath = path.join(this.projectRoot, "remove-submission-instructions.json");
@@ -158,7 +155,6 @@ class RemoveSubmission {
       this.log("📋 Manual removal instructions generated", "info");
       this.log("🌐 Use the web interface method for guaranteed success", "info");
       this.log("📱 Check App Store Connect after removal", "info");
-      
     } catch (error) {
       this.log(`Error: ${error.message}`, "error");
       process.exit(1);

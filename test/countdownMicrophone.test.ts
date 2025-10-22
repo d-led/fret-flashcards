@@ -63,10 +63,10 @@ describe("Countdown Microphone Bug Fix", () => {
   describe("Bug Fix: Microphone input during countdown", () => {
     it("should demonstrate the bug fix - ignore microphone input during countdown", () => {
       // This test demonstrates the specific bug fix described in the issue:
-      // "when the right note is submitted, and the microphone is enabled, 
-      // the microphone continues to listen and detect notes. if a wrong note 
+      // "when the right note is submitted, and the microphone is enabled,
+      // the microphone continues to listen and detect notes. if a wrong note
       // gets triggered, the countdown is stopped."
-      
+
       // Setup: microphone is active and countdown is running (after correct answer)
       mockGlobalState.pitchDetecting = true;
       mockGlobalState.countdownValue = 3; // 3 seconds countdown
@@ -78,9 +78,9 @@ describe("Countdown Microphone Bug Fix", () => {
 
       // The fix ensures submitDetectedNote is NOT called during countdown
       expect(mockGlobalState.submitDetectedNote).not.toHaveBeenCalled();
-      
+
       // This prevents the confusion described in the bug report:
-      // "when not looking at the screen, this can cause confusion as one 
+      // "when not looking at the screen, this can cause confusion as one
       // doesn't really know when the computer starts to listen for the next note"
     });
 
@@ -205,10 +205,10 @@ describe("Countdown Microphone Bug Fix", () => {
       // Rapidly change countdown state
       mockGlobalState.countdownValue = 1;
       mockPitchDetectionLoop.processNote(60);
-      
+
       mockGlobalState.countdownValue = 0;
       mockPitchDetectionLoop.processNote(62);
-      
+
       mockGlobalState.countdownValue = 2;
       mockPitchDetectionLoop.processNote(64);
 

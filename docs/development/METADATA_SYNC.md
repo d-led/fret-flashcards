@@ -9,6 +9,7 @@ Metadata sync ensures that your local metadata files match exactly what's curren
 ## 📁 **Metadata File Structure**
 
 ### **Primary Files (Used by Fastlane)**
+
 ```
 ios/fastlane/metadata/en-US/
 ├── name.txt              # App name
@@ -21,6 +22,7 @@ ios/fastlane/metadata/en-US/
 ```
 
 ### **Secondary File (Documentation/Validation)**
+
 ```
 app-store-metadata.json   # Comprehensive metadata reference
 ```
@@ -48,17 +50,21 @@ fastlane deliver --username "$APPLE_ID" --app_identifier "com.dled.stringhomewor
 ### **Screenshot Upload Commands**
 
 #### **Replace All Screenshots (Recommended)**
+
 ```bash
 npm run app-store:screenshots
 ```
+
 - Deletes ALL existing screenshots and uploads new ones
 - Uses `overwrite_screenshots: true`
 - Best for complete screenshot refresh
 
 #### **Add Screenshots to Existing**
+
 ```bash
 npm run app-store:screenshots:add
 ```
+
 - Adds new screenshots alongside existing ones
 - Uses `overwrite_screenshots: false`
 - Best for incremental updates
@@ -96,21 +102,25 @@ PROVISIONING_PROFILE_UUID=your-provisioning-profile-uuid
 ## 📋 **Sync Workflow**
 
 ### **1. Before Making Changes**
+
 ```bash
 # Download current metadata from App Store Connect
 npm run app-store:sync:download
 ```
 
 ### **2. Make Local Changes**
+
 Edit the metadata files in `ios/fastlane/metadata/en-US/` as needed.
 
 ### **3. Validate Changes**
+
 ```bash
 # Validate metadata consistency
 npm run app-store:validate
 ```
 
 ### **4. Upload Changes**
+
 ```bash
 # Upload updated metadata to App Store Connect
 npm run app-store:sync:upload
@@ -124,7 +134,9 @@ npm run app-store:screenshots:add  # Add to existing
 ## 🔍 **Consistency Checking**
 
 ### **Automatic Validation**
+
 Our validation script checks:
+
 - ✅ Project structure
 - ✅ Screenshot requirements
 - ✅ App icon quality
@@ -133,7 +145,9 @@ Our validation script checks:
 - ✅ App build success
 
 ### **Manual Comparison**
+
 Compare values between:
+
 - `ios/fastlane/metadata/en-US/*.txt` files
 - `app-store-metadata.json`
 - App Store Connect (via web interface)
@@ -141,6 +155,7 @@ Compare values between:
 ## 📊 **Current Metadata Values**
 
 ### **App Information**
+
 - **Name**: String Homework Tutor
 - **Subtitle**: Infinite fretboard practice
 - **Bundle ID**: com.dled.stringhomeworktutor
@@ -148,11 +163,13 @@ Compare values between:
 - **Age Rating**: 4+
 
 ### **URLs**
+
 - **Marketing**: https://github.com/d-led/fret-flashcards
 - **Privacy**: https://github.com/d-led/fret-flashcards/blob/main/docs/development/privacy-policy.md
 - **Support**: https://github.com/d-led/fret-flashcards
 
 ### **Keywords**
+
 ```
 guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings
 ```
@@ -178,18 +195,21 @@ Add these scripts to your `package.json`:
 ### **Common Issues**
 
 #### **"No value found for 'username'"**
+
 ```bash
 # Solution: Add APPLE_USERNAME to .env
 echo "APPLE_USERNAME=your-apple-id@example.com" >> .env
 ```
 
 #### **"Could not infer your App's Bundle Identifier"**
+
 ```bash
 # Solution: Provide app_identifier parameter
 fastlane deliver download_metadata --app_identifier "com.dled.stringhomeworktutor"
 ```
 
 #### **"Available session is not valid anymore"**
+
 ```bash
 # Solution: Re-authenticate
 fastlane deliver download_metadata --username "your-apple-id@example.com"
@@ -198,6 +218,7 @@ fastlane deliver download_metadata --username "your-apple-id@example.com"
 ### **Authentication Issues**
 
 #### **Using Apple ID (Username/Password)**
+
 ```bash
 # Set in .env
 APPLE_ID=your-apple-id@example.com
@@ -205,6 +226,7 @@ APPLE_USERNAME=your-apple-id@example.com
 ```
 
 #### **Using API Keys**
+
 ```bash
 # Set in .env
 APP_STORE_CONNECT_API_KEY_PATH=/path/to/AuthKey_XXXXXXXXXX.p8
@@ -215,16 +237,19 @@ APP_STORE_CONNECT_API_ISSUER_ID=your-issuer-id-uuid
 ## 📝 **Best Practices**
 
 ### **Version Control**
+
 - ✅ Commit metadata changes to git
 - ✅ Use descriptive commit messages
 - ✅ Tag releases with metadata versions
 
 ### **Backup Strategy**
+
 - ✅ Keep `app-store-metadata.json` as reference
 - ✅ Export metadata before major changes
 - ✅ Document any manual App Store Connect changes
 
 ### **Team Collaboration**
+
 - ✅ Sync metadata before starting work
 - ✅ Communicate metadata changes to team
 - ✅ Use consistent formatting in metadata files
@@ -232,6 +257,7 @@ APP_STORE_CONNECT_API_ISSUER_ID=your-issuer-id-uuid
 ## 🎯 **Quick Reference**
 
 ### **Daily Workflow**
+
 ```bash
 # 1. Sync before work
 npm run app-store:sync:download
@@ -247,6 +273,7 @@ npm run app-store:sync:upload
 ```
 
 ### **Before Submission**
+
 ```bash
 # 1. Final sync
 npm run app-store:sync:download

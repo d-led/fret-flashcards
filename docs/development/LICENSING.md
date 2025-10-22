@@ -14,6 +14,7 @@ String Homework Tutor is available under **two different licenses**:
 You may choose which license to follow based on your intended use:
 
 ### Use MPLv2 When:
+
 - ✅ Building open source projects
 - ✅ Personal or educational use
 - ✅ Web distribution
@@ -21,6 +22,7 @@ You may choose which license to follow based on your intended use:
 - ✅ Creating derivative works for open source
 
 ### Use Commercial License When:
+
 - ✅ Distributing through app stores (Apple App Store, Google Play, etc.)
 - ✅ Commercial use of any kind
 - ✅ Creating competing products
@@ -34,12 +36,14 @@ You may choose which license to follow based on your intended use:
 **File:** `LICENSE`
 
 The MPLv2 is a permissive open source license that allows:
+
 - Free use, modification, and distribution
 - Commercial use (with restrictions)
 - Creation of derivative works
 - Distribution through any means
 
 **Key Requirements:**
+
 - Must include the license notice
 - Must make source code available
 - Derivative works must also be licensed under MPLv2
@@ -49,12 +53,14 @@ The MPLv2 is a permissive open source license that allows:
 **File:** `LICENSE-COMMERCIAL`
 
 The commercial license provides:
+
 - Non-commercial use rights
 - Explicit prohibition of App Store distribution
 - Protection against competing products
 - Trademark protection
 
 **Key Restrictions:**
+
 - ❌ No commercial use
 - ❌ No App Store distribution
 - ❌ No competing products
@@ -114,18 +120,21 @@ The dual licensing model provides several enforcement mechanisms:
 ## Benefits of This Approach
 
 ### For Open Source Community
+
 - ✅ Full access to source code
 - ✅ Ability to contribute and improve
 - ✅ Freedom to use for personal/educational purposes
 - ✅ Transparent development process
 
 ### For Commercial Use
+
 - ✅ Protection against unauthorized commercial use
 - ✅ Prevention of competing app store submissions
 - ✅ Trademark protection
 - ✅ Revenue protection
 
 ### For the Project
+
 - ✅ Sustainable development model
 - ✅ Legal protection against abuse
 - ✅ Clear licensing terms
@@ -134,24 +143,30 @@ The dual licensing model provides several enforcement mechanisms:
 ## Contact Information
 
 For commercial licensing inquiries:
+
 - **Email:** stringhomeworktutor@ledentsov.de
 - **Project:** https://github.com/d-led/fret-flashcards
 
 ## Frequently Asked Questions
 
 ### Q: Can I fork this project?
+
 **A:** Yes, under MPLv2 you can fork and modify the code for open source use. However, you cannot submit forks to app stores or use them commercially without a commercial license.
 
 ### Q: Can I use this in my commercial project?
+
 **A:** For commercial use, you need to contact us for a commercial license. The MPLv2 allows some commercial use, but App Store distribution requires the commercial license.
 
 ### Q: What if someone submits a fork to the App Store?
+
 **A:** This would violate the Commercial License terms. We can take legal action including DMCA takedowns and trademark infringement claims.
 
 ### Q: Can I contribute to the project?
+
 **A:** Yes! Contributions are welcome under MPLv2. All contributors retain their rights while allowing the project to use their contributions.
 
 ### Q: Is this similar to other projects?
+
 **A:** Yes, this follows the same model used by VLC, Qt, and many other successful open source projects that need commercial protection.
 
 ## Legal Disclaimer

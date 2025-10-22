@@ -20,13 +20,14 @@ class AppStoreValidate {
   }
 
   log(message, type = "info") {
-    const prefix = {
-      info: "📱",
-      success: "✅",
-      warning: "⚠️",
-      error: "❌",
-      check: "🔍"
-    }[type] || "📱";
+    const prefix =
+      {
+        info: "📱",
+        success: "✅",
+        warning: "⚠️",
+        error: "❌",
+        check: "🔍",
+      }[type] || "📱";
 
     console.log(`${prefix} ${message}`);
   }
@@ -44,14 +45,7 @@ class AppStoreValidate {
   validateProjectStructure() {
     this.log("Validating project structure...", "check");
 
-    const requiredPaths = [
-      "package.json",
-      "ios/App/App.xcworkspace",
-      "ios/fastlane/Fastfile",
-      "ios/fastlane/Snapfile",
-      "app-store-metadata.json",
-      "docs/development/privacy-policy.md"
-    ];
+    const requiredPaths = ["package.json", "ios/App/App.xcworkspace", "ios/fastlane/Fastfile", "ios/fastlane/Snapfile", "app-store-metadata.json", "docs/development/privacy-policy.md"];
 
     for (const path of requiredPaths) {
       if (!fs.existsSync(path)) {
@@ -74,7 +68,7 @@ class AppStoreValidate {
 
     // Check for language subdirectories (e.g., en-US)
     const screenshotContents = fs.readdirSync(this.screenshotsPath);
-    const languageDirs = screenshotContents.filter(item => {
+    const languageDirs = screenshotContents.filter((item) => {
       const fullPath = path.join(this.screenshotsPath, item);
       return fs.statSync(fullPath).isDirectory() && item.includes("-");
     });
@@ -88,18 +82,11 @@ class AppStoreValidate {
     const languageDir = languageDirs[0];
     const languagePath = path.join(this.screenshotsPath, languageDir);
     const screenshotFiles = fs.readdirSync(languagePath);
-    
-    const requiredDevices = [
-      "iPhone 17 Pro Max",
-      "iPhone 17 Pro",
-      "iPad Pro 13-inch (M4)"
-    ];
+
+    const requiredDevices = ["iPhone 17 Pro Max", "iPhone 17 Pro", "iPad Pro 13-inch (M4)"];
 
     for (const device of requiredDevices) {
-      const deviceFiles = screenshotFiles.filter(file => 
-        file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || 
-        file.includes(device.split(" ")[0])
-      );
+      const deviceFiles = screenshotFiles.filter((file) => file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || file.includes(device.split(" ")[0]));
 
       if (deviceFiles.length === 0) {
         this.addError(`Missing screenshots for: ${device}`);
@@ -112,8 +99,9 @@ class AppStoreValidate {
     for (const file of screenshotFiles) {
       const filePath = path.join(languagePath, file);
       const stats = fs.statSync(filePath);
-      
-      if (stats.size < 10000) { // Less than 10KB
+
+      if (stats.size < 10000) {
+        // Less than 10KB
         this.addWarning(`Screenshot may be low quality: ${file} (${stats.size} bytes)`);
       }
     }
@@ -123,7 +111,7 @@ class AppStoreValidate {
     this.log("Validating app icon...", "check");
 
     const iconPath = path.join(this.iosPath, "App/App/Assets.xcassets/AppIcon.appiconset");
-    
+
     if (!fs.existsSync(iconPath)) {
       this.addError("App icon directory not found");
       return;
@@ -133,14 +121,15 @@ class AppStoreValidate {
     const requiredSizes = ["512@2x.png"]; // 1024x1024 for App Store
 
     for (const size of requiredSizes) {
-      const iconFile = iconFiles.find(file => file.includes(size));
+      const iconFile = iconFiles.find((file) => file.includes(size));
       if (!iconFile) {
         this.addError(`Missing app icon: ${size}`);
       } else {
         const iconPath = path.join(this.iosPath, "App/App/Assets.xcassets/AppIcon.appiconset", iconFile);
         const stats = fs.statSync(iconPath);
-        
-        if (stats.size < 50000) { // Less than 50KB
+
+        if (stats.size < 50000) {
+          // Less than 50KB
           this.addWarning(`App icon may be low quality: ${iconFile} (${stats.size} bytes)`);
         } else {
           this.log(`App icon ${size} found and validated`, "success");
@@ -163,13 +152,13 @@ class AppStoreValidate {
       // Validate required fields
       const requiredFields = [
         "app_information.name",
-        "app_information.subtitle", 
+        "app_information.subtitle",
         "app_information.bundle_id",
         "app_information.category",
         "app_information.age_rating",
         "description.short",
         "description.full",
-        "keywords"
+        "keywords",
       ];
 
       for (const field of requiredFields) {
@@ -201,7 +190,6 @@ class AppStoreValidate {
       }
 
       this.log("Metadata validation passed", "success");
-
     } catch (error) {
       this.addError(`Invalid metadata JSON: ${error.message}`);
     }
@@ -211,23 +199,16 @@ class AppStoreValidate {
     this.log("Validating privacy policy...", "check");
 
     const privacyPath = path.join(this.projectRoot, "docs/development/privacy-policy.md");
-    
+
     if (!fs.existsSync(privacyPath)) {
       this.addError("Privacy policy not found");
       return;
     }
 
     const privacyContent = fs.readFileSync(privacyPath, "utf8");
-    
+
     // Check for required sections
-    const requiredSections = [
-      "Data Collection",
-      "Local Storage", 
-      "Permissions",
-      "Third-Party Services",
-      "Children's Privacy",
-      "Contact"
-    ];
+    const requiredSections = ["Data Collection", "Local Storage", "Permissions", "Third-Party Services", "Children's Privacy", "Contact"];
 
     for (const section of requiredSections) {
       if (!privacyContent.includes(section)) {
@@ -286,8 +267,8 @@ class AppStoreValidate {
       summary: {
         total_errors: this.errors.length,
         total_warnings: this.warnings.length,
-        ready_for_submission: this.errors.length === 0
-      }
+        ready_for_submission: this.errors.length === 0,
+      },
     };
 
     const reportPath = path.join(this.projectRoot, "app-store-validation-report.json");
@@ -309,7 +290,7 @@ class AppStoreValidate {
       this.generateValidationReport();
 
       console.log("\n" + "=".repeat(50));
-      
+
       if (this.errors.length === 0) {
         this.log("🎉 All validations passed! Ready for App Store submission!", "success");
         this.log("Next steps:", "info");
@@ -326,7 +307,6 @@ class AppStoreValidate {
       }
 
       console.log("=".repeat(50) + "\n");
-
     } catch (error) {
       this.log(`Error: ${error.message}`, "error");
       process.exit(1);

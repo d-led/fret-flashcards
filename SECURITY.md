@@ -5,7 +5,7 @@
 We only support the latest version of Fret Flashcards. For security reasons, we strongly recommend that all users upgrade to the latest version as soon as possible.
 
 | Version    | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Latest     | :white_check_mark: |
 | All others | :x:                |
 
@@ -47,6 +47,7 @@ We take security seriously and appreciate your efforts to responsibly disclose y
 ### Scope
 
 This security policy applies to:
+
 - The Fret Flashcards web application
 - Mobile applications (iOS)
 - All dependencies and third-party libraries
@@ -55,6 +56,7 @@ This security policy applies to:
 ### Out of Scope
 
 The following are considered out of scope for security reporting:
+
 - Issues requiring physical access to the device
 - Social engineering attacks
 - Denial of service attacks

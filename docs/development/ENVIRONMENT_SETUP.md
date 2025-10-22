@@ -22,11 +22,13 @@ APPLE_USERNAME=your-apple-id@example.com
 ## .env File Locations
 
 ### Project Root (.env)
+
 - **Location**: `/Users/dmitryledentsov/src/fret-flashcards/.env`
 - **Purpose**: Used by npm scripts and general project tools
 - **Format**: Values should be quoted for shell compatibility
 
 ### Fastlane Directory (.env)
+
 - **Location**: `/Users/dmitryledentsov/src/fret-flashcards/ios/fastlane/.env`
 - **Purpose**: Used by fastlane commands
 - **Format**: Values should NOT be quoted (fastlane dotenv doesn't handle quotes properly)
@@ -34,12 +36,14 @@ APPLE_USERNAME=your-apple-id@example.com
 ## Important: .env File Format Rules
 
 ### ❌ Wrong Format (with quotes)
+
 ```bash
 APPLE_ID="..."
 FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="unro-vrjf-thbx-jlaj"
 ```
 
 ### ✅ Correct Format (no quotes)
+
 ```bash
 APPLE_ID=...
 FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=unro-vrjf-thbx-jlaj
@@ -48,11 +52,13 @@ FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD=unro-vrjf-thbx-jlaj
 ## Setup Instructions
 
 1. **Copy your environment file to the fastlane directory**:
+
    ```bash
    cp .env ios/fastlane/.env
    ```
 
 2. **Remove quotes from the fastlane .env file**:
+
    ```bash
    cd ios/fastlane
    sed 's/="\(.*\)"/=\1/g' .env > .env.tmp && mv .env.tmp .env

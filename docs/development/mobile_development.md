@@ -102,12 +102,12 @@ npm run ios:dev
 
 ## 🛠️ Development Commands
 
-| Command                 | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `npm run build:mobile`  | Build web assets + sync to mobile platforms |
-| `npm run ios:dev`       | Build and run on iOS device/simulator       |
-| `npm run ios:build`     | Build iOS app for production                |
-| `npm run mobile:sync`   | Sync web assets to mobile platforms         |
+| Command                   | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| `npm run build:mobile`    | Build web assets + sync to mobile platforms           |
+| `npm run ios:dev`         | Build and run on iOS device/simulator                 |
+| `npm run ios:build`       | Build iOS app for production                          |
+| `npm run mobile:sync`     | Sync web assets to mobile platforms                   |
 | `npm run mobile:sync:ios` | Sync web assets to iOS (preserves CocoaPods settings) |
 
 ## Mobile-Specific Features
@@ -213,13 +213,13 @@ const settings = await mobileEnhancements.getPreference("settings");
 
 ### Available Scripts
 
-| Script                  | Description                         |
-| ----------------------- | ----------------------------------- |
-| `npm run build`         | Build web assets only               |
-| `npm run build:mobile`  | Build web assets + sync to mobile   |
-| `npm run mobile:sync`   | Sync web assets to mobile platforms |
-| `npm run ios:dev`       | Build and run on iOS                |
-| `npm run ios:build`     | Build iOS app                       |
+| Script                 | Description                         |
+| ---------------------- | ----------------------------------- |
+| `npm run build`        | Build web assets only               |
+| `npm run build:mobile` | Build web assets + sync to mobile   |
+| `npm run mobile:sync`  | Sync web assets to mobile platforms |
+| `npm run ios:dev`      | Build and run on iOS                |
+| `npm run ios:build`    | Build iOS app                       |
 
 ### File Structure
 

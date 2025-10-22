@@ -73,10 +73,10 @@ export class TTSManager {
   // Sanitize text to prevent iOS SSML parsing errors
   private sanitizeTextForTTS(text: string): string {
     return text
-      .replace(/[<>]/g, '') // Remove angle brackets that might be interpreted as SSML tags
-      .replace(/&/g, 'and') // Replace ampersands that might be interpreted as HTML entities
+      .replace(/[<>]/g, "") // Remove angle brackets that might be interpreted as SSML tags
+      .replace(/&/g, "and") // Replace ampersands that might be interpreted as HTML entities
       .replace(/"/g, "'") // Replace double quotes with single quotes to avoid SSML attribute issues
-      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 

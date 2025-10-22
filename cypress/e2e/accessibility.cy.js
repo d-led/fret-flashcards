@@ -213,21 +213,21 @@ describe("Accessibility Tests", () => {
 
     it("should have proper alt text and descriptions", () => {
       // Check that any images have proper alt attributes
-      cy.get('body')
+      cy.get("body")
         .then(($body) => {
           // synchronously query from body
           // to find which element was created
-          if ($body.find('img').length) {
+          if ($body.find("img").length) {
             // images were found, validate alt attributes
-            return 'images'
+            return "images";
           }
 
           // else assume no images
-          return 'no-images'
+          return "no-images";
         })
         .then((result) => {
-          if (result === 'images') {
-            cy.get('img').each(($img) => {
+          if (result === "images") {
+            cy.get("img").each(($img) => {
               cy.wrap($img).should("have.attr", "alt");
               cy.wrap($img).should("have.attr", "alt").and("not.be.empty");
             });

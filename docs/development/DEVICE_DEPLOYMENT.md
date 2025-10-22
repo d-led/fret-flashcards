@@ -14,6 +14,7 @@ npm run ios:deploy
 ### Setting Up Your Device
 
 1. **Create device configuration file:**
+
    ```bash
    cp .local-device.example .local-device
    ```
@@ -21,6 +22,7 @@ npm run ios:deploy
 2. **Find your device ID** (see methods below)
 
 3. **Update `.local-device` file:**
+
    ```bash
    DEVICE_ID=your-device-id-here
    DEVICE_NAME=Your Device Name
@@ -41,6 +43,7 @@ npm run ios:list
 ```
 
 This will show output like:
+
 ```
 Name                                    API        Target ID
 ---------------------------------------------------------------------------------------
@@ -52,11 +55,13 @@ DPhoMit                                  iOS 17.0   589FBB3D-EF4B-5FF7-A745-AB26
 ### Method 2: Using Xcode Command Line Tools
 
 #### For Simulators:
+
 ```bash
 xcrun simctl list devices
 ```
 
 #### For Physical Devices:
+
 ```bash
 xcrun devicectl list devices
 ```
@@ -71,11 +76,13 @@ xcrun devicectl list devices
 ## Device Types
 
 ### iOS Simulators
+
 - **Format**: `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
 - **Example**: `53EE584B-475E-4C73-A9D6-D2BC7C9397EB`
 - **Status**: Shows as "Booted" or "Shutdown"
 
 ### Physical iOS Devices
+
 - **Format**: `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`
 - **Example**: `589FBB3D-EF4B-5FF7-A745-AB2693F305EE`
 - **Status**: Shows as "connected" or "disconnected"
@@ -114,6 +121,7 @@ The `npm run ios:deploy` command performs these steps:
 **Error**: `Device with ID [ID] not found`
 
 **Solutions**:
+
 1. Verify device is connected and unlocked
 2. Check device ID is correct: `npm run ios:list`
 3. For physical devices, ensure they're trusted in Xcode
@@ -124,6 +132,7 @@ The `npm run ios:deploy` command performs these steps:
 **Error**: Build process fails
 
 **Solutions**:
+
 1. Clean build: `npm run build:mobile`
 2. Reset iOS project: `npx cap sync ios`
 3. Update CocoaPods: `cd ios && pod install`
@@ -134,6 +143,7 @@ The `npm run ios:deploy` command performs these steps:
 **Error**: Permission denied or signing issues
 
 **Solutions**:
+
 1. Ensure device is registered in Apple Developer account
 2. Check provisioning profiles in Xcode
 3. Verify code signing settings
@@ -160,10 +170,10 @@ For more control, you can modify `scripts/deploy-ios-device.js`:
 
 ```javascript
 // Add custom pre-deployment steps
-console.log('Running custom pre-deployment checks...');
+console.log("Running custom pre-deployment checks...");
 
 // Add custom post-deployment steps
-console.log('Running custom post-deployment tasks...');
+console.log("Running custom post-deployment tasks...");
 ```
 
 ## Environment Variables
@@ -175,6 +185,7 @@ The deployment script supports these environment variables:
 - `VERBOSE`: Enable verbose logging
 
 Example:
+
 ```bash
 VERBOSE=1 npm run ios:deploy
 ```
@@ -201,12 +212,12 @@ npm run ios:deploy
 
 ## Related Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run ios:list` | List all available iOS devices |
-| `npm run ios:deploy` | Deploy to configured device |
-| `npm run ios:dev` | Open in Xcode for development |
-| `npm run ios:build` | Build iOS app for production |
+| Command                | Description                         |
+| ---------------------- | ----------------------------------- |
+| `npm run ios:list`     | List all available iOS devices      |
+| `npm run ios:deploy`   | Deploy to configured device         |
+| `npm run ios:dev`      | Open in Xcode for development       |
+| `npm run ios:build`    | Build iOS app for production        |
 | `npm run build:mobile` | Build web assets and sync to mobile |
 
 ## See Also

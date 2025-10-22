@@ -125,7 +125,6 @@ npm run ios:open         # Open in Xcode
 npm run ios:list         # List available simulators
 ```
 
-
 ### Mobile Sync
 
 #### Standard Sync
@@ -137,6 +136,7 @@ npm run mobile:sync
 **Purpose**: Syncs web assets to all mobile platforms (iOS, Web).
 
 **What it does**:
+
 - Copies web assets from `dist/` to platform-specific directories
 - Updates Capacitor configuration files
 - Runs `pod install` for iOS dependencies
@@ -151,6 +151,7 @@ npm run mobile:sync:ios
 **Purpose**: Syncs web assets to iOS and preserves important CocoaPods framework settings.
 
 **What it does**:
+
 1. Runs standard `npm run mobile:sync`
 2. Automatically restores CocoaPods framework paths that get removed by sync
 3. Ensures `[CP] Embed Pods Frameworks` build phase has correct `inputPaths` and `outputPaths`
@@ -208,7 +209,6 @@ npm run version:set 1.0.1
    - `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj`
    - `CURRENT_PROJECT_VERSION` (build number) in Xcode project
 
-
 **Features**:
 
 - ✅ **Version format validation** (must be X.Y.Z format)
@@ -220,6 +220,7 @@ npm run version:set 1.0.1
 **Build Number Calculation**:
 
 The script automatically calculates build numbers from version strings:
+
 - Version `1.0.1` → Build number `10001`
 - Version `1.2.3` → Build number `10203`
 - Version `2.0.0` → Build number `20000`

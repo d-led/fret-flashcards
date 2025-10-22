@@ -106,7 +106,7 @@ export class MobileEnhancements {
         console.log("Current microphone state:", {
           pitchDetecting: !!(window as any).pitchDetecting,
           micStream: !!(window as any).micStream,
-          micButtonText: document.getElementById("mic-toggle")?.textContent
+          micButtonText: document.getElementById("mic-toggle")?.textContent,
         });
         this.pauseAudio();
         this.handleAppBackgrounded();
@@ -122,10 +122,9 @@ export class MobileEnhancements {
         // microphone access to be initiated during a user interaction (user gesture)
       });
 
-
       // Add Page Visibility API fallback for browser compatibility
       this.setupPageVisibilityListener();
-      
+
       // Add additional detection methods
       this.setupAdditionalDetectionMethods();
     } catch (error) {
@@ -200,7 +199,6 @@ export class MobileEnhancements {
     const event = new CustomEvent("mobileAppPause");
     window.dispatchEvent(event);
   }
-
 
   /**
    * Enhanced storage using Capacitor Preferences
@@ -305,27 +303,29 @@ export class MobileEnhancements {
     const micButton = document.getElementById("mic-toggle");
     const isMicActive = micButton && micButton.textContent?.includes("Disable Mic");
     const hasActiveMicStream = this.checkForActiveMicrophoneStream();
-    
+
     // Check audio and TTS state from global variables
     const audioEnabled = !!(window as any).audioEnabled;
     const enableTTS = !!(window as any).enableTTS;
-    
+
     console.log("Checking features state for backgrounding:", {
       isMicActive,
       hasActiveMicStream,
       pitchDetecting: !!(window as any).pitchDetecting,
       micStream: !!(window as any).micStream,
       audioEnabled,
-      enableTTS
+      enableTTS,
     });
-    
+
     // If any features are active, dispatch the event to disable them
     if (isMicActive || hasActiveMicStream || audioEnabled || enableTTS) {
       console.log("App backgrounded - disabling audio, voice, and microphone to prevent access issues");
       // Dispatch a custom event that the main app can listen to
-      window.dispatchEvent(new CustomEvent('appBackgrounded', { 
-        detail: { action: 'disableMicrophone' } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent("appBackgrounded", {
+          detail: { action: "disableMicrophone" },
+        }),
+      );
     } else {
       console.log("No active features detected - no action needed");
     }
@@ -337,9 +337,9 @@ export class MobileEnhancements {
    */
   public disableMicrophoneOnInactive(): void {
     console.log("Directly disabling audio, voice, and microphone due to app inactivity");
-    
+
     // Always use the unified function to prevent duplicate notifications
-    if (typeof (window as any).handleAppBackgroundedUnified === 'function') {
+    if (typeof (window as any).handleAppBackgroundedUnified === "function") {
       (window as any).handleAppBackgroundedUnified();
     } else {
       console.error("Unified function not available - this should not happen");
@@ -367,12 +367,12 @@ export class MobileEnhancements {
    * Setup Page Visibility API listener for browser compatibility
    */
   private setupPageVisibilityListener(): void {
-    if (typeof document !== 'undefined' && 'visibilityState' in document) {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
+    if (typeof document !== "undefined" && "visibilityState" in document) {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
           console.log("Page hidden - checking microphone state");
           this.handleAppBackgrounded();
-        } else if (document.visibilityState === 'visible') {
+        } else if (document.visibilityState === "visible") {
           console.log("Page visible - app resumed");
           // Could add logic here to re-enable microphone if needed
         }
@@ -385,34 +385,34 @@ export class MobileEnhancements {
    */
   private setupAdditionalDetectionMethods(): void {
     // Listen for window blur/focus events (additional fallback)
-    if (typeof window !== 'undefined') {
-      window.addEventListener('blur', () => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("blur", () => {
         console.log("Window blurred - checking microphone state");
         this.handleAppBackgrounded();
         this.disableMicrophoneOnInactive();
       });
 
-      window.addEventListener('focus', () => {
+      window.addEventListener("focus", () => {
         console.log("Window focused - app resumed");
         this.resumeAudio();
       });
 
       // Listen for beforeunload event (app is about to be closed/minimized)
-      window.addEventListener('beforeunload', () => {
+      window.addEventListener("beforeunload", () => {
         console.log("App about to unload - handling microphone state");
         this.handleAppBackgrounded();
         this.disableMicrophoneOnInactive();
       });
 
       // Listen for pagehide event (additional fallback for mobile browsers)
-      window.addEventListener('pagehide', () => {
+      window.addEventListener("pagehide", () => {
         console.log("Page hidden - handling microphone state");
         this.handleAppBackgrounded();
         this.disableMicrophoneOnInactive();
       });
 
       // Listen for pageshow event (page is shown again)
-      window.addEventListener('pageshow', (event) => {
+      window.addEventListener("pageshow", (event) => {
         console.log("Page shown - app resumed");
         this.resumeAudio();
       });

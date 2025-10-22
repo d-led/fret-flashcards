@@ -53,11 +53,7 @@
     "license_contact": "stringhomeworktutor@ledentsov.de"
   },
   "screenshots": {
-    "required_devices": [
-      "iPhone 17 Pro Max",
-      "iPhone 17 Pro", 
-      "iPad Pro 13-inch (M4)"
-    ],
+    "required_devices": ["iPhone 17 Pro Max", "iPhone 17 Pro", "iPad Pro 13-inch (M4)"],
     "generated_via": "fastlane snapshot",
     "directory": "ios/screenshots"
   }
