@@ -1,6 +1,6 @@
 {
   "name": "fret-flashcards",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Guitar Fretboard Flashcard Game",
   "main": "src/dist/index.html",
   "scripts": {

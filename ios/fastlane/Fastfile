@@ -74,7 +74,7 @@ platform :ios do
     upload_to_app_store(
       username: ENV["APPLE_ID"],
       app_identifier: "com.dled.stringhomeworktutor",
-      app_version: "1.0.4",
+      app_version: "1.0.5",
       force: true,
       skip_binary_upload: true,
       skip_screenshots: true,
