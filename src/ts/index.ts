@@ -895,18 +895,6 @@ $(async function () {
     // If no English voices, let the browser choose the default
   }
 
-  async function speakTTSStatusMessage(message: string, force: boolean = false) {
-    if (!("speechSynthesis" in window)) return;
-    if (!enableTTS && !force) return;
-
-    // Initialize TTS if not already initialized
-    if (!ttsInitialized) {
-      await initializeTTS();
-    }
-
-    // Add status message to TTS queue with high priority
-    addToTTSQueue(message, 10); // High priority for status messages
-  }
 
   async function speakSystemMessage(message: string) {
     if (!("speechSynthesis" in window)) return;
@@ -922,17 +910,6 @@ $(async function () {
   }
 
   // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
-  async function speakStatusImmediate(message: string) {
-    if (!("speechSynthesis" in window)) return;
-
-    // Initialize TTS if not already initialized
-    if (!ttsInitialized) {
-      await initializeTTS();
-    }
-
-    // Add to queue with highest priority
-    addToTTSQueue(message, 1);
-  }
 
   // Load voices when available - based on Stack Overflow solution
   function loadVoicesWhenAvailable(onComplete = () => {}) {
@@ -957,53 +934,6 @@ $(async function () {
   }
 
   // Speak quiz note immediately during user interaction (for iOS compatibility)
-  async function speakQuizNoteImmediately() {
-    if (!currentCard || !enableTTS || !("speechSynthesis" in window)) return;
-
-    const ordinalString = getOrdinal(currentCard.string + 1);
-    let spokenNote = currentCard.note;
-
-    // Spell out accidentals for clarity
-    if (spokenNote.includes("#")) {
-      spokenNote = spokenNote.replace("#", " sharp");
-    } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
-      spokenNote = spokenNote.replace(/[b♭]/, " flat");
-    }
-
-    const text = `Note ${spokenNote}, ${ordinalString} string`;
-    console.log("Speaking quiz note immediately:", text);
-
-    // Speak directly without using the queue system to ensure it happens during user interaction
-    try {
-      // Sanitize text to prevent iOS SSML parsing errors
-      const sanitizedText = sanitizeTextForTTS(text);
-      const utterance = new SpeechSynthesisUtterance(sanitizedText);
-      utterance.lang = "en-US";
-      utterance.rate = 0.7;
-      // Adjust TTS volume based on iOS and microphone state
-      if (isIOS) {
-        const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
-        // When mic is active, iOS uses .playAndRecord which is louder, but we need clear voice feedback
-        // Increase volume to maintain good voice level while balancing with audio notes
-        utterance.volume = isMicActive ? 0.8 : 1.0;
-      } else {
-        utterance.volume = 0.9;
-      }
-      utterance.pitch = 1.0;
-
-      // Load voices when available
-      loadVoicesWhenAvailable(() => {
-        const voices = speechSynthesis.getVoices();
-        if (voices && voices.length > 0) {
-          setBestVoice(utterance, voices, selectedVoice || undefined);
-        }
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      });
-    } catch (e) {
-      console.warn("speakQuizNoteImmediately failed:", e);
-    }
-  }
 
   // Functions to manage hint state during transitions
   function areHintsPlaying() {
@@ -2291,36 +2221,6 @@ $(async function () {
   }
 
   // Detect macOS (excluding iOS)
-  function detectMacOS() {
-    return navigator.platform.indexOf("Mac") > -1 && !detectIOS();
-  }
-
-  // Detect browser type
-  function detectBrowser() {
-    const userAgent = navigator.userAgent;
-
-    if (userAgent.indexOf("Firefox") > -1) {
-      return "firefox";
-    } else if (userAgent.indexOf("Chrome") > -1 && userAgent.indexOf("Edg") === -1) {
-      return "chrome";
-    } else if (userAgent.indexOf("Safari") > -1 && userAgent.indexOf("Chrome") === -1) {
-      return "safari";
-    } else if (userAgent.indexOf("Edg") > -1) {
-      return "edge";
-    }
-    return "unknown";
-  }
-
-  // Detect Brave browser
-  function detectBrave() {
-    // Brave browser detection - check for Brave-specific properties
-    const hasBraveProperty = !!(navigator as any).brave;
-    const isChromeBased = navigator.userAgent.indexOf("Chrome") > -1 && navigator.userAgent.indexOf("Edg") === -1;
-    const isBrave = hasBraveProperty || (isChromeBased && (navigator as any).brave !== undefined);
-
-    console.log("Brave detection - hasBraveProperty:", hasBraveProperty, "isChromeBased:", isChromeBased, "userAgent:", navigator.userAgent);
-    return isBrave;
-  }
 
   // Check if text-to-speech should be available based on browser/OS combination
   function isTTSSupported() {
@@ -2581,10 +2481,6 @@ $(async function () {
   // Check microphone support and update UI accordingly
   function checkMicrophoneSupport() {
     const micButton = $("#mic-toggle");
-    const micControls = $("#mic-controls");
-
-    // Check if we're on HTTPS (required for microphone access)
-    const isHTTPS = location.protocol === "https:" || location.hostname === "localhost";
 
     // Check if getUserMedia is supported
     const hasGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -2688,40 +2584,6 @@ $(async function () {
   (window as any).checkAndReenableMicrophoneButton = checkAndReenableMicrophoneButton;
 
   // Native microphone fallback for iOS 26 WebView issues
-  async function tryNativeMicrophoneFallback() {
-    try {
-      console.log("🎤 Attempting native microphone plugin...");
-      const { default: MicrophonePlugin } = await import("./plugins/microphone-plugin");
-
-      // Start native recording
-      await MicrophonePlugin.startRecording();
-      console.log("🎤 Native microphone started successfully");
-
-      // Listen for audio data from native plugin
-      MicrophonePlugin.addListener("audioData", (data) => {
-        if (pitchDetecting) {
-          // Process the audio data from native plugin
-          const rms = data.rms;
-          const samples = data.samples;
-
-          // Update our pitch buffer with native data
-          if (samples.length > 0) {
-            for (let i = 0; i < Math.min(samples.length, pitchBuffer.length); i++) {
-              pitchBuffer[i] = samples[i];
-            }
-
-            // Process pitch detection with native data
-            const [frequency, clarity] = detector.findPitch(pitchBuffer, 44100);
-
-            // Update UI with pitch detection results
-            updatePitchDetectionUI(frequency, clarity, rms);
-          }
-        }
-      });
-    } catch (error) {
-      console.error("🎤 Native microphone fallback failed:", error);
-    }
-  }
 
   // Update pitch detection UI with results
   function updatePitchDetectionUI(frequency: number, clarity: number, rms: number) {
