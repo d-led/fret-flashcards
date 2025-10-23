@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-core-schema.json",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "vitest",
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/**/*.spec.ts"
+  ],
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "checkers": ["typescript"],
+  "typescriptChecker": {
+    "prioritizePerformanceOverAccuracy": true
+  },
+  "htmlReporter": {
+    "baseDir": "reports/mutation/html"
+  },
+  "dashboard": {
+    "reportType": "full"
+  }
+}

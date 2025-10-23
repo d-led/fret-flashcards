@@ -3147,11 +3147,15 @@ $(async function () {
 
       analyserForPitch.getFloatTimeDomainData(pitchBuffer);
       // Compute simple RMS to detect whether the mic is receiving any signal
+      // Filter out NaN and Infinity values to prevent calculation errors
+      const validSamples = pitchBuffer.filter(sample => Number.isFinite(sample));
       let sum = 0;
-      for (let i = 0; i < pitchBuffer.length; i++) {
-        sum += pitchBuffer[i] * pitchBuffer[i];
+      if (validSamples.length > 0) {
+        for (let i = 0; i < validSamples.length; i++) {
+          sum += validSamples[i] * validSamples[i];
+        }
       }
-      const rms = Math.sqrt(sum / pitchBuffer.length);
+      const rms = validSamples.length > 0 ? Math.sqrt(sum / validSamples.length) : 0;
 
       /*
       // Debug: Log RMS every 60 frames (about once per second)
@@ -3163,7 +3167,10 @@ $(async function () {
       }*/
 
       // Use pitchy correctly: pass sampleRate as second arg
-      const [frequency, clarity] = detector.findPitch(pitchBuffer, audioContextForPitch.sampleRate);
+      // Only call findPitch if we have valid samples
+      const [frequency, clarity] = validSamples.length > 0 ? 
+        detector.findPitch(validSamples, audioContextForPitch.sampleRate) : 
+        [null, 0];
       // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;

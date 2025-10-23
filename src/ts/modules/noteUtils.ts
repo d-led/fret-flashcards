@@ -262,3 +262,4 @@ export function isSharpNote(note: string): boolean {
 export function isFlatNote(note: string): boolean {
   return note.includes("b") || note.includes("♭");
 }
+
