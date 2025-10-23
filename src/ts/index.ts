@@ -895,7 +895,6 @@ $(async function () {
     // If no English voices, let the browser choose the default
   }
 
-
   async function speakSystemMessage(message: string) {
     if (!("speechSynthesis" in window)) return;
 
@@ -3010,7 +3009,7 @@ $(async function () {
       analyserForPitch.getFloatTimeDomainData(pitchBuffer);
       // Compute simple RMS to detect whether the mic is receiving any signal
       // Filter out NaN and Infinity values to prevent calculation errors
-      const validSamples = pitchBuffer.filter(sample => Number.isFinite(sample));
+      const validSamples = pitchBuffer.filter((sample) => Number.isFinite(sample));
       let sum = 0;
       if (validSamples.length > 0) {
         for (let i = 0; i < validSamples.length; i++) {
@@ -3030,9 +3029,7 @@ $(async function () {
 
       // Use pitchy correctly: pass sampleRate as second arg
       // Only call findPitch if we have valid samples
-      const [frequency, clarity] = validSamples.length > 0 ? 
-        detector.findPitch(validSamples, audioContextForPitch.sampleRate) : 
-        [null, 0];
+      const [frequency, clarity] = validSamples.length > 0 ? detector.findPitch(validSamples, audioContextForPitch.sampleRate) : [null, 0];
       // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;
