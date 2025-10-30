@@ -68,10 +68,10 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@stryker-mutator/core": "^9.2.0",
-    "@stryker-mutator/jest-runner": "^9.2.0",
-    "@stryker-mutator/typescript-checker": "^9.2.0",
-    "@stryker-mutator/vitest-runner": "^9.2.0",
+    "@stryker-mutator/core": "^9.3.0",
+    "@stryker-mutator/jest-runner": "^9.3.0",
+    "@stryker-mutator/typescript-checker": "^9.3.0",
+    "@stryker-mutator/vitest-runner": "^9.3.0",
     "@types/jquery": "^3.5.33",
     "cypress": "^15.5.0",
     "esbuild": "^0.25.11",
@@ -82,8 +82,8 @@
     "prettier": "^3.6.2",
     "sirv": "^3.0.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11",
-    "vitest": "^4.0.1"
+    "vite": "^7.1.12",
+    "vitest": "^4.0.5"
   },
   "dependencies": {
     "@capacitor/app": "^7.1.0",
