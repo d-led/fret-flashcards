@@ -1,3 +1,4 @@
+/// <reference types="jquery" />
 /**
  * UI Component Interfaces
  * Defines interfaces for jQuery-based UI components that can be injected into modules
@@ -6,25 +7,25 @@
 export interface UISelector {
   getValue(): string;
   setValue(value: string): void;
-  on(event: string, handler: (event: any) => void): void;
+  on(event: string, handler: (event: JQuery.TriggeredEvent) => void): void;
 }
 
 export interface UICheckbox {
   isChecked(): boolean;
   setChecked(checked: boolean): void;
-  on(event: string, handler: (event: any) => void): void;
+  on(event: string, handler: (event: JQuery.TriggeredEvent) => void): void;
 }
 
 export interface UIInput {
   getValue(): string;
   setValue(value: string): void;
-  on(event: string, handler: (event: any) => void): void;
+  on(event: string, handler: (event: JQuery.TriggeredEvent) => void): void;
 }
 
 export interface UIDropdown {
   getValue(): string;
   setValue(value: string): void;
-  on(event: string, handler: (event: any) => void): void;
+  on(event: string, handler: (event: JQuery.TriggeredEvent) => void): void;
   getOptions(): string[];
   setOptions(options: string[]): void;
 }
@@ -36,7 +37,7 @@ export interface UIBanner {
   setText(text: string): void;
   addClass(className: string): void;
   removeClass(className: string): void;
-  on(event: string, handler: (event: any) => void): void;
+  on(event: string, handler: (event: JQuery.TriggeredEvent) => void): void;
 }
 
 export interface UIRow {

@@ -125,19 +125,7 @@ describe("Accessibility Tests", () => {
       cy.get("#fretboard-area").should("be.visible");
 
       // Test focus functionality
-      cy.get("#quiz-note-btn").focus();
-      cy.get("#quiz-note-btn").should("have.focus");
-
-      cy.get("#fretboard-area").focus();
-      cy.get("#fretboard-area").should("have.focus");
-
-      // Skip countdown button is hidden by default, only test if visible
-      cy.get("#skip-countdown").then(($btn) => {
-        if ($btn.is(":visible")) {
-          cy.wrap($btn).focus();
-          cy.wrap($btn).should("have.focus");
-        }
-      });
+      cy.focusQuizFretboardAndSkipCountdownIfVisible();
     });
   });
 
@@ -254,20 +242,7 @@ describe("Accessibility Tests", () => {
     });
 
     it("should maintain focus order", () => {
-      // Test that focus moves in logical order
-      cy.get("#quiz-note-btn").focus();
-      cy.get("#quiz-note-btn").should("have.focus");
-
-      cy.get("#fretboard-area").focus();
-      cy.get("#fretboard-area").should("have.focus");
-
-      // Skip countdown button is hidden by default, only test if visible
-      cy.get("#skip-countdown").then(($btn) => {
-        if ($btn.is(":visible")) {
-          cy.wrap($btn).focus();
-          cy.wrap($btn).should("have.focus");
-        }
-      });
+      cy.focusQuizFretboardAndSkipCountdownIfVisible();
     });
   });
 
@@ -318,7 +293,7 @@ describe("Accessibility Tests", () => {
         const title = $button.attr("title");
 
         // Button should have either visible text, aria-label, or title
-        expect(text.length > 0 || ariaLabel || title).to.be.true;
+        expect(Boolean(text.length > 0 || ariaLabel || title)).to.equal(true);
       });
     });
   });

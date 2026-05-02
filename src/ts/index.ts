@@ -190,8 +190,8 @@ $(async function () {
 
   // Independent octave shift (in semitones) applied when writing notation for each clef.
   // Adjust these to control where notes appear on the staff for treble and bass independently.
-  let trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
-  let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
+  const trebleOctaveShift = 12; // conventional guitar treble is written an octave higher
+  const bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
 
   // Helper function to process and add treble notes
   function addTrebleNote(
@@ -290,7 +290,7 @@ $(async function () {
     const trebleNotes: Array<{ note: string; octave: number }> = [];
     const bassNotes: Array<{ note: string; octave: number }> = [];
 
-    for (let f of frets) {
+    for (const f of frets) {
       const midi = openMidi + f; // sounding midi
       console.log(`Fret ${f}: sounding MIDI ${midi}`);
 
@@ -609,7 +609,7 @@ $(async function () {
   let fretCountSetting = 11; // User's selected fret count (11 = basic mode with 0-11 positions)
   let showAccidentals = false;
   let timeoutSeconds = 2;
-  let pendingTimeout: any = null;
+  const pendingTimeout: any = null;
   let session: any[] = [];
   let sessionIdx = 0;
   let foundFrets: any[] = [];
@@ -618,7 +618,7 @@ $(async function () {
   let fretCount = 12; // calculated based on fretCountSetting (0th fret + selected count)
 
   // Declare stringNames as an empty array (was missing, causing UI breakage)
-  let stringNames: any[] = [];
+  const stringNames: any[] = [];
 
   // Add new variables for configurable strings and tuning
   let numStrings = 6;
@@ -1293,7 +1293,7 @@ $(async function () {
   }
 
   // Update loadSettings to load new config (adjusted validation for 3-12)
-  let $timeout = $("#timeout-seconds");
+  const $timeout = $("#timeout-seconds");
 
   function loadSettings() {
     try {
@@ -1326,14 +1326,14 @@ $(async function () {
         $("#accidentals").prop("checked", showAccidentals);
       }
       if ("timeoutSeconds" in settings) {
-        let val = Number(settings.timeoutSeconds);
+        const val = Number(settings.timeoutSeconds);
         if (isFinite(val) && val >= 0 && val <= 10) {
           timeoutSeconds = val;
           $timeout.val(timeoutSeconds);
         }
       }
       if ("numStrings" in settings) {
-        let val = Number(settings.numStrings);
+        const val = Number(settings.numStrings);
         if (val >= 3 && val <= 10) {
           numStrings = val;
           $("#num-strings").val(numStrings);
@@ -1482,22 +1482,22 @@ $(async function () {
     // Dynamically build stringNames based on numStrings and tuning
     stringNames.length = 0; // Clear existing
     for (let i = 0; i < numStrings; i++) {
-      let midi = getMidi(tuning[i].note, tuning[i].octave);
+      const midi = getMidi(tuning[i].note, tuning[i].octave);
       const num = i + 1;
       const ord = getOrdinal(num); // e.g. "1st"
-      let name = `${ord}`;
+      const name = `${ord}`;
       stringNames.push({ name, openNote: tuning[i].note, midi });
     }
     session = [];
-    let notes = notesToSet();
-    let frets = [...Array(fretCount).keys()]; // 0 ... 11 or 0 ... 24
+    const notes = notesToSet();
+    const frets = [...Array(fretCount).keys()]; // 0 ... 11 or 0 ... 24
     for (let s = 0; s < stringNames.length; s++) {
-      for (let n of notes) {
-        let idxs = [];
-        let openIdx = allNotes.indexOf(stringNames[s].openNote);
-        for (let f of frets) {
-          let noteIdx = (openIdx + f) % 12;
-          let noteOnFret = allNotes[noteIdx];
+      for (const n of notes) {
+        const idxs = [];
+        const openIdx = allNotes.indexOf(stringNames[s].openNote);
+        for (const f of frets) {
+          const noteIdx = (openIdx + f) % 12;
+          const noteOnFret = allNotes[noteIdx];
           // Check if the note matches exactly or if they are enharmonically equivalent
           if (noteOnFret === n || (showAccidentals && areNotesEquivalent(noteOnFret, n))) {
             idxs.push(f);
@@ -1555,7 +1555,7 @@ $(async function () {
     const result = [];
     let totalWeight = weights.reduce((sum: number, w: number) => sum + w, 0);
     while (arr.length > 0) {
-      let rand = Math.random() * totalWeight;
+      const rand = Math.random() * totalWeight;
       let cumWeight = 0;
       for (let i = 0; i < arr.length; i++) {
         cumWeight += weights[i];
@@ -1573,7 +1573,7 @@ $(async function () {
 
   function shuffle(a: any[]) {
     for (let i = a.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -1608,7 +1608,7 @@ $(async function () {
     }
   }
 
-  let $fretboard = $("#fretboard-area");
+  const $fretboard = $("#fretboard-area");
 
   function showCard() {
     clearTimeout(pendingTimeout);
@@ -1699,7 +1699,7 @@ $(async function () {
   }
 
   function drawFretboardTable(highlightStringIdx, foundFretsArr) {
-    let extraFret = fretCountSetting > 11 ? 0 : 1; // Add extra column for 12th fret marker in default mode (visual only)
+    const extraFret = fretCountSetting > 11 ? 0 : 1; // Add extra column for 12th fret marker in default mode (visual only)
     let fretRows = "";
     for (let s = 0; s < stringNames.length; s++) {
       fretRows += `<tr>`;
@@ -1730,7 +1730,7 @@ $(async function () {
     markRow += "<td></td>";
     for (let f = 0; f < fretCount + extraFret; f++) {
       let marker = "";
-      let fretNum = f; // 0 = open, 1 = 1st fret, etc.
+      const fretNum = f; // 0 = open, 1 = 1st fret, etc.
       if (fretCountSetting > 11) {
         if (typicalFretMarks.includes(fretNum)) {
           if (doubleFretMarkers.includes(fretNum)) {
@@ -1775,7 +1775,7 @@ $(async function () {
     }
     headerRow += "</tr>";
 
-    let tableHtml = `<table class="fretboard-table"><thead>${headerRow}</thead><tbody>${fretRows}${markRow}</tbody></table>`;
+    const tableHtml = `<table class="fretboard-table"><thead>${headerRow}</thead><tbody>${fretRows}${markRow}</tbody></table>`;
     $fretboard.html(tableHtml);
   }
 
@@ -2130,7 +2130,7 @@ $(async function () {
     // Provide light haptic feedback for button tap
     mobileEnhancements.hapticLight();
 
-    let fret = parseInt($(this).attr("data-fret"));
+    const fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
   }
 
@@ -2145,21 +2145,21 @@ $(async function () {
     // Provide light haptic feedback for fretboard tap
     mobileEnhancements.hapticLight();
 
-    let s = Number($(this).attr("data-string"));
-    let f = Number($(this).attr("data-fret"));
+    const s = Number($(this).attr("data-string"));
+    const f = Number($(this).attr("data-fret"));
     if (s !== currentCard.string) return;
     submitAnswer(s, f, "ui", null);
   }
 
   function playAnsweredNote(stringIdx, fretIdx) {
-    let midi = stringNames[stringIdx].midi + fretIdx;
-    let freq = midiToFreq(midi);
+    const midi = stringNames[stringIdx].midi + fretIdx;
+    const freq = midiToFreq(midi);
     playTone(freq, 0.7);
   }
 
   function playDesiredNote(stringIdx, fretIdx) {
-    let midi = stringNames[stringIdx].midi + fretIdx;
-    let freq = midiToFreq(midi);
+    const midi = stringNames[stringIdx].midi + fretIdx;
+    const freq = midiToFreq(midi);
 
     // Only set hint playing state if microphone is active
     if (pitchDetecting) {
@@ -2254,9 +2254,9 @@ $(async function () {
   }
 
   function highlightFretOnFretboard(stringIdx, fretIdx, correct) {
-    let selector = `.fret-cell[data-string="${stringIdx}"][data-fret="${fretIdx}"]`;
+    const selector = `.fret-cell[data-string="${stringIdx}"][data-fret="${fretIdx}"]`;
     console.log("selector", selector);
-    let $fret = $(selector);
+    const $fret = $(selector);
     if (correct) {
       $fret.removeClass("fret-wrong").addClass("fret-found");
     } else {
@@ -2274,7 +2274,7 @@ $(async function () {
       return;
     }
     countdownValue = timeoutSeconds;
-    let $countdown = $("#countdown");
+    const $countdown = $("#countdown");
     $countdown.text("⏳ " + countdownValue);
     countdownInterval = setInterval(() => {
       countdownValue--;
@@ -2289,14 +2289,14 @@ $(async function () {
 
   function playNoteCard() {
     if (!currentCard) return;
-    let fret = currentCard.frets[0];
-    let midi = stringNames[currentCard.string].midi + fret;
-    let freq = midiToFreq(midi);
+    const fret = currentCard.frets[0];
+    const midi = stringNames[currentCard.string].midi + fret;
+    const freq = midiToFreq(midi);
     playTone(freq, 0.8);
   }
 
   // New: HTML5 Audio element approach instead of Web Audio API
-  let audioElements = {}; // Cache for generated audio elements
+  const audioElements = {}; // Cache for generated audio elements
   let audioEnabled = false;
   // Detect iOS immediately
   let isIOS =
@@ -2517,12 +2517,12 @@ $(async function () {
   }
 
   // Function to update the tuning UI
-  let $tuning = $("#tuning-config");
+  const $tuning = $("#tuning-config");
 
   function updateTuningUI() {
     let html = '<div class="tuning-container">';
     for (let i = 0; i < numStrings; i++) {
-      let noteOptions = allNotes
+      const noteOptions = allNotes
         .map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`)
         .join("");
       let octaveOptions = "";
@@ -2773,7 +2773,7 @@ $(async function () {
   function handleAppBackgroundedUnified() {
     console.log("App backgrounded - checking audio, voice, and microphone state");
 
-    let disabledFeatures = [];
+    const disabledFeatures = [];
 
     // Disable audio if enabled
     if (audioEnabled) {
@@ -3376,7 +3376,7 @@ $(async function () {
     }
   }
 
-  let $unifiedBanner = $("#unified-banner");
+  const $unifiedBanner = $("#unified-banner");
 
   function updateUnifiedBanner() {
     const banner = $unifiedBanner;
@@ -3461,7 +3461,7 @@ $(async function () {
     });
 
     $("#fret-count").on("change", function () {
-      let val = Number(this.value);
+      const val = Number(this.value);
       if (val === 11 || val === 21 || val === 22 || val === 24) {
         fretCountSetting = val;
         saveSettings();
@@ -3476,7 +3476,7 @@ $(async function () {
       showCard();
     });
     $timeout.on("change", function () {
-      let v = parseInt(this.value);
+      const v = parseInt(this.value);
       timeoutSeconds = isNaN(v) ? 2 : v;
       saveSettings();
     });
@@ -3486,7 +3486,7 @@ $(async function () {
 
     // Add event handler for open string note clicks
     $fretboard.on("click", ".open-note", function () {
-      let stringIdx = parseInt($(this).attr("data-string"));
+      const stringIdx = parseInt($(this).attr("data-string"));
       playAnsweredNote(stringIdx, 0); // Play the open string (fret 0)
     });
 
@@ -3502,7 +3502,7 @@ $(async function () {
 
     // Add event handler for individual tuning changes
     $tuning.on("change", ".tuning-select", function () {
-      let stringIdx = $(this).data("string");
+      const stringIdx = $(this).data("string");
       tuning[stringIdx].note = this.value;
       saveSettings();
       makeSession();
@@ -3511,7 +3511,7 @@ $(async function () {
 
     // Add event handler for octave changes
     $tuning.on("change", ".octave-select", function () {
-      let stringIdx = $(this).data("string");
+      const stringIdx = $(this).data("string");
       tuning[stringIdx].octave = parseInt(this.value);
       saveSettings();
       makeSession();

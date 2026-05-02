@@ -8,6 +8,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { createAppStoreLog } = require("./lib/app-store-log.cjs");
 
 class AppStorePrep {
   constructor() {
@@ -15,19 +16,7 @@ class AppStorePrep {
     this.iosPath = path.join(this.projectRoot, "ios");
     this.screenshotsPath = path.join(this.iosPath, "screenshots");
     this.metadataPath = path.join(this.projectRoot, "app-store-metadata.json");
-  }
-
-  log(message, type = "info") {
-    const timestamp = new Date().toISOString();
-    const prefix =
-      {
-        info: "📱",
-        success: "✅",
-        warning: "⚠️",
-        error: "❌",
-      }[type] || "📱";
-
-    console.log(`${prefix} [${timestamp}] ${message}`);
+    this.log = createAppStoreLog();
   }
 
   async checkPrerequisites() {

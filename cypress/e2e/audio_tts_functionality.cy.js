@@ -131,17 +131,7 @@ describe("Audio and TTS Functionality", () => {
     });
 
     it("should update selected voice in test state", () => {
-      // Get available voices
-      cy.get("#voice-select option").then(($options) => {
-        if ($options.length > 1) {
-          const firstVoice = $options.eq(1).val();
-          cy.get("#voice-select").select(firstVoice);
-
-          cy.getTestState().then((state) => {
-            expect(state.selectedVoice).to.equal(firstVoice);
-          });
-        }
-      });
+      cy.selectFirstVoiceOptionAndAssertTestState();
     });
   });
 
@@ -331,16 +321,7 @@ describe("Audio and TTS Functionality", () => {
       cy.clickQuizButton();
 
       // Change voice while playing
-      cy.get("#voice-select option").then(($options) => {
-        if ($options.length > 1) {
-          const firstVoice = $options.eq(1).val();
-          cy.get("#voice-select").select(firstVoice);
-
-          cy.getTestState().then((state) => {
-            expect(state.selectedVoice).to.equal(firstVoice);
-          });
-        }
-      });
+      cy.selectFirstVoiceOptionAndAssertTestState();
     });
 
     (Cypress.env("CI") ? it.skip : it)("should handle page reload with active TTS queue", () => {

@@ -15,15 +15,12 @@ export default tseslint.config(
       "packages/vscode/fixtures/**",
       /** Downloaded VS Code app for @vscode/test-* (contains nested tsconfigs that confuse the parser). */
       "**/.vscode-test/**",
-      /** Cypress JS specs + Node CJS scripts (this repo); Commentray’s gate targets TS-first scripts. */
-      "cypress/**/*.js",
-      "scripts/**/*.js",
-      /** Capacitor / Xcode synced web assets (generated or copied bundles). */
+      /** Capacitor iOS project: synced web bundle under App/public (not authored in-repo source). */
       "ios/**",
     ],
   },
   {
-    files: ["cypress/**/*.ts", "cypress.config.ts"],
+    files: ["cypress/**/*.ts", "cypress/**/*.js", "cypress.config.ts"],
     languageOptions: {
       globals: {
         afterEach: "readonly",
@@ -49,28 +46,9 @@ export default tseslint.config(
       "no-console": "off",
     },
   },
-  {
-    files: ["cypress.config.ts"],
-    languageOptions: {
-      globals: {
-        __dirname: "readonly",
-        console: "readonly",
-        process: "readonly",
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-  {
-    files: ["src/ts/modules/**/*.ts", "src/ts/types/**/*.ts", "**/*.d.ts"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-    },
-  },
   /** Node CommonJS scripts (`require`, `__dirname`) — keep `require` and Node globals allowed. */
   {
-    files: ["scripts/**/*.cjs"],
+    files: ["scripts/**/*.cjs", "scripts/**/*.js"],
     languageOptions: {
       globals: {
         __dirname: "readonly",

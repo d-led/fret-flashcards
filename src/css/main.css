@@ -31,9 +31,9 @@
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
-  border: 0;
+  border-width: 0;
 }
 
 .skip-link {
@@ -153,12 +153,7 @@ a {
   margin-bottom: 0.2em;
   gap: 0.5em;
   width: 100%;
-  flex-wrap: wrap;
-}
-
-.note-row {
   flex-wrap: nowrap;
-  gap: 0.5em;
 }
 
 .quiz-note-btn {
@@ -377,6 +372,10 @@ a {
   background: var(--secondary-bg);
 }
 
+.config-table td {
+  padding: var(--padding) 0;
+}
+
 .fretboard-table .fretboard-mark-row td {
   background: var(--secondary-bg);
 }
@@ -493,10 +492,6 @@ a {
   border-collapse: collapse;
 }
 
-.config-table td {
-  padding: var(--padding) 0;
-}
-
 .tuning-container {
   display: flex;
   flex-flow: row wrap;
@@ -593,10 +588,6 @@ a {
 .small-comment-text {
   font-size: var(--font-small);
   color: var(--inactive);
-}
-
-/* extra space after small comment text blocks */
-.small-comment-text {
   margin-bottom: 1em;
 }
 
@@ -623,10 +614,6 @@ a {
     padding: var(--padding);
   }
 
-  .note-row {
-    gap: var(--padding);
-  }
-
   .quiz-note-btn {
     font-size: 2em;
     padding: 0.6em 1.2em;
@@ -646,6 +633,7 @@ a {
            staves vertically, but keep the whole score visually as a white
            panel so it reads like a single unit. */
   .note-row {
+    gap: var(--padding);
     flex-wrap: nowrap; /* prevent wrapping */
     align-items: flex-start; /* align to top instead of center */
   }
@@ -768,13 +756,6 @@ a {
     margin: 0;
   }
 
-  .config-table td select,
-  .config-table td input[type="number"],
-  .config-table td .tuning-select {
-    display: inline-block;
-    margin-top: 0.5em;
-  }
-
   .form-group {
     flex-direction: column;
     align-items: flex-start;
@@ -784,6 +765,13 @@ a {
   .form-group select {
     width: 100%;
     min-width: auto;
+  }
+
+  .config-table td select,
+  .config-table td input[type="number"],
+  .config-table td .tuning-select {
+    display: inline-block;
+    margin-top: 0.5em;
   }
 
   button {

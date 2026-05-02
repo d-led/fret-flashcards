@@ -24,8 +24,7 @@ if [[ ! -x "${ESLINT_BIN}" ]]; then
 fi
 
 echo "== ESLint (project) ==" >&2
-# Legacy app entry (src/ts/index.ts) predates strict flat-config rules; keep gate on the rest of the tree.
-"${ESLINT_BIN}" . --ignore-pattern "src/ts/index.ts"
+"${ESLINT_BIN}" .
 
 echo "== Stylelint ==" >&2
 bash "${REPO_ROOT}/scripts/stylelint.sh"
@@ -34,17 +33,7 @@ echo "== ShellCheck (scripts/) ==" >&2
 bash "${REPO_ROOT}/scripts/shellcheck.sh"
 
 echo "== ESLint (refactor metrics) ==" >&2
-eslint_cmd=(
-  "${ESLINT_BIN}" --no-config-lookup -c "${CONFIG_ABS}" --max-warnings 0
-  capacitor.config.ts
-  packages/render
-  scripts
-  src/ts/modules
-  src/ts/plugins
-  vite.config.ts
-  vitest.config.ts
-  vitest.property.config.ts
-)
+eslint_cmd=("${ESLINT_BIN}" --no-config-lookup -c "${CONFIG_ABS}" --max-warnings 0 .)
 
 if [[ "${REFACTOR_METRICS_FORMAT:-}" == "json" ]]; then
   eslint_cmd+=(-f json)

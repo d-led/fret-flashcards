@@ -24,6 +24,33 @@ Cypress.Commands.add("skipInCI", (testName, testFn) => {
   const shouldSkipInCI = Cypress.env("CI") === true || Cypress.env("CI") === "true";
   return (shouldSkipInCI ? it.skip : it)(testName, testFn);
 });
+
+/** Select first non-default voice option and assert `getTestState().selectedVoice` (deduped for jscpd). */
+Cypress.Commands.add("selectFirstVoiceOptionAndAssertTestState", () => {
+  cy.get("#voice-select option").then(($options) => {
+    if ($options.length > 1) {
+      const firstVoice = $options.eq(1).val();
+      cy.get("#voice-select").select(firstVoice);
+      cy.getTestState().then((state) => {
+        expect(state.selectedVoice).to.equal(firstVoice);
+      });
+    }
+  });
+});
+
+/** Focus quiz button, fretboard, then skip-countdown when visible (deduped for jscpd). */
+Cypress.Commands.add("focusQuizFretboardAndSkipCountdownIfVisible", () => {
+  cy.get("#quiz-note-btn").focus();
+  cy.get("#quiz-note-btn").should("have.focus");
+  cy.get("#fretboard-area").focus();
+  cy.get("#fretboard-area").should("have.focus");
+  cy.get("#skip-countdown").then(($btn) => {
+    if ($btn.is(":visible")) {
+      cy.wrap($btn).focus();
+      cy.wrap($btn).should("have.focus");
+    }
+  });
+});
 //
 //
 // -- This is a parent command --
@@ -632,7 +659,7 @@ Cypress.Commands.add("shouldHaveUtteranceInLog", (expectedText) => {
 
 Cypress.Commands.add("shouldHaveUtteranceMatching", (pattern) => {
   cy.getTestState().then((state) => {
-    expect(state.utteranceLog.some((utterance) => new RegExp(pattern).test(utterance))).to.be.true;
+    expect(state.utteranceLog.some((utterance) => new RegExp(pattern).test(utterance))).to.equal(true);
   });
 });
 
@@ -688,7 +715,7 @@ Cypress.Commands.add("shouldHaveFocusStyles", { prevSubject: "element" }, (subje
 
 // Custom command to test keyboard navigation sequence
 Cypress.Commands.add("testKeyboardNavigation", (selectors) => {
-  selectors.forEach((selector, index) => {
+  selectors.forEach((selector, _index) => {
     cy.get("body").tab();
     cy.focused().should("match", selector);
   });
@@ -727,7 +754,11 @@ Cypress.Commands.add("shouldHaveFormAccessibility", (controlSelector) => {
 // Custom command to test color contrast (basic check)
 Cypress.Commands.add("shouldHaveGoodContrast", { prevSubject: "element" }, (subject) => {
   cy.wrap(subject).then(($el) => {
-    const styles = window.getComputedStyle($el[0]);
+    const view = $el[0].ownerDocument?.defaultView;
+    if (!view) {
+      throw new Error("shouldHaveGoodContrast: element has no defaultView");
+    }
+    const styles = view.getComputedStyle($el[0]);
     const color = styles.color;
     const backgroundColor = styles.backgroundColor;
 
@@ -742,7 +773,6 @@ Cypress.Commands.add("shouldBeScreenReaderAccessible", { prevSubject: "element" 
   cy.wrap(subject).then(($el) => {
     const ariaHidden = $el.attr("aria-hidden");
     const role = $el.attr("role");
-    const tabindex = $el.attr("tabindex");
 
     // Element should not be hidden from screen readers unless it's decorative
     if (ariaHidden === "true") {
@@ -754,7 +784,7 @@ Cypress.Commands.add("shouldBeScreenReaderAccessible", { prevSubject: "element" 
       const hasAriaLabel = $el.attr("aria-label");
       const hasRole = role;
 
-      expect(hasText || hasAriaLabel || hasRole).to.be.true;
+      expect(Boolean(hasText || hasAriaLabel || hasRole)).to.equal(true);
     }
   });
 });

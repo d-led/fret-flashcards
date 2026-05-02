@@ -8,26 +8,14 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { createAppStoreLog } = require("./lib/app-store-log.cjs");
 
 class RemoveSubmission {
   constructor() {
     this.projectRoot = process.cwd();
     this.appIdentifier = "com.dled.stringhomeworktutor";
     this.version = "1.0.1";
-  }
-
-  log(message, type = "info") {
-    const timestamp = new Date().toISOString();
-    const prefix =
-      {
-        info: "📱",
-        success: "✅",
-        warning: "⚠️",
-        error: "❌",
-        rocket: "🚀",
-      }[type] || "📱";
-
-    console.log(`${prefix} [${timestamp}] ${message}`);
+    this.log = createAppStoreLog({ rocket: "🚀" });
   }
 
   async checkEnvironment() {

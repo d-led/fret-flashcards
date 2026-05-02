@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- ambient declarations for the VexFlow IIFE bundle */
 // Minimal ambient declarations for VexFlow to satisfy TypeScript in the IDE.
-// These intentionally use `any` — you can replace with more specific types later.
 
 declare module "vexflow" {
   const VexFlow: any;

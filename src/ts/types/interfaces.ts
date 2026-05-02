@@ -49,7 +49,7 @@ export interface TTSContext {
 
 export interface PitchDetectionContext {
   detecting: boolean;
-  detector: any; // PitchDetector from pitchy
+  detector: import("pitchy").PitchDetector | null;
   stream: MediaStream | null;
 }
 
