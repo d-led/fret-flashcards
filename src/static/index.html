@@ -185,6 +185,26 @@
             </div>
           </div>
         </fieldset>
+
+        <fieldset>
+          <legend>Instrument Sound</legend>
+          <div class="form-group">
+            <label for="instrument-select">Instrument:</label>
+            <select id="instrument-select" aria-describedby="instrument-select-help">
+              <option value="voice">Voice (current)</option>
+              <option value="guitar">Acoustic Guitar</option>
+              <option value="electric-guitar">Electric Guitar</option>
+              <option value="bass">Bass</option>
+              <option value="piano">Piano</option>
+              <option value="harpsichord">Harpsichord</option>
+              <option value="strings">Strings</option>
+            </select>
+            <div id="instrument-select-help" class="sr-only">
+              Select a MIDI instrument sound or the voice option for text-to-speech
+            </div>
+          </div>
+        </fieldset>
+
         <fieldset>
           <legend>Advanced Settings</legend>
           <div class="form-group">

@@ -772,6 +772,7 @@ async function bootstrapFretApp(): Promise<void> {
   let hideQuizNote = false; // Default to false, to show quiz note by default
   let enableTTS = false; // Default to false, text-to-speech for quiz notes
   let selectedVoice: string | null = null; // Selected voice for TTS, null means use default
+  let selectedInstrument = "voice"; // Selected instrument for sound playback
   let micSensitivity = 0.5; // Microphone sensitivity (0.0 = very sensitive, 1.0 = less sensitive)
   let micClarityThreshold = 0.3; // Minimum clarity required for pitch detection (0.0-1.0)
   let micNoiseFloor = 0.0005; // RMS threshold below which input is considered silence
@@ -1277,6 +1278,7 @@ async function bootstrapFretApp(): Promise<void> {
       hideQuizNote: hideQuizNote,
       enableTTS: enableTTS,
       selectedVoice: selectedVoice,
+      selectedInstrument: selectedInstrument,
       micSensitivity: micSensitivity,
       micClarityThreshold: micClarityThreshold,
       micNoiseFloor: micNoiseFloor,
@@ -1378,6 +1380,11 @@ async function bootstrapFretApp(): Promise<void> {
         selectedVoice = settings.selectedVoice;
         // Update the voice dropdown selection
         $("#voice-select").val(selectedVoice || "");
+      }
+      if ("selectedInstrument" in settings && typeof settings.selectedInstrument === "string") {
+        selectedInstrument = settings.selectedInstrument;
+        // Update the instrument dropdown selection
+        $("#instrument-select").val(selectedInstrument);
       }
       if ("micSensitivity" in settings && typeof settings.micSensitivity === "number") {
         micSensitivity = Math.max(0, Math.min(1, settings.micSensitivity));
@@ -2349,14 +2356,174 @@ async function bootstrapFretApp(): Promise<void> {
     return "speechSynthesis" in window;
   }
 
-  // Generate a WAV data URL for a given frequency
-  function generateToneDataURL(freq, duration = 0.8, sampleRate = 44100) {
+  // Instrument synthesis helper functions
+  function synthesizeSineWave(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    return Math.sin((2 * Math.PI * freq * i) / sampleRate) * amp * 32767;
+  }
+
+  function synthesizeTriangleWave(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    return (4 * Math.abs((((i * freq) / sampleRate) % 1) - 0.5) - 1) * amp * 32767;
+  }
+
+  function synthesizePiano(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Piano: sharp attack with harmonics that decay quickly
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.3;
+    const harmonic3 = Math.sin((2 * Math.PI * freq * 3 * i) / sampleRate) * 0.1;
+    const combined = fundamental + harmonic2 + harmonic3;
+    // Exponential decay for piano decay envelope
+    const decay = Math.exp((-t * 2) / 2);
+    const attack = i < sampleRate * 0.01 ? i / (sampleRate * 0.01) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeGuitar(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Acoustic guitar: pluck simulation with harmonics
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.2;
+    const harmonic3 = Math.sin((2 * Math.PI * freq * 3 * i) / sampleRate) * 0.15;
+    const combined = fundamental + harmonic2 + harmonic3;
+    // More gradual decay than piano
+    const decay = Math.exp((-t * 1.5) / 2);
+    const attack = i < sampleRate * 0.02 ? i / (sampleRate * 0.02) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeElectricGuitar(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Electric guitar: sharper attack, fewer harmonics, brighter tone
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.15;
+    const combined = fundamental + harmonic2;
+    // Medium decay
+    const decay = Math.exp((-t * 1.8) / 2);
+    const attack = i < sampleRate * 0.01 ? i / (sampleRate * 0.01) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeBell(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Bell: inharmonic partials and slow decay
+    const t = i / sampleRate;
+    // Bell uses complex partials rather than simple harmonics
+    const partial1 = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const partial2 = Math.sin((2 * Math.PI * freq * 1.5 * i) / sampleRate) * 0.4;
+    const partial3 = Math.sin((2 * Math.PI * freq * 2.1 * i) / sampleRate) * 0.3;
+    const combined = partial1 + partial2 + partial3;
+    // Very slow decay for bell
+    const decay = Math.exp((-t * 0.5) / 3);
+    const attack = i < sampleRate * 0.05 ? i / (sampleRate * 0.05) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeFlute(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Flute: warm, pure tone with slower attack and decay
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.1;
+    const combined = fundamental + harmonic2;
+    // Slower attack and decay than piano
+    const decay = Math.exp((-t * 0.8) / 2.5);
+    const attack = i < sampleRate * 0.05 ? i / (sampleRate * 0.05) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeStrings(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Strings: rich harmonics with warm tone
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.35;
+    const harmonic3 = Math.sin((2 * Math.PI * freq * 3 * i) / sampleRate) * 0.2;
+    const harmonic4 = Math.sin((2 * Math.PI * freq * 4 * i) / sampleRate) * 0.1;
+    const combined = fundamental + harmonic2 + harmonic3 + harmonic4;
+    // Medium decay
+    const decay = Math.exp((-t * 1.2) / 2.2);
+    const attack = i < sampleRate * 0.03 ? i / (sampleRate * 0.03) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  function synthesizeHarpsichord(
+    i: number,
+    length: number,
+    freq: number,
+    sampleRate: number,
+    amp: number,
+  ): number {
+    // Harpsichord: bright, percussive with sharp attack and medium decay
+    const t = i / sampleRate;
+    const fundamental = Math.sin((2 * Math.PI * freq * i) / sampleRate);
+    const harmonic2 = Math.sin((2 * Math.PI * freq * 2 * i) / sampleRate) * 0.4;
+    const harmonic3 = Math.sin((2 * Math.PI * freq * 3 * i) / sampleRate) * 0.25;
+    const harmonic4 = Math.sin((2 * Math.PI * freq * 4 * i) / sampleRate) * 0.15;
+    const combined = fundamental + harmonic2 + harmonic3 + harmonic4;
+    // Sharp attack, medium decay
+    const decay = Math.exp((-t * 2) / 1.5);
+    const attack = i < sampleRate * 0.015 ? i / (sampleRate * 0.015) : 1;
+    return combined * decay * attack * amp * 32767;
+  }
+
+  // Generate a WAV data URL for a given frequency and instrument
+  function generateToneDataURL(
+    freq: number,
+    duration = 0.8,
+    sampleRate = 44100,
+    instrument = "voice",
+  ) {
     const length = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + length * 2);
     const view = new DataView(buffer);
 
     // WAV header
-    const writeString = (offset, string) => {
+    const writeString = (offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
@@ -2379,18 +2546,54 @@ async function bootstrapFretApp(): Promise<void> {
     // Compute MIDI and octave from frequency
     const midi = 69 + 12 * Math.log2(freq / 440);
     const octave = Math.floor(midi / 12) - 1;
-    const useTriangle = octave === 1 || octave === 2;
+
     // Boost amplitude on iOS where overall output is quieter
     const amp = isIOS ? 0.75 : 0.25;
 
-    // Generate wave data (triangle for octaves 1-2, sine otherwise)
+    // Generate wave data based on instrument
     for (let i = 0; i < length; i++) {
-      let sample;
-      if (useTriangle) {
-        sample = (4 * Math.abs((((i * freq) / sampleRate) % 1) - 0.5) - 1) * amp * 32767;
-      } else {
-        sample = Math.sin((2 * Math.PI * freq * i) / sampleRate) * amp * 32767;
+      let sample: number;
+
+      switch (instrument) {
+        case "sine":
+          sample = synthesizeSineWave(i, length, freq, sampleRate, amp);
+          break;
+        case "guitar":
+          sample = synthesizeGuitar(i, length, freq, sampleRate, amp);
+          break;
+        case "electric-guitar":
+          sample = synthesizeElectricGuitar(i, length, freq, sampleRate, amp);
+          break;
+        case "bass":
+          // Bass: similar to electric guitar but lower fundamental focus
+          sample = synthesizeElectricGuitar(i, length, freq, sampleRate, amp);
+          break;
+        case "piano":
+          sample = synthesizePiano(i, length, freq, sampleRate, amp);
+          break;
+        case "bell":
+          sample = synthesizeBell(i, length, freq, sampleRate, amp);
+          break;
+        case "flute":
+          sample = synthesizeFlute(i, length, freq, sampleRate, amp);
+          break;
+        case "strings":
+          sample = synthesizeStrings(i, length, freq, sampleRate, amp);
+          break;
+        case "harpsichord":
+          sample = synthesizeHarpsichord(i, length, freq, sampleRate, amp);
+          break;
+        case "voice":
+        default:
+          // Original behavior: triangle for octaves 1-2, sine otherwise
+          if (octave === 1 || octave === 2) {
+            sample = synthesizeTriangleWave(i, length, freq, sampleRate, amp);
+          } else {
+            sample = synthesizeSineWave(i, length, freq, sampleRate, amp);
+          }
+          break;
       }
+
       const offset = 44 + i * 2;
       if (offset + 1 < buffer.byteLength) {
         view.setInt16(offset, sample, true);
@@ -2402,7 +2605,7 @@ async function bootstrapFretApp(): Promise<void> {
   }
 
   // Updated playTone to use HTML5 Audio elements
-  function playTone(freq, duration) {
+  function playTone(freq: number, duration: number) {
     // On non-iOS devices, ensure audio is initialized
     if (!isIOS && !audioEnabled) {
       audioEnabled = true; // Assume it works on non-iOS
@@ -2416,7 +2619,7 @@ async function bootstrapFretApp(): Promise<void> {
     }
 
     try {
-      const cacheKey = `${Math.round(freq)}_${duration}`;
+      const cacheKey = `${Math.round(freq)}_${duration}_${selectedInstrument}`;
 
       // Set audio playing flag to prevent microphone feedback
       audioCurrentlyPlaying = true;
@@ -2433,7 +2636,7 @@ async function bootstrapFretApp(): Promise<void> {
       if (isIOS || !audioElements[cacheKey]) {
         audio = new Audio();
         try {
-          audio.src = generateToneDataURL(freq, duration);
+          audio.src = generateToneDataURL(freq, duration, 44100, selectedInstrument);
           audio.preload = "auto";
           if (!isIOS) {
             audioElements[cacheKey] = audio; // Only cache on non-iOS
@@ -3818,6 +4021,19 @@ async function bootstrapFretApp(): Promise<void> {
           await speakSystemMessage(`Changed the voice to ${voiceName}`);
         }
       })();
+    });
+
+    $("#instrument-select").on("change", function () {
+      const newInstrument = (this as HTMLSelectElement).value;
+      selectedInstrument = newInstrument;
+      saveSettings();
+      updateTestState();
+      console.log(`Changed instrument to ${newInstrument}`);
+
+      // Provide TTS feedback if enabled
+      if (enableTTS && ttsInitialized) {
+        void speakSystemMessage(`Instrument changed to ${newInstrument}`);
+      }
     });
 
     // Microphone sensitivity controls

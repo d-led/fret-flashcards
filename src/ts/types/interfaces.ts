@@ -34,6 +34,7 @@ export interface Settings {
   hideQuizNote: boolean;
   enableTTS: boolean;
   selectedVoice: string | null;
+  selectedInstrument: string;
 }
 
 export interface Statistics {
@@ -87,6 +88,7 @@ export interface UICallbacks {
   onHideQuizNoteChange: (hide: boolean) => void;
   onEnableTTSChange: (enabled: boolean) => void;
   onVoiceSelectChange: (voice: string | null) => void;
+  onInstrumentSelectChange: (instrument: string) => void;
   onSkipCountdown: () => void;
 }
 
@@ -102,6 +104,7 @@ export interface UIState {
   hideQuizNote: boolean;
   enableTTS: boolean;
   selectedVoice: string | null;
+  selectedInstrument: string;
   pitchDetecting: boolean;
   audioEnabled: boolean;
   ttsInitialized: boolean;
