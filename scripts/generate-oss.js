@@ -72,13 +72,6 @@ function getLicenseInfo(license) {
   return { name: "Unknown", url: "" };
 }
 
-function formatLicenseInfo(licenseInfo) {
-  if (Array.isArray(licenseInfo)) {
-    return licenseInfo.map(formatLicenseInfo).join(" OR ");
-  }
-  return licenseInfo.name;
-}
-
 function generateOSSText(packageJson) {
   const projectName = packageJson.name || "Unknown Project";
   const projectVersion = packageJson.version || "Unknown Version";

@@ -1,9 +1,20 @@
+import type { PitchDetector } from "pitchy";
+
 // Core interfaces for dependency injection between modules
 
 export interface QuizCard {
   note: string;
   stringIndex: number;
   frets: number[];
+}
+
+/** In-memory quiz card used by the main game loop (`index.ts`); uses `string` for string index. */
+export interface ActiveQuizCard {
+  note: string;
+  string: number;
+  frets: number[];
+  found: number[];
+  shownTime?: number;
 }
 
 export interface QuizSession {
@@ -32,6 +43,8 @@ export interface Statistics {
     stringIndex: number;
     fret: number;
     timestamp: number;
+    /** Present when the answer was recorded with a specific tuning snapshot. */
+    tuning?: unknown;
   }>;
 }
 
@@ -49,7 +62,7 @@ export interface TTSContext {
 
 export interface PitchDetectionContext {
   detecting: boolean;
-  detector: import("pitchy").PitchDetector | null;
+  detector: PitchDetector<Float32Array> | null;
   stream: MediaStream | null;
 }
 

@@ -659,7 +659,9 @@ Cypress.Commands.add("shouldHaveUtteranceInLog", (expectedText) => {
 
 Cypress.Commands.add("shouldHaveUtteranceMatching", (pattern) => {
   cy.getTestState().then((state) => {
-    expect(state.utteranceLog.some((utterance) => new RegExp(pattern).test(utterance))).to.equal(true);
+    expect(state.utteranceLog.some((utterance) => new RegExp(pattern).test(utterance))).to.equal(
+      true,
+    );
   });
 });
 

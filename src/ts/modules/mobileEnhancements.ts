@@ -6,6 +6,7 @@ import { Keyboard, KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 import { App } from "@capacitor/app";
 import { Preferences } from "@capacitor/preferences";
 import { touchHandler } from "./touchHandler";
+import { fretWindow, type FretTouchSettings } from "../types/window-globals";
 
 /**
  * Mobile-specific enhancements for String Homework Tutor
@@ -103,9 +104,10 @@ export class MobileEnhancements {
       // Handle pause event (more reliable for app minimization)
       void App.addListener("pause", () => {
         console.log("App paused - handling microphone state");
+        const w = fretWindow();
         console.log("Current microphone state:", {
-          pitchDetecting: !!(window as any).pitchDetecting,
-          micStream: !!(window as any).micStream,
+          pitchDetecting: !!w.pitchDetecting,
+          micStream: !!w.micStream,
           micButtonText: document.getElementById("mic-toggle")?.textContent,
         });
         this.pauseAudio();
@@ -203,7 +205,7 @@ export class MobileEnhancements {
   /**
    * Enhanced storage using Capacitor Preferences
    */
-  public async setPreference(key: string, value: any): Promise<void> {
+  public async setPreference(key: string, value: string | number | boolean | null): Promise<void> {
     try {
       if (Capacitor.isNativePlatform()) {
         await Preferences.set({ key, value: JSON.stringify(value) });
@@ -221,7 +223,7 @@ export class MobileEnhancements {
   /**
    * Get preference with fallback
    */
-  public async getPreference(key: string): Promise<any> {
+  public async getPreference(key: string): Promise<unknown> {
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await Preferences.get({ key });
@@ -270,7 +272,7 @@ export class MobileEnhancements {
   /**
    * Update touch sensitivity settings
    */
-  public updateTouchSettings(settings: any): void {
+  public updateTouchSettings(settings: FretTouchSettings): void {
     touchHandler.updateTouchSettings(settings);
   }
 
@@ -305,14 +307,15 @@ export class MobileEnhancements {
     const hasActiveMicStream = this.checkForActiveMicrophoneStream();
 
     // Check audio and TTS state from global variables
-    const audioEnabled = !!(window as any).audioEnabled;
-    const enableTTS = !!(window as any).enableTTS;
+    const w = fretWindow();
+    const audioEnabled = !!w.audioEnabled;
+    const enableTTS = !!w.enableTTS;
 
     console.log("Checking features state for backgrounding:", {
       isMicActive,
       hasActiveMicStream,
-      pitchDetecting: !!(window as any).pitchDetecting,
-      micStream: !!(window as any).micStream,
+      pitchDetecting: !!w.pitchDetecting,
+      micStream: !!w.micStream,
       audioEnabled,
       enableTTS,
     });
@@ -341,8 +344,9 @@ export class MobileEnhancements {
     console.log("Directly disabling audio, voice, and microphone due to app inactivity");
 
     // Always use the unified function to prevent duplicate notifications
-    if (typeof (window as any).handleAppBackgroundedUnified === "function") {
-      (window as any).handleAppBackgroundedUnified();
+    const w = fretWindow();
+    if (typeof w.handleAppBackgroundedUnified === "function") {
+      w.handleAppBackgroundedUnified();
     } else {
       console.error("Unified function not available - this should not happen");
     }
@@ -353,7 +357,8 @@ export class MobileEnhancements {
    */
   private checkForActiveMicrophoneStream(): boolean {
     try {
-      return !!(window as any).pitchDetecting || !!(window as any).micStream;
+      const w = fretWindow();
+      return !!w.pitchDetecting || !!w.micStream;
     } catch (error) {
       console.log("Could not check microphone stream state:", error);
     }

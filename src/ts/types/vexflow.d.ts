@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- ambient declarations for the VexFlow IIFE bundle */
 // Minimal ambient declarations for VexFlow to satisfy TypeScript in the IDE.
 
 declare module "vexflow" {

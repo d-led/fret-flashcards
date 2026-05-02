@@ -67,6 +67,13 @@ export default tseslint.config(
     },
   },
   {
+    files: ["**/*.d.ts"],
+    rules: {
+      /** Untyped or IIFE bundles are commonly declared as `any` in shims. */
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+  {
     rules: {
       "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports" }],
       "@typescript-eslint/no-unused-vars": [

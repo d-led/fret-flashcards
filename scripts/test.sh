@@ -11,15 +11,13 @@ export FORCE_COLOR
 # Avoid VS Code auto-attach side effects in child Node processes.
 unset VSCODE_INSPECTOR_OPTIONS
 
-mode="${COMMENTRAY_TEST_MODE:-unit}"
+mode="${FRET_TEST_MODE:-${COMMENTRAY_TEST_MODE:-unit}}"
 case "$mode" in
-  # Unit Vitest suite includes `packages/architecture/architecture.test.ts`
-  # (ArchUnitTS rules vs `tsconfig.archunit.json`).
-  unit) exec npm run test:unit ;;
-  integration) exec npm run test:integration ;;
-  expensive) exec npm run test:expensive ;;
-  all)
-    npm run test:unit && npm run test:integration && npm run test:expensive
+  unit) exec npm test ;;
+  integration|expensive)
+    echo "No ${mode} suite in this repo; running unit tests (npm test)." >&2
+    exec npm test
     ;;
-  *) echo "Unknown COMMENTRAY_TEST_MODE=$mode (use unit|integration|expensive|all)" >&2; exit 1 ;;
+  all) exec npm run test:all ;;
+  *) echo "Unknown FRET_TEST_MODE/COMMENTRAY_TEST_MODE=$mode (use unit|integration|expensive|all)" >&2; exit 1 ;;
 esac

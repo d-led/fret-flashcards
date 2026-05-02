@@ -35,8 +35,8 @@ class AppStorePrep {
     // Check if fastlane is installed
     try {
       execSync("which fastlane", { stdio: "pipe" });
-    } catch (error) {
-      throw new Error("Fastlane not installed. Run: sudo gem install fastlane");
+    } catch (cause) {
+      throw new Error("Fastlane not installed. Run: sudo gem install fastlane", { cause });
     }
 
     this.log("Prerequisites check passed", "success");
@@ -48,8 +48,13 @@ class AppStorePrep {
     try {
       execSync("npm run build:mobile", { stdio: "inherit" });
       this.log("App built successfully", "success");
-    } catch (error) {
-      throw new Error("Failed to build app: " + error.message);
+    } catch (cause) {
+      throw new Error(
+        "Failed to build app: " + (cause instanceof Error ? cause.message : String(cause)),
+        {
+          cause,
+        },
+      );
     }
   }
 
@@ -68,9 +73,13 @@ class AppStorePrep {
       process.chdir(this.projectRoot);
 
       this.log("Screenshots generated successfully", "success");
-    } catch (error) {
+    } catch (cause) {
       process.chdir(this.projectRoot);
-      throw new Error("Failed to generate screenshots: " + error.message);
+      throw new Error(
+        "Failed to generate screenshots: " +
+          (cause instanceof Error ? cause.message : String(cause)),
+        { cause },
+      );
     }
   }
 

@@ -53,6 +53,10 @@ export default tseslint.config(
       "cypress.config.ts",
       "packages/code-commentray-static/site/**",
       "packages/vscode/fixtures/**",
+      /** Capacitor sync: bundled `index.js`, vendor libs — not first-party TypeScript. */
+      "ios/**",
+      /** Ambient declarations (often use `any` for untyped bundles). */
+      "**/*.d.ts",
     ],
   },
   {
@@ -68,6 +72,15 @@ export default tseslint.config(
       "@typescript-eslint": tseslint.plugin,
     },
     rules,
+  },
+  /** Legacy single-file app shell: size/complexity limits apply to extracted modules first. */
+  {
+    files: ["src/ts/index.ts"],
+    rules: {
+      complexity: "off",
+      "max-lines-per-function": "off",
+      "max-statements": "off",
+    },
   },
   {
     files: ["**/*.{js,mjs,cjs}"],

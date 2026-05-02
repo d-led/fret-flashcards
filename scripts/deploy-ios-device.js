@@ -98,7 +98,7 @@ function checkDeviceExists(deviceId) {
     const devices = JSON.parse(output);
 
     // Check iOS simulators
-    for (const [runtime, deviceList] of Object.entries(devices.devices)) {
+    for (const [, deviceList] of Object.entries(devices.devices)) {
       if (Array.isArray(deviceList)) {
         const device = deviceList.find((d) => d.udid === deviceId);
         if (device) {
@@ -125,7 +125,7 @@ function checkDeviceExists(deviceId) {
           return true;
         }
       }
-    } catch (e) {
+    } catch {
       // devicectl might not be available on older Xcode versions
     }
 

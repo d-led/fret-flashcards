@@ -12,12 +12,20 @@
 
 import { PitchDetector } from "pitchy";
 import { mobileEnhancements } from "./modules/mobileEnhancements";
+import type { ActiveQuizCard, Statistics } from "./types/interfaces";
+import { fretWindow } from "./types/window-globals";
 
 const buildInfo = "Build: unknown";
 
 console.log(`loaded index.js`);
 
-$(async function () {
+async function bootstrapFretApp(): Promise<void> {
+  function isNoteOctavePair(t: unknown): t is { note: string; octave: number } {
+    if (typeof t !== "object" || t === null) return false;
+    const o = t as Record<string, unknown>;
+    return typeof o.note === "string" && typeof o.octave === "number";
+  }
+
   // Initialize mobile enhancements (includes touch handling)
   await mobileEnhancements.initialize();
 
@@ -55,7 +63,7 @@ $(async function () {
       if (!mobileEnhancements.isMobile()) {
         initializeWebUIElements();
         initializeWebAudio();
-        initializeWebTTS();
+        void initializeWebTTS();
         initializeWebTTSSupport();
       }
     } catch (e) {
@@ -219,7 +227,7 @@ $(async function () {
         bounds.minY = Math.min(bounds.minY, bbox.y);
         bounds.maxX = Math.max(bounds.maxX, bbox.x + bbox.width);
         bounds.maxY = Math.max(bounds.maxY, bbox.y + bbox.height);
-      } catch (e) {
+      } catch {
         // Skip elements that can't be measured
       }
     });
@@ -466,7 +474,7 @@ $(async function () {
             factoryTreble.draw();
 
             // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
-            (async () => {
+            void (async () => {
               const trebleSvgEl = trebleContainer?.querySelector("svg");
               if (trebleSvgEl) {
                 try {
@@ -561,7 +569,7 @@ $(async function () {
             factoryBass.draw();
 
             // Apply smart SVG cropping (focus on visual content, not text bounding boxes)
-            (async () => {
+            void (async () => {
               const bassSvgEl = bassContainer?.querySelector("svg");
               if (bassSvgEl) {
                 try {
@@ -605,20 +613,20 @@ $(async function () {
   const typicalFretMarks = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
   const doubleFretMarkers = [12, 24];
 
-  let currentCard: any = null;
+  let currentCard: ActiveQuizCard | null = null;
   let fretCountSetting = 11; // User's selected fret count (11 = basic mode with 0-11 positions)
   let showAccidentals = false;
   let timeoutSeconds = 2;
-  const pendingTimeout: any = null;
-  let session: any[] = [];
+  const pendingTimeout: ReturnType<typeof setTimeout> | null = null;
+  let session: ActiveQuizCard[] = [];
   let sessionIdx = 0;
-  let foundFrets: any[] = [];
-  let countdownInterval: any = null;
+  let foundFrets: number[] = [];
+  let countdownInterval: ReturnType<typeof setInterval> | null = null;
   let countdownValue = 0;
   let fretCount = 12; // calculated based on fretCountSetting (0th fret + selected count)
 
   // Declare stringNames as an empty array (was missing, causing UI breakage)
-  const stringNames: any[] = [];
+  const stringNames: { name: string }[] = [];
 
   // Add new variables for configurable strings and tuning
   let numStrings = 6;
@@ -754,7 +762,7 @@ $(async function () {
 
   let tuning = defaultTunings[6].strings.slice(); // Initialize from defaultTunings to avoid duplication
 
-  let statistics: { answers: any[] } = {
+  let statistics: Statistics = {
     answers: [],
   }; // Object to hold answer events in 'answers' array
 
@@ -770,7 +778,7 @@ $(async function () {
   let ttsInitialized = false; // Track if TTS has been initialized with user interaction
   let ttsUserInitialized = false; // Track if TTS has been initialized by user interaction (banner click)
   let consecutiveMistakes = 0; // Track consecutive wrong answers for TTS repeat
-  let consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint
+  let _consecutiveOctaveMistakes = 0; // Track consecutive octave mistakes for octave hint (reserved)
   let lastOctaveHintTime = 0; // Track last time octave hint was given for debouncing
   let lastQuizHintTime = 0; // Track last time quiz hint was given for debouncing
   let hintsCurrentlyPlaying = false; // Track if hints (TTS or sound) are still playing during transition
@@ -869,7 +877,12 @@ $(async function () {
 
     ttsCurrentlyPlaying = true;
     updateTestState();
-    const item = ttsQueue.shift()!;
+    const item = ttsQueue.shift();
+    if (!item) {
+      ttsCurrentlyPlaying = false;
+      updateTestState();
+      return;
+    }
 
     // Sanitize text to prevent iOS SSML parsing errors
     const sanitizedText = sanitizeTextForTTS(item.text);
@@ -883,7 +896,8 @@ $(async function () {
 
     // Adjust TTS volume based on iOS and microphone state
     if (isIOS) {
-      const isMicActive = !!(window as any).pitchDetecting || !!(window as any).micStream;
+      const w = fretWindow();
+      const isMicActive = !!w.pitchDetecting || !!w.micStream;
       // When mic is active, iOS uses .playAndRecord which is louder, but we need clear voice feedback
       // Increase volume to maintain good voice level while balancing with audio notes
       utterance.volume = isMicActive ? 0.8 : 1.0;
@@ -911,7 +925,7 @@ $(async function () {
 
     try {
       speechSynthesis.speak(utterance);
-    } catch (error) {
+    } catch {
       // Handle synchronous errors
       ttsCurrentlyPlaying = false;
       updateTestState();
@@ -967,7 +981,7 @@ $(async function () {
           return;
         }
       }
-    } catch (e) {
+    } catch {
       // ignore UA parsing issues
     }
 
@@ -995,28 +1009,6 @@ $(async function () {
   }
 
   // Speak a status message immediately (bypassing the queue) to improve reliability on iOS
-
-  // Load voices when available - based on Stack Overflow solution
-  function loadVoicesWhenAvailable(onComplete = () => {}) {
-    const voices = speechSynthesis.getVoices();
-
-    if (voices.length !== 0) {
-      onComplete();
-    } else {
-      // Wait for voices to load
-      const handler = () => {
-        speechSynthesis.removeEventListener("voiceschanged", handler);
-        onComplete();
-      };
-      speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
-
-      // Fallback timeout
-      setTimeout(() => {
-        speechSynthesis.removeEventListener("voiceschanged", handler);
-        onComplete();
-      }, 2000);
-    }
-  }
 
   // Speak quiz note immediately during user interaction (for iOS compatibility)
 
@@ -1345,12 +1337,7 @@ $(async function () {
         settings.tuning.length === numStrings
       ) {
         // Validate that each tuning element has note and octave
-        if (
-          settings.tuning.every(
-            (t: unknown) =>
-              t && typeof (t as any).note === "string" && typeof (t as any).octave === "number",
-          )
-        ) {
+        if (settings.tuning.every(isNoteOctavePair)) {
           tuning = settings.tuning.slice();
         } else {
           tuning = defaultTunings[numStrings as keyof typeof defaultTunings].strings.slice();
@@ -1412,8 +1399,10 @@ $(async function () {
       updateUnifiedBanner();
 
       // For testing: expose updateUnifiedBanner globally so tests can call it
-      (window as any).updateUnifiedBanner = updateUnifiedBanner;
-    } catch (e) {}
+      fretWindow().updateUnifiedBanner = updateUnifiedBanner;
+    } catch {
+      /* ignore corrupt settings JSON */
+    }
   }
 
   // Function to save statistics to localStorage
@@ -1437,7 +1426,7 @@ $(async function () {
           statistics = { answers: [] };
         }
       }
-    } catch (e) {
+    } catch {
       statistics = { answers: [] };
     }
     updateStatsButton(); // Update button after loading
@@ -1473,7 +1462,7 @@ $(async function () {
     fretCount = fretCountSetting + 1;
     // Reset consecutive mistakes counter for new session
     consecutiveMistakes = 0;
-    consecutiveOctaveMistakes = 0;
+    _consecutiveOctaveMistakes = 0;
     // Reset hint debounce timers for new session
     lastQuizHintTime = 0;
     lastOctaveHintTime = 0;
@@ -1519,17 +1508,15 @@ $(async function () {
     if (statistics.answers.length > 0) {
       const currentTuningStr = JSON.stringify(tuning);
       const mistakeCounts = Array(numStrings).fill(0);
-      let totalMistakes = 0;
       statistics.answers.forEach((answer) => {
         if (JSON.stringify(answer.tuning) === currentTuningStr && !answer.correct) {
           mistakeCounts[answer.string]++;
-          totalMistakes++;
         }
       });
 
       // Calculate weights: base weight = 1, mistakes add bias when enabled
       const biasStrength = enableBias ? 1 : 0; // Only apply bias if enabled
-      const baseWeights = session.map((card: any) => 1 + mistakeCounts[card.string] * biasStrength);
+      const baseWeights = session.map((card) => 1 + mistakeCounts[card.string] * biasStrength);
 
       // Normalize by average and cap the difference to 3:1 ratio
       const avgWeight =
@@ -1551,8 +1538,8 @@ $(async function () {
   }
 
   // Add weighted shuffle function
-  function weightedShuffle(arr: any[], weights: number[]) {
-    const result = [];
+  function weightedShuffle<T>(arr: T[], weights: number[]): T[] {
+    const result: T[] = [];
     let totalWeight = weights.reduce((sum: number, w: number) => sum + w, 0);
     while (arr.length > 0) {
       const rand = Math.random() * totalWeight;
@@ -1571,7 +1558,7 @@ $(async function () {
     return result;
   }
 
-  function shuffle(a: any[]) {
+  function shuffle<T>(a: T[]): T[] {
     for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
@@ -1643,7 +1630,7 @@ $(async function () {
     $quizNoteBtn.attr("data-note", currentCard.note);
 
     // Update global reference for touch handler
-    (window as any).currentCard = currentCard;
+    fretWindow().currentCard = currentCard;
     updateQuizNoteDisplay();
     $flashcardString
       .attr("data-string-index", currentCard.string)
@@ -1675,7 +1662,7 @@ $(async function () {
     }
   }
 
-  let stringErrorCounts: any[] = []; // Array to hold error counts per string for current tuning
+  let stringErrorCounts: number[] = []; // error counts per string for current tuning
 
   // Function to compute error counts per string for the current tuning
   function computeStringErrorCounts() {
@@ -1692,7 +1679,7 @@ $(async function () {
             stringErrorCounts[idx]++;
           }
         }
-      } catch (e) {
+      } catch {
         // ignore malformed entries
       }
     });
@@ -1792,7 +1779,7 @@ $(async function () {
     displayedNoteId = null;
     // Reset consecutive mistakes counter for new card
     consecutiveMistakes = 0;
-    consecutiveOctaveMistakes = 0;
+    _consecutiveOctaveMistakes = 0;
     // Reset octave hint debounce timer for fresh octave feedback on new card
     lastOctaveHintTime = 0;
     // Clear TTS queue when moving to new card to prevent old announcements
@@ -1830,7 +1817,7 @@ $(async function () {
   ) {
     if (isCorrect) {
       consecutiveMistakes = 0; // Reset counter on correct answer
-      consecutiveOctaveMistakes = 0; // Reset octave counter on correct answer
+      _consecutiveOctaveMistakes = 0; // Reset octave counter on correct answer
     } else {
       consecutiveMistakes++;
       console.log(`Consecutive mistakes: ${consecutiveMistakes} (source: ${source})`);
@@ -1838,7 +1825,7 @@ $(async function () {
       // For octave errors, give immediate feedback
       if (isOctaveError) {
         queueOctaveHint();
-        // Don't increment consecutiveOctaveMistakes here since it's already incremented at call site
+        // Don't increment _consecutiveOctaveMistakes here since it's already incremented at call site
       }
 
       // After 3 consecutive mistakes, repeat the quiz note
@@ -1969,7 +1956,7 @@ $(async function () {
           );
 
           // Track octave mistake
-          consecutiveOctaveMistakes++;
+          _consecutiveOctaveMistakes++;
           trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
           const $feedbackEl = $("#mic-feedback");
@@ -2028,7 +2015,7 @@ $(async function () {
 
           if (isExpectedOctaveLower) {
             // Track octave mistake
-            consecutiveOctaveMistakes++;
+            _consecutiveOctaveMistakes++;
             trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
             $feedbackEl.text(`${namePart}${octavePart || ""} - try octave lower`);
@@ -2036,7 +2023,7 @@ $(async function () {
             return false; // Don't process as valid answer
           } else if (isExpectedOctaveHigher) {
             // Track octave mistake
-            consecutiveOctaveMistakes++;
+            _consecutiveOctaveMistakes++;
             trackMistakeAndHandleTTS(false, source, true); // Pass isOctaveError=true
 
             $feedbackEl.text(`${namePart}${octavePart || ""} - try octave higher`);
@@ -2060,9 +2047,9 @@ $(async function () {
 
     // Provide haptic feedback for mobile
     if (isCorrect) {
-      mobileEnhancements.hapticSuccess();
+      void mobileEnhancements.hapticSuccess();
     } else {
-      mobileEnhancements.hapticError();
+      void mobileEnhancements.hapticError();
     }
 
     // Track consecutive mistakes for TTS repeat functionality using unified function
@@ -2128,7 +2115,7 @@ $(async function () {
     }
 
     // Provide light haptic feedback for button tap
-    mobileEnhancements.hapticLight();
+    void mobileEnhancements.hapticLight();
 
     const fret = parseInt($(this).attr("data-fret"));
     submitAnswer(currentCard.string, fret, "ui", null);
@@ -2143,7 +2130,7 @@ $(async function () {
     }
 
     // Provide light haptic feedback for fretboard tap
-    mobileEnhancements.hapticLight();
+    void mobileEnhancements.hapticLight();
 
     const s = Number($(this).attr("data-string"));
     const f = Number($(this).attr("data-fret"));
@@ -2714,16 +2701,9 @@ $(async function () {
   }
 
   // Make the function globally available (but not automatically called due to iOS requirements)
-  (window as any).checkAndReenableMicrophoneButton = checkAndReenableMicrophoneButton;
+  fretWindow().checkAndReenableMicrophoneButton = checkAndReenableMicrophoneButton;
 
   // Native microphone fallback for iOS 26 WebView issues
-
-  // Update pitch detection UI with results
-  function updatePitchDetectionUI(frequency: number, clarity: number, rms: number) {
-    // This function will be called with pitch detection results from native plugin
-    // You can add UI updates here similar to the existing pitch detection loop
-    console.log("🎤 Native audio - Frequency:", frequency, "Clarity:", clarity, "RMS:", rms);
-  }
 
   // Show iOS 26 WebView microphone limitation message
   function showIOS26MicrophoneLimitation() {
@@ -2815,10 +2795,10 @@ $(async function () {
   }
 
   // Make the unified function available globally
-  (window as any).handleAppBackgroundedUnified = handleAppBackgroundedUnified;
+  fretWindow().handleAppBackgroundedUnified = handleAppBackgroundedUnified;
 
   // Test function to simulate app backgrounding (development only)
-  (window as any).testAppBackgrounding = function () {
+  fretWindow().testAppBackgrounding = function () {
     console.log("Testing app backgrounding...");
     handleAppBackgroundedUnified();
   };
@@ -2959,7 +2939,7 @@ $(async function () {
       if (isIOS) {
         // First check if we already have permission using Capacitor API if available
         try {
-          if (typeof (window as any).Capacitor !== "undefined") {
+          if (typeof fretWindow().Capacitor !== "undefined") {
             const { Permissions } = await import("@capacitor/core");
             const permission = await Permissions.query({ name: "microphone" });
             console.log("Capacitor microphone permission status:", permission.state);
@@ -2982,7 +2962,7 @@ $(async function () {
               );
             }
           }
-        } catch (permissionError) {
+        } catch {
           console.log("Permission query not supported or failed, proceeding with getUserMedia");
         }
       }
@@ -3022,7 +3002,7 @@ $(async function () {
         }, 1000);
 
         // Store the interval ID so we can clear it when stopping
-        (window as any).micStateMonitor = stateMonitor;
+        fretWindow().micStateMonitor = stateMonitor;
       }
     } catch (error) {
       // Enhanced error handling for iOS 26+ specific issues
@@ -3034,6 +3014,7 @@ $(async function () {
           );
           throw new Error(
             "Microphone access denied. Please enable microphone permissions in Settings > Privacy & Security > Microphone for this app.",
+            { cause: error },
           );
         } else if (error.name === "NotFoundError" || error.message.includes("No microphone")) {
           showMicrophonePermissionNotification(
@@ -3041,6 +3022,7 @@ $(async function () {
           );
           throw new Error(
             "No microphone found. Please check that your device has a working microphone.",
+            { cause: error },
           );
         } else if (error.name === "NotReadableError" || error.message.includes("Could not start")) {
           showMicrophonePermissionNotification(
@@ -3048,6 +3030,7 @@ $(async function () {
           );
           throw new Error(
             "Microphone is being used by another app. Please close other apps using the microphone and try again.",
+            { cause: error },
           );
         } else if (error.name === "OverconstrainedError") {
           console.log("Advanced constraints failed, trying with basic constraints...");
@@ -3055,7 +3038,7 @@ $(async function () {
           try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Successfully got microphone with basic constraints");
-          } catch (fallbackError) {
+          } catch {
             console.log("Basic constraints also failed, trying minimal constraints...");
             // Try even more minimal constraints
             try {
@@ -3067,9 +3050,10 @@ $(async function () {
                 },
               });
               console.log("Successfully got microphone with minimal constraints");
-            } catch (minimalError) {
+            } catch (minimalError: unknown) {
               throw new Error(
                 "Microphone access failed even with minimal constraints. Please check your microphone permissions.",
+                { cause: minimalError },
               );
             }
           }
@@ -3077,11 +3061,18 @@ $(async function () {
           throw error;
         }
       } else {
-        throw new Error(`Microphone access failed: ${error}`);
+        throw new Error(`Microphone access failed: ${String(error)}`, { cause: error });
       }
     }
     console.log("🎤 Setting up pitch detection...");
-    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const wAudio = fretWindow();
+    const AC =
+      typeof AudioContext !== "undefined"
+        ? AudioContext
+        : (wAudio.AudioContext ?? wAudio.webkitAudioContext);
+    if (!AC) {
+      throw new Error("Web Audio API (AudioContext) is not available in this environment.");
+    }
     console.log("🎤 AudioContext available:", !!AC);
     audioContextForPitch = new AC();
     console.log("🎤 AudioContext created, state:", audioContextForPitch.state);
@@ -3312,13 +3303,17 @@ $(async function () {
     if (analyserForPitch) {
       try {
         analyserForPitch.disconnect();
-      } catch (e) {}
+      } catch {
+        /* already disconnected or not connected */
+      }
       analyserForPitch = null;
     }
     if (audioContextForPitch) {
       try {
         audioContextForPitch.close();
-      } catch (e) {}
+      } catch {
+        /* already closed */
+      }
       audioContextForPitch = null;
     }
     if (micStream) {
@@ -3331,14 +3326,17 @@ $(async function () {
           audioTrack.removeEventListener("unmute", handleMicrophoneUnmuted);
         }
         micStream.getTracks().forEach((t) => t.stop());
-      } catch (e) {}
+      } catch {
+        /* stream may already be stopped */
+      }
       micStream = null;
     }
 
     // Clear the state monitoring interval
-    if ((window as any).micStateMonitor) {
-      clearInterval((window as any).micStateMonitor);
-      (window as any).micStateMonitor = null;
+    const monitor = fretWindow().micStateMonitor;
+    if (monitor) {
+      clearInterval(monitor);
+      fretWindow().micStateMonitor = null;
     }
     $("#mic-status").text("").hide();
     $("#mic-meter").hide().css("border-color", "#777"); // Reset border color
@@ -3448,11 +3446,11 @@ $(async function () {
     updateTestState();
 
     // Expose functions for testing and touch handler
-    (window as any).updateUnifiedBanner = updateUnifiedBanner;
-    (window as any).handleFretClick = handleFretClick;
-    (window as any).handleFretboardClick = handleFretboardClick;
-    (window as any).handleQuizNoteClick = playNoteCard;
-    (window as any).currentCard = currentCard;
+    fretWindow().updateUnifiedBanner = updateUnifiedBanner;
+    fretWindow().handleFretClick = handleFretClick;
+    fretWindow().handleFretboardClick = handleFretboardClick;
+    fretWindow().handleQuizNoteClick = playNoteCard;
+    fretWindow().currentCard = currentCard;
 
     $("#fret-buttons").on("click", ".fret-btn", handleFretClick);
 
@@ -3536,119 +3534,121 @@ $(async function () {
     });
 
     // Unified banner click handler
-    $unifiedBanner.on("click", async function () {
-      // Initialize audio if not already enabled
-      if (!audioEnabled) {
-        initAudioContext();
-      }
+    $unifiedBanner.on("click", function () {
+      void (async () => {
+        // Initialize audio if not already enabled
+        if (!audioEnabled) {
+          initAudioContext();
+        }
 
-      // Initialize TTS if not already initialized (this is a user interaction)
-      if ((!ttsInitialized || isIOS) && "speechSynthesis" in window) {
-        ttsUserInitialized = true; // Mark that user has initialized TTS
+        // Initialize TTS if not already initialized (this is a user interaction)
+        if ((!ttsInitialized || isIOS) && "speechSynthesis" in window) {
+          ttsUserInitialized = true; // Mark that user has initialized TTS
 
-        // On iOS, we need to speak immediately during user interaction
-        if (isIOS) {
-          // Load voices first
-          const voices = speechSynthesis.getVoices();
-          if (voices.length === 0) {
-            // Wait for voices to load
-            await new Promise<void>((resolve) => {
-              const handler = () => {
-                speechSynthesis.removeEventListener("voiceschanged", handler);
-                resolve();
-              };
-              speechSynthesis.addEventListener("voiceschanged", handler, { once: true } as any);
+          // On iOS, we need to speak immediately during user interaction
+          if (isIOS) {
+            // Load voices first
+            const voices = speechSynthesis.getVoices();
+            if (voices.length === 0) {
+              // Wait for voices to load
+              await new Promise<void>((resolve) => {
+                const handler = () => {
+                  speechSynthesis.removeEventListener("voiceschanged", handler);
+                  resolve();
+                };
+                speechSynthesis.addEventListener("voiceschanged", handler, { once: true });
 
-              // Fallback timeout
-              setTimeout(() => {
-                speechSynthesis.removeEventListener("voiceschanged", handler);
-                resolve();
-              }, 2000);
-            });
-          }
-
-          // Get available voices after loading
-          const availableVoices = speechSynthesis.getVoices();
-          let voiceToUse = null;
-
-          // First, try to use the user's selected voice
-          if (selectedVoice) {
-            voiceToUse = availableVoices.find((v) => v.name === selectedVoice);
-          }
-
-          // If no selected voice or it's not available, pick the best English voice
-          if (!voiceToUse && availableVoices.length > 0) {
-            const englishVoices = availableVoices.filter((v) => v.lang.startsWith("en"));
-            const localEnglishVoices = englishVoices.filter((v) => v.localService);
-
-            if (localEnglishVoices.length > 0) {
-              voiceToUse = localEnglishVoices[0];
-            } else if (englishVoices.length > 0) {
-              voiceToUse = englishVoices[0];
-            }
-          }
-
-          // Speak the system message immediately - match the banner text
-          const systemMessage = enableTTS ? "Audio and voice enabled" : "Audio enabled";
-          // Sanitize text to prevent iOS SSML parsing errors
-          const sanitizedSystemMessage = sanitizeTextForTTS(systemMessage);
-          const utterance = new SpeechSynthesisUtterance(sanitizedSystemMessage);
-          if (voiceToUse) {
-            utterance.voice = voiceToUse;
-          }
-          // Boost volume on iOS where overall output is quieter
-          utterance.volume = 1.0;
-          speechSynthesis.speak(utterance);
-
-          // If there's a current quiz card and TTS is enabled, also speak the quiz hint immediately
-          if (currentCard && enableTTS) {
-            const ordinalString = getOrdinal(currentCard.string + 1);
-            let spokenNote = currentCard.note;
-
-            // Spell out accidentals for clarity
-            if (spokenNote.includes("#")) {
-              spokenNote = spokenNote.replace("#", " sharp");
-            } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
-              spokenNote = spokenNote.replace(/[b♭]/, " flat");
+                // Fallback timeout
+                setTimeout(() => {
+                  speechSynthesis.removeEventListener("voiceschanged", handler);
+                  resolve();
+                }, 2000);
+              });
             }
 
-            const quizText = `Note ${spokenNote}, ${ordinalString} string`;
+            // Get available voices after loading
+            const availableVoices = speechSynthesis.getVoices();
+            let voiceToUse = null;
+
+            // First, try to use the user's selected voice
+            if (selectedVoice) {
+              voiceToUse = availableVoices.find((v) => v.name === selectedVoice);
+            }
+
+            // If no selected voice or it's not available, pick the best English voice
+            if (!voiceToUse && availableVoices.length > 0) {
+              const englishVoices = availableVoices.filter((v) => v.lang.startsWith("en"));
+              const localEnglishVoices = englishVoices.filter((v) => v.localService);
+
+              if (localEnglishVoices.length > 0) {
+                voiceToUse = localEnglishVoices[0];
+              } else if (englishVoices.length > 0) {
+                voiceToUse = englishVoices[0];
+              }
+            }
+
+            // Speak the system message immediately - match the banner text
+            const systemMessage = enableTTS ? "Audio and voice enabled" : "Audio enabled";
             // Sanitize text to prevent iOS SSML parsing errors
-            const sanitizedQuizText = sanitizeTextForTTS(quizText);
-            const quizUtterance = new SpeechSynthesisUtterance(sanitizedQuizText);
+            const sanitizedSystemMessage = sanitizeTextForTTS(systemMessage);
+            const utterance = new SpeechSynthesisUtterance(sanitizedSystemMessage);
             if (voiceToUse) {
-              quizUtterance.voice = voiceToUse;
+              utterance.voice = voiceToUse;
             }
             // Boost volume on iOS where overall output is quieter
-            quizUtterance.volume = 1.0;
-            speechSynthesis.speak(quizUtterance);
-          }
+            utterance.volume = 1.0;
+            speechSynthesis.speak(utterance);
 
-          // Initialize TTS after iOS-specific logic
-          await initializeTTS();
+            // If there's a current quiz card and TTS is enabled, also speak the quiz hint immediately
+            if (currentCard && enableTTS) {
+              const ordinalString = getOrdinal(currentCard.string + 1);
+              let spokenNote = currentCard.note;
+
+              // Spell out accidentals for clarity
+              if (spokenNote.includes("#")) {
+                spokenNote = spokenNote.replace("#", " sharp");
+              } else if (spokenNote.includes("b") || spokenNote.includes("♭")) {
+                spokenNote = spokenNote.replace(/[b♭]/, " flat");
+              }
+
+              const quizText = `Note ${spokenNote}, ${ordinalString} string`;
+              // Sanitize text to prevent iOS SSML parsing errors
+              const sanitizedQuizText = sanitizeTextForTTS(quizText);
+              const quizUtterance = new SpeechSynthesisUtterance(sanitizedQuizText);
+              if (voiceToUse) {
+                quizUtterance.voice = voiceToUse;
+              }
+              // Boost volume on iOS where overall output is quieter
+              quizUtterance.volume = 1.0;
+              speechSynthesis.speak(quizUtterance);
+            }
+
+            // Initialize TTS after iOS-specific logic
+            await initializeTTS();
+          } else {
+            // On non-iOS, use the existing logic
+            await speakSystemMessage("Voice enabled");
+            if (currentCard && enableTTS) {
+              queueQuizNoteAnnouncement();
+            }
+
+            // Initialize TTS after non-iOS logic
+            await initializeTTS();
+          }
         } else {
-          // On non-iOS, use the existing logic
-          await speakSystemMessage("Voice enabled");
+          // TTS already initialized, use existing logic
+          if (!isIOS) {
+            await speakSystemMessage("Voice enabled");
+          }
           if (currentCard && enableTTS) {
             queueQuizNoteAnnouncement();
           }
+        }
 
-          // Initialize TTS after non-iOS logic
-          await initializeTTS();
-        }
-      } else {
-        // TTS already initialized, use existing logic
-        if (!isIOS) {
-          await speakSystemMessage("Voice enabled");
-        }
-        if (currentCard && enableTTS) {
-          queueQuizNoteAnnouncement();
-        }
-      }
-
-      // Hide banner when clicked (user is already interacting)
-      $unifiedBanner.hide();
-      updateTestState();
+        // Hide banner when clicked (user is already interacting)
+        $unifiedBanner.hide();
+        updateTestState();
+      })();
     });
 
     // Test if microphone button exists
@@ -3660,83 +3660,85 @@ $(async function () {
     });
 
     // Mic toggle handler
-    $("#mic-toggle").on("click", async function () {
-      console.log("🎤 Microphone button clicked!");
-      const $btn = $(this);
+    $("#mic-toggle").on("click", function () {
+      void (async () => {
+        console.log("🎤 Microphone button clicked!");
+        const $btn = $(this);
 
-      console.log("🎤 Button state:", {
-        disabled: $btn.prop("disabled"),
-        text: $btn.text(),
-        title: $btn.attr("title"),
-        pitchDetecting: pitchDetecting,
-      });
+        console.log("🎤 Button state:", {
+          disabled: $btn.prop("disabled"),
+          text: $btn.text(),
+          title: $btn.attr("title"),
+          pitchDetecting: pitchDetecting,
+        });
 
-      // Check if button is disabled
-      if ($btn.prop("disabled")) {
-        console.log("🎤 Button is disabled, title:", $btn.attr("title"));
-        const title = $btn.attr("title");
-        if (title) {
-          alert(title);
+        // Check if button is disabled
+        if ($btn.prop("disabled")) {
+          console.log("🎤 Button is disabled, title:", $btn.attr("title"));
+          const title = $btn.attr("title");
+          if (title) {
+            alert(title);
+          }
+          return;
         }
-        return;
-      }
 
-      if (!pitchDetecting) {
-        console.log("🎤 Starting microphone...");
-        try {
-          await startMic();
-          console.log("🎤 Microphone started successfully!");
-          updateMicrophoneButtonState(true);
-          updateMicSensitivityVisibility();
-        } catch (e) {
-          console.error("Failed to start mic:", e);
-          let errorMessage = "Unable to access microphone. ";
-          let shouldDisableButton = false;
+        if (!pitchDetecting) {
+          console.log("🎤 Starting microphone...");
+          try {
+            await startMic();
+            console.log("🎤 Microphone started successfully!");
+            updateMicrophoneButtonState(true);
+            updateMicSensitivityVisibility();
+          } catch (e) {
+            console.error("Failed to start mic:", e);
+            let errorMessage = "Unable to access microphone. ";
+            let shouldDisableButton = false;
 
-          if (e && e.message) {
-            if (e.message.includes("getUserMedia not supported")) {
-              errorMessage +=
-                "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
-              shouldDisableButton = true;
-            } else if (
-              e.message.includes("Permission denied") ||
-              e.message.includes("NotAllowedError")
-            ) {
-              errorMessage +=
-                "Microphone permission was denied. Please enable microphone access in Settings > Privacy & Security > Microphone for this app.";
-              shouldDisableButton = true;
-            } else if (e.message.includes("NotFoundError")) {
-              errorMessage += "No microphone found. Please connect a microphone and try again.";
-              shouldDisableButton = true;
-            } else if (e.message.includes("NotReadableError")) {
-              errorMessage +=
-                "Microphone is already in use by another application. Please close other apps using the microphone and try again.";
-              // Don't disable button for this error - user can retry after closing other apps
+            if (e && e.message) {
+              if (e.message.includes("getUserMedia not supported")) {
+                errorMessage +=
+                  "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
+                shouldDisableButton = true;
+              } else if (
+                e.message.includes("Permission denied") ||
+                e.message.includes("NotAllowedError")
+              ) {
+                errorMessage +=
+                  "Microphone permission was denied. Please enable microphone access in Settings > Privacy & Security > Microphone for this app.";
+                shouldDisableButton = true;
+              } else if (e.message.includes("NotFoundError")) {
+                errorMessage += "No microphone found. Please connect a microphone and try again.";
+                shouldDisableButton = true;
+              } else if (e.message.includes("NotReadableError")) {
+                errorMessage +=
+                  "Microphone is already in use by another application. Please close other apps using the microphone and try again.";
+                // Don't disable button for this error - user can retry after closing other apps
+              } else {
+                errorMessage += e.message;
+                // Disable button for unknown errors to prevent repeated failures
+                shouldDisableButton = true;
+              }
             } else {
-              errorMessage += e.message;
-              // Disable button for unknown errors to prevent repeated failures
+              errorMessage +=
+                "Please check your browser settings and ensure microphone access is allowed.";
               shouldDisableButton = true;
             }
-          } else {
-            errorMessage +=
-              "Please check your browser settings and ensure microphone access is allowed.";
-            shouldDisableButton = true;
-          }
 
-          // Show user-friendly notification instead of alert
-          showMicrophonePermissionNotification(errorMessage);
+            // Show user-friendly notification instead of alert
+            showMicrophonePermissionNotification(errorMessage);
 
-          // Disable button for persistent errors
-          if (shouldDisableButton) {
-            disableMicrophoneButton(errorMessage);
+            // Disable button for persistent errors
+            if (shouldDisableButton) {
+              disableMicrophoneButton(errorMessage);
+            }
           }
+        } else {
+          stopMic();
+          updateMicrophoneButtonState(false);
+          updateMicSensitivityVisibility();
+          updateTestState(); // Ensure test state is updated when microphone is turned off
         }
-      } else {
-        stopMic();
-        updateMicrophoneButtonState(false);
-        updateMicSensitivityVisibility();
-        updateTestState(); // Ensure test state is updated when microphone is turned off
-      }
+      })();
     });
 
     $("#enable-bias").on("change", function () {
@@ -3769,49 +3771,53 @@ $(async function () {
       if (currentCard) updateQuizNoteDisplay();
     });
 
-    $("#enable-tts").on("change", async function () {
-      enableTTS = this.checked;
-      updateVoiceSelectionVisibility();
-      saveSettings();
-      updateTestState();
-
-      // Hide banner when toggling via checkbox (user is already interacting)
-      $unifiedBanner.hide();
-
-      // Speak status message when enabling TTS
-      if (enableTTS) {
-        // Initialize TTS immediately when enabling (this is a user interaction)
-        if (!ttsInitialized && "speechSynthesis" in window) {
-          await initializeTTS();
-        }
-        // Speak confirmation
-        await speakSystemMessage("Voice enabled");
-        // Queue and speak the quiz note after voice is enabled
-        if (currentCard) {
-          queueQuizNoteAnnouncement();
-        }
-      } else {
-        // When disabling TTS, clear the queue and reset state
-        clearTTSQueue();
-        ttsInitialized = false;
-        ttsCurrentlyPlaying = false;
-        // Clear utterance log when disabling TTS
-        utteranceLog = [];
+    $("#enable-tts").on("change", function () {
+      void (async () => {
+        enableTTS = (this as HTMLInputElement).checked;
+        updateVoiceSelectionVisibility();
+        saveSettings();
         updateTestState();
-      }
+
+        // Hide banner when toggling via checkbox (user is already interacting)
+        $unifiedBanner.hide();
+
+        // Speak status message when enabling TTS
+        if (enableTTS) {
+          // Initialize TTS immediately when enabling (this is a user interaction)
+          if (!ttsInitialized && "speechSynthesis" in window) {
+            await initializeTTS();
+          }
+          // Speak confirmation
+          await speakSystemMessage("Voice enabled");
+          // Queue and speak the quiz note after voice is enabled
+          if (currentCard) {
+            queueQuizNoteAnnouncement();
+          }
+        } else {
+          // When disabling TTS, clear the queue and reset state
+          clearTTSQueue();
+          ttsInitialized = false;
+          ttsCurrentlyPlaying = false;
+          // Clear utterance log when disabling TTS
+          utteranceLog = [];
+          updateTestState();
+        }
+      })();
     });
 
-    $("#voice-select").on("change", async function () {
-      const newVoice = (this as HTMLSelectElement).value || null;
-      const voiceName = newVoice || "Default";
-      selectedVoice = newVoice;
-      saveSettings();
-      updateTestState();
+    $("#voice-select").on("change", function () {
+      void (async () => {
+        const newVoice = (this as HTMLSelectElement).value || null;
+        const voiceName = newVoice || "Default";
+        selectedVoice = newVoice;
+        saveSettings();
+        updateTestState();
 
-      // Provide feedback to blind users and debug voice changes
-      if (enableTTS && ttsInitialized) {
-        await speakSystemMessage(`Changed the voice to ${voiceName}`);
-      }
+        // Provide feedback to blind users and debug voice changes
+        if (enableTTS && ttsInitialized) {
+          await speakSystemMessage(`Changed the voice to ${voiceName}`);
+        }
+      })();
     });
 
     // Microphone sensitivity controls
@@ -3842,6 +3848,12 @@ $(async function () {
     });
 
     // Make populateVoiceSelection globally accessible for testing
-    (window as any).populateVoiceOptions = populateVoiceSelection;
+    fretWindow().populateVoiceOptions = populateVoiceSelection;
+  });
+}
+
+$(function () {
+  void bootstrapFretApp().catch((err) => {
+    console.error("Application bootstrap failed:", err);
   });
 });

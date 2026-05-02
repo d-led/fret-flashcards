@@ -6,6 +6,10 @@ export default {
     "**/dist/**",
     "**/out/**",
     "coverage/**",
+    /** Vitest / tooling HTML coverage reports (third-party layout CSS). */
+    "test-results/**",
+    /** Capacitor sync output; source of truth is `src/css/`. */
+    "ios/**",
     "**/.vscode-test/**",
     "**/.cache/**",
     /** Generated-adjacent shell bundle: BEM + density rules predate strict standard config. */

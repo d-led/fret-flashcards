@@ -3,6 +3,8 @@
  * Prevents spurious HTML element selections during swiping and provides proper touch handling
  */
 
+import { fretWindow } from "../types/window-globals";
+
 export interface TouchPoint {
   x: number;
   y: number;
@@ -292,7 +294,8 @@ export class TouchHandler {
    * Handle fret button taps
    */
   private handleFretButtonTap(target: HTMLElement): void {
-    const currentCard = (window as any).currentCard;
+    const w = fretWindow();
+    const currentCard = w.currentCard;
 
     if (!currentCard) return;
 
@@ -302,8 +305,8 @@ export class TouchHandler {
     }
 
     // Trigger the fret button click handler
-    if (typeof (window as any).handleFretClick === "function") {
-      (window as any).handleFretClick.call(target);
+    if (typeof w.handleFretClick === "function") {
+      w.handleFretClick.call(target);
     }
   }
 
@@ -312,7 +315,8 @@ export class TouchHandler {
    */
   private handleFretboardTap(target: HTMLElement): void {
     const string = parseInt(target.getAttribute("data-string") || "0", 10);
-    const currentCard = (window as any).currentCard;
+    const w = fretWindow();
+    const currentCard = w.currentCard;
 
     if (!currentCard || string !== currentCard.string) return;
 
@@ -322,8 +326,8 @@ export class TouchHandler {
     }
 
     // Trigger the fretboard click handler
-    if (typeof (window as any).handleFretboardClick === "function") {
-      (window as any).handleFretboardClick.call(target);
+    if (typeof w.handleFretboardClick === "function") {
+      w.handleFretboardClick.call(target);
     }
   }
 
@@ -337,8 +341,9 @@ export class TouchHandler {
     }
 
     // Trigger the quiz note click handler
-    if (typeof (window as any).handleQuizNoteClick === "function") {
-      (window as any).handleQuizNoteClick.call(target);
+    const w = fretWindow();
+    if (typeof w.handleQuizNoteClick === "function") {
+      w.handleQuizNoteClick.call(target);
     }
   }
 
@@ -352,8 +357,9 @@ export class TouchHandler {
     }
 
     // Trigger the skip countdown click handler
-    if (typeof (window as any).handleSkipCountdownClick === "function") {
-      (window as any).handleSkipCountdownClick.call(target);
+    const w = fretWindow();
+    if (typeof w.handleSkipCountdownClick === "function") {
+      w.handleSkipCountdownClick.call(target);
     }
   }
 

@@ -256,7 +256,7 @@ class AppStoreValidate {
       execSync("npm run build", { stdio: "pipe" });
       this.log("App build validation passed", "success");
     } catch (error) {
-      this.addError("App build failed");
+      this.addError(`App build failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     try {
