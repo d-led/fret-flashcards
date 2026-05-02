@@ -4,6 +4,12 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     reporters: ["default", ["junit", { outputFile: "test-results/junit-vitest.xml" }]],
-    exclude: ["**/node_modules/**", "**/dist/**", "**/cypress/**", "**/.{idea,git,cache,output,temp}/**", "**/tests-property/**"],
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/cypress/**",
+      "**/.{idea,git,cache,output,temp}/**",
+      "**/tests-property/**",
+    ],
   },
 });

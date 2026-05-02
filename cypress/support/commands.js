@@ -116,7 +116,9 @@ Cypress.Commands.add("visitApp", () => {
   }
 
   // If we don't have a baseUrl or a port, fail fast with a helpful message
-  throw new Error("visitApp: no baseUrl provided and Cypress.env('port') is not set — start the dev server or provide baseUrl");
+  throw new Error(
+    "visitApp: no baseUrl provided and Cypress.env('port') is not set — start the dev server or provide baseUrl",
+  );
 });
 
 Cypress.Commands.add("shouldHaveMainElementsVisible", () => {
@@ -187,9 +189,13 @@ Cypress.Commands.add("getFlashcardData", () => {
     const name = $el.attr("data-string-name");
     const frets = $el.attr("data-frets-count");
     return cy.wrap({
-      index: idx !== undefined && idx !== null && !isNaN(parseInt(idx, 10)) ? parseInt(idx, 10) : null,
+      index:
+        idx !== undefined && idx !== null && !isNaN(parseInt(idx, 10)) ? parseInt(idx, 10) : null,
       name: name || null,
-      fretsCount: frets !== undefined && frets !== null && !isNaN(parseInt(frets, 10)) ? parseInt(frets, 10) : null,
+      fretsCount:
+        frets !== undefined && frets !== null && !isNaN(parseInt(frets, 10))
+          ? parseInt(frets, 10)
+          : null,
       text: $el.text(),
     });
   });
@@ -228,7 +234,10 @@ Cypress.Commands.add("shouldHaveFretBtnWrong", (fret) => {
 });
 
 Cypress.Commands.add("shouldHaveFretCellWrong", (stringIdx, fret) => {
-  cy.get(`.fret-cell[data-string="${stringIdx}"][data-fret="${fret}"]`).should("have.class", "fret-wrong");
+  cy.get(`.fret-cell[data-string="${stringIdx}"][data-fret="${fret}"]`).should(
+    "have.class",
+    "fret-wrong",
+  );
 });
 
 Cypress.Commands.add("shouldHaveFlashcardNotContain", (text) => {
@@ -509,18 +518,27 @@ Cypress.Commands.add("shouldHaveCorrectTableStructureInExtended", () => {
 // Validate that the current quiz produces the expected number of notes for a given fret mode
 Cypress.Commands.add("shouldHaveExpectedNoteCount", (minNotes, maxNotes, fretMode) => {
   cy.withCurrentQuizState(({ correctFrets }) => {
-    expect(correctFrets.length).to.be.at.least(minNotes, `Expected at least ${minNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`);
-    expect(correctFrets.length).to.be.at.most(maxNotes, `Expected at most ${maxNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`);
+    expect(correctFrets.length).to.be.at.least(
+      minNotes,
+      `Expected at least ${minNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`,
+    );
+    expect(correctFrets.length).to.be.at.most(
+      maxNotes,
+      `Expected at most ${maxNotes} note(s) for ${fretMode} fret mode, got ${correctFrets.length}`,
+    );
   });
 });
 
 // Test multiple rounds of quiz to ensure note count expectations are consistent
-Cypress.Commands.add("shouldConsistentlyHaveExpectedNoteCount", (minNotes, maxNotes, fretMode, rounds = 5) => {
-  for (let i = 0; i < rounds; i++) {
-    cy.clickQuizButton();
-    cy.shouldHaveExpectedNoteCount(minNotes, maxNotes, fretMode);
-  }
-});
+Cypress.Commands.add(
+  "shouldConsistentlyHaveExpectedNoteCount",
+  (minNotes, maxNotes, fretMode, rounds = 5) => {
+    for (let i = 0; i < rounds; i++) {
+      cy.clickQuizButton();
+      cy.shouldHaveExpectedNoteCount(minNotes, maxNotes, fretMode);
+    }
+  },
+);
 
 // UI element verification commands
 Cypress.Commands.add("shouldHaveFretButtonCount", (expectedCount) => {
@@ -651,13 +669,17 @@ Cypress.Commands.add("shouldBeFocused", { prevSubject: "element" }, (subject) =>
 });
 
 // Custom command to check ARIA attributes
-Cypress.Commands.add("shouldHaveAriaAttribute", { prevSubject: "element" }, (subject, attribute, value) => {
-  if (value) {
-    cy.wrap(subject).should("have.attr", attribute, value);
-  } else {
-    cy.wrap(subject).should("have.attr", attribute);
-  }
-});
+Cypress.Commands.add(
+  "shouldHaveAriaAttribute",
+  { prevSubject: "element" },
+  (subject, attribute, value) => {
+    if (value) {
+      cy.wrap(subject).should("have.attr", attribute, value);
+    } else {
+      cy.wrap(subject).should("have.attr", attribute);
+    }
+  },
+);
 
 // Custom command to check if element has proper focus styles
 Cypress.Commands.add("shouldHaveFocusStyles", { prevSubject: "element" }, (subject) => {

@@ -4,7 +4,7 @@
 echo "🔧 Fixing Xcode scheme for screenshot generation..."
 
 # Navigate to iOS directory
-cd ios/App
+cd ios/App || exit 1
 
 # Create a simple test target
 echo "📱 Creating test target..."

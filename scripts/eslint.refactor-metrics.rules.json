@@ -1,0 +1,12 @@
+{
+  "complexity": ["error", 15],
+  "max-depth": ["error", 5],
+  "max-lines-per-function": ["error", { "max": 100, "skipBlankLines": true, "skipComments": true }],
+  "max-statements": ["error", 60],
+  "max-nested-callbacks": ["error", 4],
+  "max-params": ["error", 6],
+  "no-duplicate-imports": "error",
+  "@typescript-eslint/no-floating-promises": "error",
+  "@typescript-eslint/await-thenable": "error",
+  "@typescript-eslint/no-misused-promises": "error"
+}

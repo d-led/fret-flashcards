@@ -3,7 +3,7 @@
 # Configure Xcode scheme for Fastlane snapshot
 echo "🔧 Configuring Xcode scheme for Fastlane snapshot..."
 
-cd ios/App
+cd ios/App || exit 1
 
 # Create a test target if it doesn't exist
 echo "📱 Creating test target..."

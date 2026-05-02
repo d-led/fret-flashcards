@@ -1,4 +1,12 @@
-dist/
-node_modules/
-package*.json
-reports/
+node_modules
+.vscode-test
+dist
+out
+coverage
+*.vsix
+package-lock.json
+.yarn
+LICENSE
+packages/*/LICENSE
+packages/code-commentray-static/site
+.commentray-dev/

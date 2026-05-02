@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { SplashScreen } from "@capacitor/splash-screen";
-import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+import { Keyboard, KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 import { App } from "@capacitor/app";
 import { Preferences } from "@capacitor/preferences";
 import { touchHandler } from "./touchHandler";
@@ -72,7 +72,7 @@ export class MobileEnhancements {
   private async setupKeyboard(): Promise<void> {
     try {
       await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
-      await Keyboard.setStyle({ style: "dark" });
+      await Keyboard.setStyle({ style: KeyboardStyle.Dark });
       await Keyboard.setScroll({ isDisabled: false });
     } catch (error) {
       console.error("Failed to setup keyboard:", error);
@@ -85,7 +85,7 @@ export class MobileEnhancements {
   private async setupAppLifecycle(): Promise<void> {
     try {
       // Handle app state changes (primary method)
-      App.addListener("appStateChange", ({ isActive }) => {
+      void App.addListener("appStateChange", ({ isActive }) => {
         console.log("App state changed. Is active?", isActive);
         if (isActive) {
           // App became active - resume audio if needed
@@ -101,7 +101,7 @@ export class MobileEnhancements {
       });
 
       // Handle pause event (more reliable for app minimization)
-      App.addListener("pause", () => {
+      void App.addListener("pause", () => {
         console.log("App paused - handling microphone state");
         console.log("Current microphone state:", {
           pitchDetecting: !!(window as any).pitchDetecting,
@@ -115,7 +115,7 @@ export class MobileEnhancements {
       });
 
       // Handle resume event (more reliable for app restoration)
-      App.addListener("resume", () => {
+      void App.addListener("resume", () => {
         console.log("App resumed - resuming audio if needed");
         this.resumeAudio();
         // Note: We don't re-enable microphone button here because iOS requires
@@ -257,7 +257,7 @@ export class MobileEnhancements {
    * Check if touch handling is active
    */
   public isTouchHandlingActive(): boolean {
-    return touchHandler.isInitialized;
+    return touchHandler.getIsInitialized();
   }
 
   /**
@@ -319,7 +319,9 @@ export class MobileEnhancements {
 
     // If any features are active, dispatch the event to disable them
     if (isMicActive || hasActiveMicStream || audioEnabled || enableTTS) {
-      console.log("App backgrounded - disabling audio, voice, and microphone to prevent access issues");
+      console.log(
+        "App backgrounded - disabling audio, voice, and microphone to prevent access issues",
+      );
       // Dispatch a custom event that the main app can listen to
       window.dispatchEvent(
         new CustomEvent("appBackgrounded", {
@@ -351,12 +353,7 @@ export class MobileEnhancements {
    */
   private checkForActiveMicrophoneStream(): boolean {
     try {
-      // Check if there are any active audio tracks
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // This is a more reliable way to check if microphone is active
-        // We'll check the global variables that should be available
-        return !!(window as any).pitchDetecting || !!(window as any).micStream;
-      }
+      return !!(window as any).pitchDetecting || !!(window as any).micStream;
     } catch (error) {
       console.log("Could not check microphone stream state:", error);
     }
@@ -412,7 +409,7 @@ export class MobileEnhancements {
       });
 
       // Listen for pageshow event (page is shown again)
-      window.addEventListener("pageshow", (event) => {
+      window.addEventListener("pageshow", (_event) => {
         console.log("Page shown - app resumed");
         this.resumeAudio();
       });

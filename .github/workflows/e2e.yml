@@ -48,7 +48,7 @@ jobs:
       - name: Run E2E tests (with JUnit reporter)
         run: |
           mkdir -p test-results
-          npx cypress run --e2e --browser chrome --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/junit-[hash].xml
+          npx cypress run --e2e --browser chrome --reporter mocha-junit-reporter --reporter-options 'mochaFile=test-results/junit-[hash].xml'
         env:
           CYPRESS_CI: true
       - name: Upload Pages artifact (dist)

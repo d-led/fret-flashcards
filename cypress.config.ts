@@ -1,4 +1,5 @@
 import http from "http";
+import type { AddressInfo } from "node:net";
 import path from "path";
 import fs from "fs";
 import sirv from "sirv";
@@ -8,16 +9,21 @@ import { defineConfig } from "cypress";
 function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number> {
   return new Promise((resolve, reject) => {
     if (maxAttempts <= 0) {
-      reject(new Error(`Could not find available port after 10 attempts starting from ${startPort}`));
+      reject(
+        new Error(`Could not find available port after 10 attempts starting from ${startPort}`),
+      );
       return;
     }
 
     const server = http.createServer();
 
     server.listen(startPort, () => {
-      const port = (server.address() as any)?.port;
+      const addr = server.address();
+      const port =
+        typeof addr === "object" && addr !== null && "port" in addr
+          ? (addr as AddressInfo).port
+          : 0;
       server.close(() => {
-        // eslint-disable-next-line no-console
         console.log(`Found available port: ${port}`);
         resolve(port);
       });
@@ -25,7 +31,6 @@ function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise
 
     server.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
-        // eslint-disable-next-line no-console
         console.log(`Port ${startPort} in use, trying ${startPort + 1}...`);
         // Try next port
         findAvailablePort(startPort + 1, maxAttempts - 1)
@@ -64,18 +69,16 @@ export default defineConfig({
               return null;
             }
             return { error: `Source screenshot not found: ${resolvedSrc}` };
-          } catch (err: any) {
-            return { error: String(err && err.message ? err.message : err) };
+          } catch (err: unknown) {
+            return { error: err instanceof Error ? err.message : String(err) };
           }
         },
       });
-      let server: http.Server | undefined;
 
       // If a baseUrl is provided, skip starting the embedded server.
       // This allows running `npm run e2e -- --config baseUrl=https://...` without spawning a local server.
       const providedBase = config.baseUrl ?? config.env?.baseUrl;
       if (providedBase) {
-        // eslint-disable-next-line no-console
         console.log(`baseUrl provided (${providedBase}) — skipping embedded test server.`);
         return config;
       }
@@ -87,10 +90,9 @@ export default defineConfig({
       // Find an available port first
       const actualPort = await findAvailablePort(port);
 
-      // eslint-disable-next-line no-console
       console.log(`Starting test server on port ${actualPort}...`);
 
-      server = http.createServer((req, res) => {
+      const server = http.createServer((req, res) => {
         // Delegate static file serving to sirv (single: true will serve index.html for SPA)
         serve(req, res, () => {
           res.writeHead(404, { "Content-Type": "text/plain" });
@@ -105,7 +107,6 @@ export default defineConfig({
         }, 10000);
 
         server.listen(actualPort, () => {
-          // eslint-disable-next-line no-console
           console.log(`Test server running on http://localhost:${actualPort}`);
 
           // Add a small delay to ensure server is fully ready
@@ -117,7 +118,6 @@ export default defineConfig({
 
         server.on("error", (err: NodeJS.ErrnoException & { code?: string }) => {
           clearTimeout(timeout);
-          // eslint-disable-next-line no-console
           console.error(`Server error on port ${actualPort}:`, err.message);
           reject(err);
         });

@@ -92,13 +92,23 @@ class AppStorePrep {
       throw new Error("Screenshots directory not found");
     }
 
-    const requiredDevices = ["iPhone 15 Pro Max", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15", "iPad Pro (12.9-inch) (6th generation)", "iPad Pro (11-inch) (4th generation)"];
+    const requiredDevices = [
+      "iPhone 15 Pro Max",
+      "iPhone 15 Plus",
+      "iPhone 15 Pro",
+      "iPhone 15",
+      "iPad Pro (12.9-inch) (6th generation)",
+      "iPad Pro (11-inch) (4th generation)",
+    ];
 
     const screenshotFiles = fs.readdirSync(this.screenshotsPath);
     const missingDevices = [];
 
     for (const device of requiredDevices) {
-      const deviceFiles = screenshotFiles.filter((file) => file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || file.includes(device.split(" ")[0]));
+      const deviceFiles = screenshotFiles.filter(
+        (file) =>
+          file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || file.includes(device.split(" ")[0]),
+      );
 
       if (deviceFiles.length === 0) {
         missingDevices.push(device);
@@ -143,7 +153,14 @@ class AppStorePrep {
     const metadata = JSON.parse(fs.readFileSync(this.metadataPath, "utf8"));
 
     // Validate required fields
-    const requiredFields = ["app_information.name", "app_information.subtitle", "app_information.bundle_id", "app_information.category", "description.full", "keywords"];
+    const requiredFields = [
+      "app_information.name",
+      "app_information.subtitle",
+      "app_information.bundle_id",
+      "app_information.category",
+      "description.full",
+      "keywords",
+    ];
 
     const missingFields = [];
     for (const field of requiredFields) {
@@ -225,9 +242,13 @@ class AppStorePrep {
       this.log("🎉 App Store preparation completed successfully!", "success");
       this.log("📁 Check the following directories:");
       this.log(`   - Screenshots: ${this.screenshotsPath}`);
-      this.log(`   - Compliance report: ${path.join(this.projectRoot, "app-store-compliance-report.json")}`);
+      this.log(
+        `   - Compliance report: ${path.join(this.projectRoot, "app-store-compliance-report.json")}`,
+      );
       this.log(`   - Metadata: ${this.metadataPath}`);
-      this.log(`   - Privacy policy: ${path.join(this.projectRoot, "docs/development/privacy-policy.md")}`);
+      this.log(
+        `   - Privacy policy: ${path.join(this.projectRoot, "docs/development/privacy-policy.md")}`,
+      );
     } catch (error) {
       this.log(`Error: ${error.message}`, "error");
       process.exit(1);

@@ -3,7 +3,8 @@
 # Load environment variables from .env file
 if [ -f .env ]; then
     echo "📋 Loading environment variables from .env file..."
-    export $(cat .env | grep -v '^#' | xargs)
+    # shellcheck disable=SC2046
+    export $(grep -v '^#' .env | xargs)
     echo "   APPLE_TEAM_ID: $APPLE_TEAM_ID"
     echo "   APPLE_ID: $APPLE_ID"
 else
@@ -12,7 +13,7 @@ else
 fi
 
 # Change to iOS directory
-cd ios
+cd ios || exit 1
 
 # Use bundle exec to ensure proper environment
 echo "🔨 Building iOS app with proper environment..."

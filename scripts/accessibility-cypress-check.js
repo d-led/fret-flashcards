@@ -42,7 +42,10 @@ function validateCypressAccessibilityTests() {
   test("Tests semantic landmarks", testContent.includes("should have proper semantic landmarks"));
   test("Tests ARIA labels", testContent.includes("should have proper ARIA labels"));
   test("Tests keyboard navigation", testContent.includes("should support keyboard navigation"));
-  test("Tests form labels", testContent.includes("should have proper labels for all form controls"));
+  test(
+    "Tests form labels",
+    testContent.includes("should have proper labels for all form controls"),
+  );
   test("Tests screen reader support", testContent.includes("should hide decorative elements"));
   test("Tests focus management", testContent.includes("should have visible focus indicators"));
 

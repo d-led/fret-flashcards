@@ -32,7 +32,9 @@ describe("Accessibility Tests", () => {
     });
 
     test("should have skip link for keyboard users", () => {
-      expect(htmlContent).toMatch(/<a href="#main-content" class="skip-link">Skip to main content<\/a>/);
+      expect(htmlContent).toMatch(
+        /<a href="#main-content" class="skip-link">Skip to main content<\/a>/,
+      );
     });
   });
 

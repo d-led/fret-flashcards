@@ -45,7 +45,14 @@ class AppStoreValidate {
   validateProjectStructure() {
     this.log("Validating project structure...", "check");
 
-    const requiredPaths = ["package.json", "ios/App/App.xcworkspace", "ios/fastlane/Fastfile", "ios/fastlane/Snapfile", "app-store-metadata.json", "docs/development/privacy-policy.md"];
+    const requiredPaths = [
+      "package.json",
+      "ios/App/App.xcworkspace",
+      "ios/fastlane/Fastfile",
+      "ios/fastlane/Snapfile",
+      "app-store-metadata.json",
+      "docs/development/privacy-policy.md",
+    ];
 
     for (const path of requiredPaths) {
       if (!fs.existsSync(path)) {
@@ -86,7 +93,10 @@ class AppStoreValidate {
     const requiredDevices = ["iPhone 17 Pro Max", "iPhone 17 Pro", "iPad Pro 13-inch (M4)"];
 
     for (const device of requiredDevices) {
-      const deviceFiles = screenshotFiles.filter((file) => file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || file.includes(device.split(" ")[0]));
+      const deviceFiles = screenshotFiles.filter(
+        (file) =>
+          file.includes(device.replace(/[^a-zA-Z0-9]/g, "")) || file.includes(device.split(" ")[0]),
+      );
 
       if (deviceFiles.length === 0) {
         this.addError(`Missing screenshots for: ${device}`);
@@ -125,7 +135,11 @@ class AppStoreValidate {
       if (!iconFile) {
         this.addError(`Missing app icon: ${size}`);
       } else {
-        const iconPath = path.join(this.iosPath, "App/App/Assets.xcassets/AppIcon.appiconset", iconFile);
+        const iconPath = path.join(
+          this.iosPath,
+          "App/App/Assets.xcassets/AppIcon.appiconset",
+          iconFile,
+        );
         const stats = fs.statSync(iconPath);
 
         if (stats.size < 50000) {
@@ -208,7 +222,14 @@ class AppStoreValidate {
     const privacyContent = fs.readFileSync(privacyPath, "utf8");
 
     // Check for required sections
-    const requiredSections = ["Data Collection", "Local Storage", "Permissions", "Third-Party Services", "Children's Privacy", "Contact"];
+    const requiredSections = [
+      "Data Collection",
+      "Local Storage",
+      "Permissions",
+      "Third-Party Services",
+      "Children's Privacy",
+      "Contact",
+    ];
 
     for (const section of requiredSections) {
       if (!privacyContent.includes(section)) {
@@ -245,8 +266,12 @@ class AppStoreValidate {
     } catch (error) {
       // Check if it's the known CocoaPods Xcode 26 compatibility issue
       const errorOutput = error.stdout?.toString() || error.stderr?.toString() || "";
-      if (errorOutput.includes("Unable to find compatibility version string for object version `70`")) {
-        this.addWarning("iOS sync skipped due to CocoaPods Xcode 26 compatibility issue (known issue)");
+      if (
+        errorOutput.includes("Unable to find compatibility version string for object version `70`")
+      ) {
+        this.addWarning(
+          "iOS sync skipped due to CocoaPods Xcode 26 compatibility issue (known issue)",
+        );
         this.log("iOS sync validation passed (CocoaPods issue ignored)", "success");
       } else {
         this.addError("iOS sync failed");

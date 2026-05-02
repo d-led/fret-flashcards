@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Guitar Fretboard Flashcard Game - Learn Guitar Notes</title>
-    <meta name="description" content="Interactive guitar fretboard flashcard game to learn note positions on the guitar neck. Accessible for screen readers and keyboard navigation." />
+    <meta
+      name="description"
+      content="Interactive guitar fretboard flashcard game to learn note positions on the guitar neck. Accessible for screen readers and keyboard navigation."
+    />
     <!--
       This Source Code Form is subject to the terms of the Mozilla Public
       License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +30,13 @@
       <a href="#main-content" class="skip-link">Skip to main content</a>
 
       <!-- Audio and voice enablement banner -->
-      <div id="unified-banner" class="unified-enable-banner" style="display: none" role="banner" aria-live="polite">
+      <div
+        id="unified-banner"
+        class="unified-enable-banner"
+        style="display: none"
+        role="banner"
+        aria-live="polite"
+      >
         <span aria-hidden="true">🔊</span>
         Click here to enable audio
       </div>
@@ -49,26 +58,54 @@
         <section class="flashcard" aria-labelledby="flashcard-instruction">
           <h2 id="flashcard-instruction" class="flashcard-instruction">Find the note</h2>
           <div class="note-row">
-            <button class="quiz-note-btn" id="quiz-note-btn" aria-label="Play the target note audio" title="Play this note">
+            <button
+              class="quiz-note-btn"
+              id="quiz-note-btn"
+              aria-label="Play the target note audio"
+              title="Play this note"
+            >
               <span aria-hidden="true">?</span>
             </button>
-            <div class="string" id="flashcard-string" aria-label="Target string number" role="text">?</div>
+            <div class="string" id="flashcard-string" aria-label="Target string number" role="text">
+              ?
+            </div>
             <div id="note-score" aria-label="Current score" role="status">
               <div id="treble-score" aria-label="Treble clef score"></div>
               <div id="bass-score" aria-label="Bass clef score"></div>
             </div>
           </div>
-          <div class="fretboard-area" id="fretboard-area" role="application" aria-label="Interactive guitar fretboard. Use arrow keys to navigate and Enter to select frets." tabindex="0"></div>
+          <div
+            class="fretboard-area"
+            id="fretboard-area"
+            role="application"
+            aria-label="Interactive guitar fretboard. Use arrow keys to navigate and Enter to select frets."
+            tabindex="0"
+          ></div>
           <div class="countdown-row">
-            <span class="countdown-inline" id="countdown" aria-live="polite" aria-label="Time remaining"></span>
-            <button class="countdown-skip" id="skip-countdown" aria-label="Skip to next question" title="Skip to next quiz">
+            <span
+              class="countdown-inline"
+              id="countdown"
+              aria-live="polite"
+              aria-label="Time remaining"
+            ></span>
+            <button
+              class="countdown-skip"
+              id="skip-countdown"
+              aria-label="Skip to next question"
+              title="Skip to next quiz"
+            >
               <span aria-hidden="true">⏭️</span>
             </button>
           </div>
         </section>
       </main>
       <!-- Fret selection buttons (dynamically generated) -->
-      <div class="fret-buttons" id="fret-buttons" role="group" aria-label="Fret selection buttons"></div>
+      <div
+        class="fret-buttons"
+        id="fret-buttons"
+        role="group"
+        aria-label="Fret selection buttons"
+      ></div>
 
       <!-- Microphone controls -->
       <section id="mic-controls" aria-labelledby="mic-controls-heading">
@@ -78,7 +115,14 @@
           Enable Mic
         </button>
         <span id="mic-status" style="display: none" aria-live="polite" role="status"></span>
-        <span id="mic-meter" style="display: none" aria-label="Microphone input level" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+        <span
+          id="mic-meter"
+          style="display: none"
+          aria-label="Microphone input level"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
           <span id="mic-meter-fill" aria-hidden="true"></span>
         </span>
         <span id="mic-feedback" style="display: none" aria-live="assertive" role="status"></span>
@@ -97,7 +141,9 @@
               <option value="22">22</option>
               <option value="24">24</option>
             </select>
-            <div id="fret-count-help" class="sr-only">Select the number of frets to include in the quiz</div>
+            <div id="fret-count-help" class="sr-only">
+              Select the number of frets to include in the quiz
+            </div>
           </div>
         </fieldset>
 
@@ -134,7 +180,9 @@
             <select id="voice-select" aria-describedby="voice-select-help">
               <option value="">Default</option>
             </select>
-            <div id="voice-select-help" class="sr-only">Select a voice for text-to-speech announcements</div>
+            <div id="voice-select-help" class="sr-only">
+              Select a voice for text-to-speech announcements
+            </div>
           </div>
         </fieldset>
         <fieldset>
@@ -154,7 +202,10 @@
               <option value="9">9</option>
               <option value="10">10</option>
             </select>
-            <div id="timeout-help" class="sr-only">Set how many seconds to wait before automatically moving to the next question. Set to 0 for manual progression only.</div>
+            <div id="timeout-help" class="sr-only">
+              Set how many seconds to wait before automatically moving to the next question. Set to
+              0 for manual progression only.
+            </div>
           </div>
 
           <div class="form-group" id="score-key-row" style="display: none">
@@ -176,7 +227,9 @@
               <option value="Gb">G flat major / E flat minor (6 flats)</option>
               <option value="Cb">C flat major / A flat minor (7 flats)</option>
             </select>
-            <div id="score-key-help" class="sr-only">Select the key signature for score notation display</div>
+            <div id="score-key-help" class="sr-only">
+              Select the key signature for score notation display
+            </div>
           </div>
 
           <div class="form-group">
@@ -191,7 +244,9 @@
               <option value="9">9 strings</option>
               <option value="10">10 strings</option>
             </select>
-            <div id="strings-help" class="sr-only">Select the number of strings for the guitar fretboard</div>
+            <div id="strings-help" class="sr-only">
+              Select the number of strings for the guitar fretboard
+            </div>
           </div>
 
           <div class="form-group" id="tuning-config">
@@ -202,29 +257,64 @@
             <legend>Microphone Sensitivity</legend>
             <div class="form-group">
               <label for="mic-sensitivity">Sensitivity:</label>
-              <input type="range" id="mic-sensitivity" min="0" max="1" step="0.1" value="0.5" aria-describedby="mic-sensitivity-help" />
+              <input
+                type="range"
+                id="mic-sensitivity"
+                min="0"
+                max="1"
+                step="0.1"
+                value="0.5"
+                aria-describedby="mic-sensitivity-help"
+              />
               <span id="mic-sensitivity-value">50%</span>
               <div id="mic-sensitivity-help" class="sr-only">
-                Adjust microphone sensitivity. Lower values make the microphone more sensitive to quiet sounds, higher values reduce sensitivity to background noise.
+                Adjust microphone sensitivity. Lower values make the microphone more sensitive to
+                quiet sounds, higher values reduce sensitivity to background noise.
               </div>
             </div>
             <div class="form-group">
               <label for="mic-clarity">Clarity Threshold:</label>
-              <input type="range" id="mic-clarity" min="0" max="1" step="0.1" value="0.3" aria-describedby="mic-clarity-help" />
+              <input
+                type="range"
+                id="mic-clarity"
+                min="0"
+                max="1"
+                step="0.1"
+                value="0.3"
+                aria-describedby="mic-clarity-help"
+              />
               <span id="mic-clarity-value">30%</span>
-              <div id="mic-clarity-help" class="sr-only">Minimum clarity required for pitch detection. Higher values require clearer audio signals.</div>
+              <div id="mic-clarity-help" class="sr-only">
+                Minimum clarity required for pitch detection. Higher values require clearer audio
+                signals.
+              </div>
             </div>
             <div class="form-group">
               <label for="mic-noise-floor">Noise Floor:</label>
-              <input type="range" id="mic-noise-floor" min="0.0001" max="0.01" step="0.0001" value="0.0005" aria-describedby="mic-noise-floor-help" />
+              <input
+                type="range"
+                id="mic-noise-floor"
+                min="0.0001"
+                max="0.01"
+                step="0.0001"
+                value="0.0005"
+                aria-describedby="mic-noise-floor-help"
+              />
               <span id="mic-noise-floor-value">0.0005</span>
-              <div id="mic-noise-floor-help" class="sr-only">RMS threshold below which input is considered silence. Lower values detect quieter sounds.</div>
+              <div id="mic-noise-floor-help" class="sr-only">
+                RMS threshold below which input is considered silence. Lower values detect quieter
+                sounds.
+              </div>
             </div>
           </fieldset>
 
           <div class="button-group">
-            <button id="reset-tuning" aria-label="Reset guitar tuning to standard E-A-D-G-B-E">Reset to Standard Tuning</button>
-            <button id="reset-stats" aria-label="Reset all statistics to zero">Reset Statistics</button>
+            <button id="reset-tuning" aria-label="Reset guitar tuning to standard E-A-D-G-B-E">
+              Reset to Standard Tuning
+            </button>
+            <button id="reset-stats" aria-label="Reset all statistics to zero">
+              Reset Statistics
+            </button>
           </div>
         </fieldset>
       </section>
@@ -233,16 +323,39 @@
         <h2 id="info-heading" class="sr-only">Additional Information</h2>
         <div id="inspired-by" class="small-comment-text" style="text-align: center; display: none">
           Inspired by Steve Vai's anecdote about the first homework given to him by Joe Satriani:
-          <a href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237" target="_blank" rel="noopener">"learn all notes on the neck"</a>
+          <a
+            href="https://youtu.be/_1bkZIDuGBU?si=AOAwiFfu-qS5-NUp&t=1237"
+            target="_blank"
+            rel="noopener"
+            >"learn all notes on the neck"</a
+          >
           . I wish I had this app 30 years ago!
         </div>
-        <div class="small-comment-text" style="text-align: center">This is a browser app. Nothing is sent to the server for processing or analytics by the app itself.</div>
-        <div id="tts-unavailable" style="display: none; font-size: 0.85em; color: #666; font-style: italic" role="alert" aria-live="polite">
-          Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari or Firefox for TTS support.
+        <div class="small-comment-text" style="text-align: center">
+          This is a browser app. Nothing is sent to the server for processing or analytics by the
+          app itself.
+        </div>
+        <div
+          id="tts-unavailable"
+          style="display: none; font-size: 0.85em; color: #666; font-style: italic"
+          role="alert"
+          aria-live="polite"
+        >
+          Text-to-speech is not available in Chrome on macOS due to known audio issues. Try Safari
+          or Firefox for TTS support.
         </div>
         <div id="mobile-links" class="small-comment-text" style="text-align: center; display: none">
-          <a href="https://apps.apple.com/us/app/string-homework-tutor/id6752674139" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
-            <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" style="max-width: 200px; height: auto" />
+          <a
+            href="https://apps.apple.com/us/app/string-homework-tutor/id6752674139"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download on the App Store"
+          >
+            <img
+              src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+              alt="Download on the App Store"
+              style="max-width: 200px; height: auto"
+            />
           </a>
         </div>
       </section>
@@ -274,7 +387,9 @@
           // Add keyboard event listeners for fretboard navigation
           fretboardArea.addEventListener("keydown", function (e) {
             // Allow arrow keys and Enter to be handled by the application
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Space"].includes(e.key)) {
+            if (
+              ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Space"].includes(e.key)
+            ) {
               e.preventDefault();
               // The main application will handle these events
             }
@@ -284,7 +399,8 @@
         // Announce page load to screen readers
         const announcement = document.getElementById("game-announcements");
         if (announcement) {
-          announcement.textContent = "Guitar Fretboard Flashcard Game loaded. Use Tab to navigate between controls.";
+          announcement.textContent =
+            "Guitar Fretboard Flashcard Game loaded. Use Tab to navigate between controls.";
         }
       });
     </script>

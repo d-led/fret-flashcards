@@ -56,7 +56,7 @@ echo "✅ Screenshots directory ready"
 
 # Check if simulators are available
 echo "🔍 Checking available simulators..."
-available_devices=$(xcrun simctl list devices available | grep -E "(iPhone|iPad)" | wc -l)
+available_devices=$(xcrun simctl list devices available | grep -cE "(iPhone|iPad)" || true)
 if [ "$available_devices" -eq 0 ]; then
     echo "⚠️  Warning: No iOS simulators found. You may need to install simulators in Xcode."
     echo "   Open Xcode > Preferences > Components > Simulators"

@@ -48,11 +48,17 @@ function readDeviceConfig() {
 
   if (!fs.existsSync(configPath)) {
     log(`\n${colors.red}❌ Error: .local-device file not found${colors.reset}`, "red");
-    log(`${colors.yellow}Please create a .local-device file with your device configuration.${colors.reset}`, "yellow");
+    log(
+      `${colors.yellow}Please create a .local-device file with your device configuration.${colors.reset}`,
+      "yellow",
+    );
     log(`${colors.cyan}Example:${colors.reset}`, "cyan");
     log(`${colors.cyan}DEVICE_ID=your-device-id-here${colors.reset}`, "cyan");
     log(`${colors.cyan}DEVICE_NAME=Your Device Name${colors.reset}`, "cyan");
-    log(`\n${colors.yellow}Get your device ID by running: npm run ios:list${colors.reset}`, "yellow");
+    log(
+      `\n${colors.yellow}Get your device ID by running: npm run ios:list${colors.reset}`,
+      "yellow",
+    );
     process.exit(1);
   }
 
@@ -70,8 +76,14 @@ function readDeviceConfig() {
   });
 
   if (!config.DEVICE_ID || config.DEVICE_ID === "your-device-id-here") {
-    log(`\n${colors.red}❌ Error: DEVICE_ID not configured in .local-device file${colors.reset}`, "red");
-    log(`${colors.yellow}Please set a valid DEVICE_ID in your .local-device file${colors.reset}`, "yellow");
+    log(
+      `\n${colors.red}❌ Error: DEVICE_ID not configured in .local-device file${colors.reset}`,
+      "red",
+    );
+    log(
+      `${colors.yellow}Please set a valid DEVICE_ID in your .local-device file${colors.reset}`,
+      "yellow",
+    );
     log(`${colors.yellow}Get your device ID by running: npm run ios:list${colors.reset}`, "yellow");
     process.exit(1);
   }
@@ -90,7 +102,10 @@ function checkDeviceExists(deviceId) {
       if (Array.isArray(deviceList)) {
         const device = deviceList.find((d) => d.udid === deviceId);
         if (device) {
-          log(`${colors.green}✅ Found device: ${device.name} (${device.state})${colors.reset}`, "green");
+          log(
+            `${colors.green}✅ Found device: ${device.name} (${device.state})${colors.reset}`,
+            "green",
+          );
           return true;
         }
       }
@@ -103,7 +118,10 @@ function checkDeviceExists(deviceId) {
       if (devices.result && devices.result.devices) {
         const device = devices.result.devices.find((d) => d.identifier === deviceId);
         if (device) {
-          log(`${colors.green}✅ Found physical device: ${device.name} (${device.connectionState})${colors.reset}`, "green");
+          log(
+            `${colors.green}✅ Found physical device: ${device.name} (${device.connectionState})${colors.reset}`,
+            "green",
+          );
           return true;
         }
       }

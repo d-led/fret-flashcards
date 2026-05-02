@@ -194,16 +194,24 @@ $(async function () {
   let bassOctaveShift = 12; // bass clef notes written 3 octaves up for proper bass guitar notation
 
   // Helper function to process and add treble notes
-  function addTrebleNote(tName: string, tOct: number, trebleNotes: Array<{ note: string; octave: number }>) {
+  function addTrebleNote(
+    tName: string,
+    tOct: number,
+    trebleNotes: Array<{ note: string; octave: number }>,
+  ) {
     let vexT = tName.toLowerCase();
     if (tName.includes("#")) vexT = tName.charAt(0).toLowerCase() + "#";
     else if (tName.includes("b")) vexT = tName.charAt(0).toLowerCase() + "b";
     const tPair = { note: vexT, octave: tOct };
-    if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave)) trebleNotes.push(tPair);
+    if (!trebleNotes.some((n) => n.note === tPair.note && n.octave === tPair.octave))
+      trebleNotes.push(tPair);
   }
 
   // Helper function to update bounds from SVG elements
-  function updateBoundsFromElements(elements: NodeListOf<Element>, bounds: { minX: number; minY: number; maxX: number; maxY: number }) {
+  function updateBoundsFromElements(
+    elements: NodeListOf<Element>,
+    bounds: { minX: number; minY: number; maxX: number; maxY: number },
+  ) {
     elements.forEach((element) => {
       try {
         const bbox = (element as SVGGraphicsElement).getBBox();
@@ -218,7 +226,11 @@ $(async function () {
   }
 
   // Helper function to apply cropping to SVG element
-  function applySvgCropping(svgEl: SVGSVGElement, bounds: { minX: number; minY: number; maxX: number; maxY: number }, clefName: string) {
+  function applySvgCropping(
+    svgEl: SVGSVGElement,
+    bounds: { minX: number; minY: number; maxX: number; maxY: number },
+    clefName: string,
+  ) {
     if (bounds.minX !== Infinity && bounds.minY !== Infinity) {
       const margin = 5; // Smaller margin for tighter cropping
       const cropX = bounds.minX - margin;
@@ -230,12 +242,17 @@ $(async function () {
       svgEl.setAttribute("width", "100%");
       svgEl.setAttribute("height", "100%");
 
-      console.log(`${clefName}: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`);
+      console.log(
+        `${clefName}: Smart cropped to ${cropWidth}x${cropHeight} from ${cropX},${cropY}`,
+      );
     } else {
       // Fallback to getBBox if smart cropping fails
       const bbox = svgEl.getBBox();
       const margin = 10;
-      svgEl.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`);
+      svgEl.setAttribute(
+        "viewBox",
+        `${bbox.x - margin} ${bbox.y - margin} ${bbox.width + 2 * margin} ${bbox.height + 2 * margin}`,
+      );
       svgEl.setAttribute("width", "100%");
       svgEl.setAttribute("height", "100%");
       console.log(`${clefName}: Fallback to getBBox cropping`);
@@ -285,7 +302,9 @@ $(async function () {
       const trebleFits = writtenTrebleMidi >= TREBLE_MIN && writtenTrebleMidi <= TREBLE_MAX;
       const bassFits = writtenBassMidi >= BASS_MIN && writtenBassMidi <= BASS_MAX;
 
-      console.log(`Fret ${f}: trebleFits=${trebleFits}, bassFits=${bassFits}, writtenTreble=${writtenTrebleMidi}, writtenBass=${writtenBassMidi}`);
+      console.log(
+        `Fret ${f}: trebleFits=${trebleFits}, bassFits=${bassFits}, writtenTreble=${writtenTrebleMidi}, writtenBass=${writtenBassMidi}`,
+      );
 
       // Logic for determining which clef(s) to use:
       // For bass guitar range (sounding MIDI up to G3 on 3rd string), prefer bass clef
@@ -299,7 +318,8 @@ $(async function () {
         if (bName.includes("#")) vexB = bName.charAt(0).toLowerCase() + "#";
         else if (bName.includes("b")) vexB = bName.charAt(0).toLowerCase() + "b";
         const bPair = { note: vexB, octave: bOct };
-        if (!bassNotes.some((n) => n.note === bPair.note && n.octave === bPair.octave)) bassNotes.push(bPair);
+        if (!bassNotes.some((n) => n.note === bPair.note && n.octave === bPair.octave))
+          bassNotes.push(bPair);
 
         // Also add to treble if it fits well (for comparison)
         if (trebleFits) {
@@ -332,7 +352,9 @@ $(async function () {
         }
 
         const { note: displayNoteName, octave } = midiToNoteAndOctave(targetWrittenMidi, note);
-        console.log(`Fret ${f}: chosen clef ${targetClef}, written MIDI ${targetWrittenMidi}, note ${displayNoteName}${octave}`);
+        console.log(
+          `Fret ${f}: chosen clef ${targetClef}, written MIDI ${targetWrittenMidi}, note ${displayNoteName}${octave}`,
+        );
 
         let vexNote = displayNoteName.toLowerCase();
         if (displayNoteName.includes("#")) {
@@ -344,9 +366,11 @@ $(async function () {
         const pair = { note: vexNote, octave: octave };
 
         if (targetClef === "treble") {
-          if (!trebleNotes.some((n) => n.note === pair.note && n.octave === pair.octave)) trebleNotes.push(pair);
+          if (!trebleNotes.some((n) => n.note === pair.note && n.octave === pair.octave))
+            trebleNotes.push(pair);
         } else {
-          if (!bassNotes.some((n) => n.note === pair.note && n.octave === pair.octave)) bassNotes.push(pair);
+          if (!bassNotes.some((n) => n.note === pair.note && n.octave === pair.octave))
+            bassNotes.push(pair);
         }
       }
     }
@@ -355,8 +379,24 @@ $(async function () {
     console.log("Bass notes:", bassNotes);
 
     // Create note objects for VexFlow with explicit clef specification, matching library test style
-    const trebleNoteObj = trebleNotes.length > 0 ? { keys: trebleNotes.map((n) => `${n.note}/${n.octave}`), clef: "treble", duration: "w", stemDirection: 1 } : null;
-    const bassNoteObj = bassNotes.length > 0 ? { keys: bassNotes.map((n) => `${n.note}/${n.octave}`), clef: "bass", duration: "w", stemDirection: -1 } : null;
+    const trebleNoteObj =
+      trebleNotes.length > 0
+        ? {
+            keys: trebleNotes.map((n) => `${n.note}/${n.octave}`),
+            clef: "treble",
+            duration: "w",
+            stemDirection: 1,
+          }
+        : null;
+    const bassNoteObj =
+      bassNotes.length > 0
+        ? {
+            keys: bassNotes.map((n) => `${n.note}/${n.octave}`),
+            clef: "bass",
+            duration: "w",
+            stemDirection: -1,
+          }
+        : null;
 
     console.log("Final treble note object:", trebleNoteObj);
     console.log("Final bass note object:", bassNoteObj);
@@ -381,13 +421,16 @@ $(async function () {
           console.warn("Skipping treble render: no notes");
         } else {
           // Normalize keys to ASCII accidentals (VexFlow expects '#' and 'b')
-          trebleNoteObj.keys = trebleNoteObj.keys.map((k) => k.replace(/♯/g, "#").replace(/♭/g, "b"));
+          trebleNoteObj.keys = trebleNoteObj.keys.map((k) =>
+            k.replace(/♯/g, "#").replace(/♭/g, "b"),
+          );
           // Ensure keys are in the form 'c#' or 'cb' (lowercase note letter, accidental ASCII preserved)
           trebleNoteObj.keys = trebleNoteObj.keys.map((k) => {
             const parts = k.split("/");
             const notePart = parts[0];
             const octavePart = parts[1];
-            const normalizedNote = notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : "");
+            const normalizedNote =
+              notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : "");
             return `${normalizedNote}/${octavePart}`;
           });
 
@@ -398,10 +441,15 @@ $(async function () {
           try {
             VexFlow.Accidental.applyAccidentals([voiceTreble], scoreKey);
           } catch (e) {
-            console.warn("applyAccidentals failed for treble voice, falling back to explicit modifiers", e);
+            console.warn(
+              "applyAccidentals failed for treble voice, falling back to explicit modifiers",
+              e,
+            );
             trebleNoteObj.keys.forEach((key, index) => {
-              if (key.includes("#")) trebleStaveNote.addModifier(new VexFlow.Accidental("#"), index);
-              else if (key.includes("b")) trebleStaveNote.addModifier(new VexFlow.Accidental("b"), index);
+              if (key.includes("#"))
+                trebleStaveNote.addModifier(new VexFlow.Accidental("#"), index);
+              else if (key.includes("b"))
+                trebleStaveNote.addModifier(new VexFlow.Accidental("b"), index);
             });
           }
 
@@ -426,7 +474,12 @@ $(async function () {
 
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+                  const bounds = {
+                    minX: Infinity,
+                    minY: Infinity,
+                    maxX: -Infinity,
+                    maxY: -Infinity,
+                  };
                   updateBoundsFromElements(trebleSvgEl.querySelectorAll("path"), bounds);
 
                   // Get bounds from circles (note heads)
@@ -442,7 +495,14 @@ $(async function () {
           }
         }
       } catch (err) {
-        console.error("Error rendering treble staff:", err, "\ntrebleNoteObj=", trebleNoteObj, "\ntrebleNotes=", trebleNotes);
+        console.error(
+          "Error rendering treble staff:",
+          err,
+          "\ntrebleNoteObj=",
+          trebleNoteObj,
+          "\ntrebleNotes=",
+          trebleNotes,
+        );
       }
     }
 
@@ -466,7 +526,8 @@ $(async function () {
             const parts = k.split("/");
             const notePart = parts[0];
             const octavePart = parts[1];
-            const normalizedNote = notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : "");
+            const normalizedNote =
+              notePart.charAt(0).toLowerCase() + (notePart.length > 1 ? notePart.slice(1) : "");
             return `${normalizedNote}/${octavePart}`;
           });
 
@@ -477,10 +538,14 @@ $(async function () {
           try {
             VexFlow.Accidental.applyAccidentals([voiceBass], scoreKey);
           } catch (e) {
-            console.warn("applyAccidentals failed for bass voice, falling back to explicit modifiers", e);
+            console.warn(
+              "applyAccidentals failed for bass voice, falling back to explicit modifiers",
+              e,
+            );
             bassNoteObj.keys.forEach((key, index) => {
               if (key.includes("#")) bassStaveNote.addModifier(new VexFlow.Accidental("#"), index);
-              else if (key.includes("b")) bassStaveNote.addModifier(new VexFlow.Accidental("b"), index);
+              else if (key.includes("b"))
+                bassStaveNote.addModifier(new VexFlow.Accidental("b"), index);
             });
           }
 
@@ -504,7 +569,12 @@ $(async function () {
 
                   // Instead of using getBBox() which includes oversized text bounds,
                   // manually calculate bounds based on visual elements
-                  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+                  const bounds = {
+                    minX: Infinity,
+                    minY: Infinity,
+                    maxX: -Infinity,
+                    maxY: -Infinity,
+                  };
                   updateBoundsFromElements(bassSvgEl.querySelectorAll("path"), bounds);
 
                   // Get bounds from circles (note heads)
@@ -520,7 +590,14 @@ $(async function () {
           }
         }
       } catch (err) {
-        console.error("Error rendering bass staff:", err, "\nbassNoteObj=", bassNoteObj, "\nbassNotes=", bassNotes);
+        console.error(
+          "Error rendering bass staff:",
+          err,
+          "\nbassNoteObj=",
+          bassNoteObj,
+          "\nbassNotes=",
+          bassNotes,
+        );
       }
     }
   }
@@ -852,7 +929,11 @@ $(async function () {
     updateTestState();
   }
 
-  function setBestVoice(utterance: SpeechSynthesisUtterance, voices: SpeechSynthesisVoice[], selectedVoiceName?: string) {
+  function setBestVoice(
+    utterance: SpeechSynthesisUtterance,
+    voices: SpeechSynthesisVoice[],
+    selectedVoiceName?: string,
+  ) {
     // If a specific voice was selected, try to use it
     if (selectedVoiceName) {
       const selectedVoice = voices.find((v) => v.name === selectedVoiceName);
@@ -868,15 +949,20 @@ $(async function () {
 
     // iOS-specific: try to pick a consistent Siri US English voice if available
     try {
-      const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isiOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       if (isiOS && englishVoices.length > 0) {
         // Prefer local Siri English; among Siri voices, try to pick a stable male voice variant when present
         const siriEnglish = englishVoices.filter((v) => /siri/i.test(v.name));
         const siriLocal = siriEnglish.filter((v) => v.localService);
-        const candidates = (siriLocal.length ? siriLocal : siriEnglish).filter((v) => /en/i.test(v.lang));
+        const candidates = (siriLocal.length ? siriLocal : siriEnglish).filter((v) =>
+          /en/i.test(v.lang),
+        );
         if (candidates.length > 0) {
           // Heuristic: pick a voice whose name suggests a lower-numbered variant (often male), else first
-          const preferred = candidates.find((v) => /(voice\s*2|voice\s*4)/i.test(v.name)) || candidates[0];
+          const preferred =
+            candidates.find((v) => /(voice\s*2|voice\s*4)/i.test(v.name)) || candidates[0];
           utterance.voice = preferred;
           return;
         }
@@ -974,7 +1060,10 @@ $(async function () {
       const voices = speechSynthesis.getVoices();
 
       // In CI/test environments, if no voices are available, add mock voices for testing
-      if (voices.length === 0 && (navigator.userAgent.includes("HeadlessChrome") || navigator.userAgent.includes("Cypress"))) {
+      if (
+        voices.length === 0 &&
+        (navigator.userAgent.includes("HeadlessChrome") || navigator.userAgent.includes("Cypress"))
+      ) {
         const mockVoices = [
           { name: "Mock Voice 1", lang: "en-US", localService: true },
           { name: "Mock Voice 2", lang: "en-GB", localService: false },
@@ -1017,7 +1106,9 @@ $(async function () {
           "wolfgang",
         ];
 
-        const hasNonEnglishName = nonEnglishVoiceNames.some((nonEngName) => name.includes(nonEngName));
+        const hasNonEnglishName = nonEnglishVoiceNames.some((nonEngName) =>
+          name.includes(nonEngName),
+        );
 
         return isEnglishLang && !hasNonEnglishName;
       });
@@ -1149,7 +1240,9 @@ $(async function () {
     // Normalize possible unicode accidentals passed from UI (e.g. '♯','♭')
     quizNote = quizNote.replace(/♯/g, "#").replace(/♭/g, "b");
 
-    console.log(`midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}, scoreKey=${scoreKey}`);
+    console.log(
+      `midiToNoteAndOctave: midi=${midi}, noteIndex=${noteIndex}, quizNote=${quizNote}, scoreKey=${scoreKey}`,
+    );
 
     // First priority: respect an explicit quiz accidental preference (sharp/flat)
     let noteName = null;
@@ -1172,7 +1265,9 @@ $(async function () {
       noteName = getEnharmonicForKey(noteIndex, scoreKey);
     }
 
-    console.log(`midiToNoteAndOctave result: ${noteName}${octave} (key-context: ${getEnharmonicForKey(noteIndex, scoreKey)})`);
+    console.log(
+      `midiToNoteAndOctave result: ${noteName}${octave} (key-context: ${getEnharmonicForKey(noteIndex, scoreKey)})`,
+    );
     return { note: noteName, octave: octave };
   }
 
@@ -1244,9 +1339,18 @@ $(async function () {
           $("#num-strings").val(numStrings);
         }
       }
-      if ("tuning" in settings && Array.isArray(settings.tuning) && settings.tuning.length === numStrings) {
+      if (
+        "tuning" in settings &&
+        Array.isArray(settings.tuning) &&
+        settings.tuning.length === numStrings
+      ) {
         // Validate that each tuning element has note and octave
-        if (settings.tuning.every((t: unknown) => t && typeof (t as any).note === "string" && typeof (t as any).octave === "number")) {
+        if (
+          settings.tuning.every(
+            (t: unknown) =>
+              t && typeof (t as any).note === "string" && typeof (t as any).octave === "number",
+          )
+        ) {
           tuning = settings.tuning.slice();
         } else {
           tuning = defaultTunings[numStrings as keyof typeof defaultTunings].strings.slice();
@@ -1428,7 +1532,8 @@ $(async function () {
       const baseWeights = session.map((card: any) => 1 + mistakeCounts[card.string] * biasStrength);
 
       // Normalize by average and cap the difference to 3:1 ratio
-      const avgWeight = baseWeights.reduce((sum: number, w: number) => sum + w, 0) / baseWeights.length;
+      const avgWeight =
+        baseWeights.reduce((sum: number, w: number) => sum + w, 0) / baseWeights.length;
       const maxWeight = avgWeight * 3;
       const minWeight = avgWeight / 3;
 
@@ -1540,11 +1645,16 @@ $(async function () {
     // Update global reference for touch handler
     (window as any).currentCard = currentCard;
     updateQuizNoteDisplay();
-    $flashcardString.attr("data-string-index", currentCard.string).attr("data-string-name", stringNames[currentCard.string].name).attr("data-frets-count", currentCard.frets.length);
+    $flashcardString
+      .attr("data-string-index", currentCard.string)
+      .attr("data-string-name", stringNames[currentCard.string].name)
+      .attr("data-frets-count", currentCard.frets.length);
     $flashcardString.text(
       // show as a readable sentence: "on the ... string"
       // Show note count for higher fret counts (21+ frets typically have 2-3 notes)
-      (fretCountSetting > 11 ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)") : stringNames[currentCard.string].name) + " string",
+      (fretCountSetting > 11
+        ? stringNames[currentCard.string].name.replace(")", ", " + currentCard.frets.length + "x)")
+        : stringNames[currentCard.string].name) + " string",
     );
 
     drawFretboardTable(currentCard.string, foundFrets);
@@ -1713,7 +1823,11 @@ $(async function () {
   }
 
   // Track mistakes and handle TTS repeat logic
-  function trackMistakeAndHandleTTS(isCorrect: boolean, source: string, isOctaveError: boolean = false) {
+  function trackMistakeAndHandleTTS(
+    isCorrect: boolean,
+    source: string,
+    isOctaveError: boolean = false,
+  ) {
     if (isCorrect) {
       consecutiveMistakes = 0; // Reset counter on correct answer
       consecutiveOctaveMistakes = 0; // Reset octave counter on correct answer
@@ -1850,7 +1964,9 @@ $(async function () {
           detectedMidi = candidateMidi;
         } else {
           // When octave is explicitly provided (from mic), don't fall back to searching other octaves
-          console.log(`Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`);
+          console.log(
+            `Detected note ${namePart}${octavePart} maps to fret ${fretDiff}, out of range - rejecting`,
+          );
 
           // Track octave mistake
           consecutiveOctaveMistakes++;
@@ -1862,7 +1978,10 @@ $(async function () {
           const hint = octaveDiff < 0 ? "try octave higher" : "try octave lower";
 
           // Calculate expected octave for this note on this string
-          const openMidi = getMidi(tuning[currentCard.string].note, tuning[currentCard.string].octave);
+          const openMidi = getMidi(
+            tuning[currentCard.string].note,
+            tuning[currentCard.string].octave,
+          );
           const expectedMidi = openMidi + currentCard.frets[0]; // Use first valid fret position
           const expectedOctave = Math.floor(expectedMidi / 12) - 1;
 
@@ -1902,8 +2021,10 @@ $(async function () {
           const higherOctaveMax = detectedMidi + 26;
 
           // Check if the expected range falls within 1-2 octaves of the detected note
-          const isExpectedOctaveLower = minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax;
-          const isExpectedOctaveHigher = minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax;
+          const isExpectedOctaveLower =
+            minExpected >= lowerOctaveMin && maxExpected <= lowerOctaveMax;
+          const isExpectedOctaveHigher =
+            minExpected >= higherOctaveMin && maxExpected <= higherOctaveMax;
 
           if (isExpectedOctaveLower) {
             // Track octave mistake
@@ -2178,7 +2299,9 @@ $(async function () {
   let audioElements = {}; // Cache for generated audio elements
   let audioEnabled = false;
   // Detect iOS immediately
-  let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   let audioCurrentlyPlaying = false; // Flag to track if audio is playing
   let resumeMicTimeout = null; // Timeout for resuming mic after audio
 
@@ -2210,13 +2333,19 @@ $(async function () {
     }
 
     // Check for CI/test environments - treat as desktop
-    const isCI = navigator.userAgent.includes("HeadlessChrome") || navigator.userAgent.includes("Cypress") || navigator.userAgent.includes("Electron");
+    const isCI =
+      navigator.userAgent.includes("HeadlessChrome") ||
+      navigator.userAgent.includes("Cypress") ||
+      navigator.userAgent.includes("Electron");
     if (isCI) {
       return false;
     }
 
     // noinspection JSDeprecatedSymbols
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
   }
 
   // Detect macOS (excluding iOS)
@@ -2393,7 +2522,9 @@ $(async function () {
   function updateTuningUI() {
     let html = '<div class="tuning-container">';
     for (let i = 0; i < numStrings; i++) {
-      let noteOptions = allNotes.map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`).join("");
+      let noteOptions = allNotes
+        .map((n) => `<option value="${n}" ${tuning[i].note === n ? "selected" : ""}>${n}</option>`)
+        .join("");
       let octaveOptions = "";
       for (let oct = 0; oct <= 8; oct++) {
         octaveOptions += `<option value="${oct}" ${tuning[i].octave === oct ? "selected" : ""}>${oct}</option>`;
@@ -2491,7 +2622,10 @@ $(async function () {
     // } else
     if (!hasGetUserMedia) {
       micButton.prop("disabled", true);
-      micButton.attr("title", "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.");
+      micButton.attr(
+        "title",
+        "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.",
+      );
       micButton.html('<span aria-hidden="true">🎤</span> Mic (Not Supported)');
     } else {
       micButton.prop("disabled", false);
@@ -2831,15 +2965,21 @@ $(async function () {
             console.log("Capacitor microphone permission status:", permission.state);
 
             if (permission.state === "denied") {
-              throw new Error("Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone");
+              throw new Error(
+                "Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone",
+              );
             }
           } else {
             // Fallback to standard web API
-            const permissionStatus = await navigator.permissions.query({ name: "microphone" as PermissionName });
+            const permissionStatus = await navigator.permissions.query({
+              name: "microphone" as PermissionName,
+            });
             console.log("Web API microphone permission status:", permissionStatus.state);
 
             if (permissionStatus.state === "denied") {
-              throw new Error("Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone");
+              throw new Error(
+                "Microphone permission denied. Please enable microphone access in Settings > Privacy & Security > Microphone",
+              );
             }
           }
         } catch (permissionError) {
@@ -2889,14 +3029,26 @@ $(async function () {
       if (error instanceof Error) {
         // Check for specific iOS 26+ error patterns
         if (error.name === "NotAllowedError" || error.message.includes("Permission denied")) {
-          showMicrophonePermissionNotification("Microphone access denied. Please enable microphone permissions for this app.");
-          throw new Error("Microphone access denied. Please enable microphone permissions in Settings > Privacy & Security > Microphone for this app.");
+          showMicrophonePermissionNotification(
+            "Microphone access denied. Please enable microphone permissions for this app.",
+          );
+          throw new Error(
+            "Microphone access denied. Please enable microphone permissions in Settings > Privacy & Security > Microphone for this app.",
+          );
         } else if (error.name === "NotFoundError" || error.message.includes("No microphone")) {
-          showMicrophonePermissionNotification("No microphone found. Please check that your device has a working microphone.");
-          throw new Error("No microphone found. Please check that your device has a working microphone.");
+          showMicrophonePermissionNotification(
+            "No microphone found. Please check that your device has a working microphone.",
+          );
+          throw new Error(
+            "No microphone found. Please check that your device has a working microphone.",
+          );
         } else if (error.name === "NotReadableError" || error.message.includes("Could not start")) {
-          showMicrophonePermissionNotification("Microphone is being used by another app. Please close other apps using the microphone and try again.");
-          throw new Error("Microphone is being used by another app. Please close other apps using the microphone and try again.");
+          showMicrophonePermissionNotification(
+            "Microphone is being used by another app. Please close other apps using the microphone and try again.",
+          );
+          throw new Error(
+            "Microphone is being used by another app. Please close other apps using the microphone and try again.",
+          );
         } else if (error.name === "OverconstrainedError") {
           console.log("Advanced constraints failed, trying with basic constraints...");
           // Fallback to basic constraints for iOS 26+
@@ -2916,7 +3068,9 @@ $(async function () {
               });
               console.log("Successfully got microphone with minimal constraints");
             } catch (minimalError) {
-              throw new Error("Microphone access failed even with minimal constraints. Please check your microphone permissions.");
+              throw new Error(
+                "Microphone access failed even with minimal constraints. Please check your microphone permissions.",
+              );
             }
           }
         } else {
@@ -3029,7 +3183,10 @@ $(async function () {
 
       // Use pitchy correctly: pass sampleRate as second arg
       // Only call findPitch if we have valid samples
-      const [frequency, clarity] = validSamples.length > 0 ? detector.findPitch(validSamples, audioContextForPitch.sampleRate) : [null, 0];
+      const [frequency, clarity] =
+        validSamples.length > 0
+          ? detector.findPitch(validSamples, audioContextForPitch.sampleRate)
+          : [null, 0];
       // Collect baseline RMS for a short period after mic start to compensate for ambient noise / AGC
       if (Date.now() < collectBaselineUntil) {
         micBaselineRms += rms;
@@ -3112,7 +3269,12 @@ $(async function () {
         $meterEl.css("border-color", "#4caf50");
         // Submit this stable detected note to the quiz flow once
         const now = Date.now();
-        if ((displayedNoteId !== currentNoteId || (displayedNoteId === currentNoteId && now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) && countdownValue <= 0) {
+        if (
+          (displayedNoteId !== currentNoteId ||
+            (displayedNoteId === currentNoteId &&
+              now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) &&
+          countdownValue <= 0
+        ) {
           try {
             // Only process microphone input when countdown is not active
             // Map to nearest fret and submit via unified handler
@@ -3533,16 +3695,22 @@ $(async function () {
 
           if (e && e.message) {
             if (e.message.includes("getUserMedia not supported")) {
-              errorMessage += "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
+              errorMessage +=
+                "Your browser doesn't support microphone access. Please try using a modern browser like Chrome, Firefox, or Safari.";
               shouldDisableButton = true;
-            } else if (e.message.includes("Permission denied") || e.message.includes("NotAllowedError")) {
-              errorMessage += "Microphone permission was denied. Please enable microphone access in Settings > Privacy & Security > Microphone for this app.";
+            } else if (
+              e.message.includes("Permission denied") ||
+              e.message.includes("NotAllowedError")
+            ) {
+              errorMessage +=
+                "Microphone permission was denied. Please enable microphone access in Settings > Privacy & Security > Microphone for this app.";
               shouldDisableButton = true;
             } else if (e.message.includes("NotFoundError")) {
               errorMessage += "No microphone found. Please connect a microphone and try again.";
               shouldDisableButton = true;
             } else if (e.message.includes("NotReadableError")) {
-              errorMessage += "Microphone is already in use by another application. Please close other apps using the microphone and try again.";
+              errorMessage +=
+                "Microphone is already in use by another application. Please close other apps using the microphone and try again.";
               // Don't disable button for this error - user can retry after closing other apps
             } else {
               errorMessage += e.message;
@@ -3550,7 +3718,8 @@ $(async function () {
               shouldDisableButton = true;
             }
           } else {
-            errorMessage += "Please check your browser settings and ensure microphone access is allowed.";
+            errorMessage +=
+              "Please check your browser settings and ensure microphone access is allowed.";
             shouldDisableButton = true;
           }
 

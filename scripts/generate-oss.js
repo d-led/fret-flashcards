@@ -173,7 +173,9 @@ function main() {
 
     console.log("✅ OSS.txt generated successfully!");
     console.log(`📄 Output file: ${outputPath}`);
-    console.log(`📦 Processed ${Object.keys(packageJson.dependencies || {}).length} production dependencies`);
+    console.log(
+      `📦 Processed ${Object.keys(packageJson.dependencies || {}).length} production dependencies`,
+    );
     console.log(`ℹ️  Development dependencies excluded (not required for distribution)`);
   } catch (error) {
     console.error("Error generating OSS.txt:", error.message);

@@ -30,7 +30,9 @@ const amp = isIOS ? 0.75 : 0.25;
 
 ```typescript
 // Show banner to enable audio on first user interaction
-const bannerText = enableTTS ? "🔊🎤 Click here to enable audio and voice" : "🔊 Click here to enable audio";
+const bannerText = enableTTS
+  ? "🔊🎤 Click here to enable audio and voice"
+  : "🔊 Click here to enable audio";
 ```
 
 **Implementation Details**:
@@ -164,7 +166,13 @@ if (customEvent.detail?.action === "disableMicrophone" && pitchDetecting) {
 #### Screen Reader Integration
 
 ```html
-<span id="mic-meter" aria-label="Microphone input level" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+<span
+  id="mic-meter"
+  aria-label="Microphone input level"
+  role="progressbar"
+  aria-valuemin="0"
+  aria-valuemax="100"
+>
   <span id="mic-meter-fill" aria-hidden="true"></span>
 </span>
 ```
@@ -206,9 +214,11 @@ if (customEvent.detail?.action === "disableMicrophone" && pitchDetecting) {
 
 ```typescript
 if (e.message.includes("Permission denied")) {
-  errorMessage += "Microphone permission was denied. Please allow microphone access in your browser settings and try again.";
+  errorMessage +=
+    "Microphone permission was denied. Please allow microphone access in your browser settings and try again.";
 } else if (e.message.includes("NotAllowedError")) {
-  errorMessage += "Microphone access was blocked. Please check your browser settings and allow microphone access for this site.";
+  errorMessage +=
+    "Microphone access was blocked. Please check your browser settings and allow microphone access for this site.";
 }
 ```
 

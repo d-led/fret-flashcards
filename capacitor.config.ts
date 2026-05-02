@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
   appId: "com.dled.stringhomeworktutor",
@@ -25,8 +26,8 @@ const config: CapacitorConfig = {
       backgroundColor: "#222222",
     },
     Keyboard: {
-      resize: "body",
-      style: "dark",
+      resize: KeyboardResize.Body,
+      style: KeyboardStyle.Dark,
       resizeOnFullScreen: true,
     },
     Haptics: {
@@ -39,8 +40,6 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: "automatic",
     scrollEnabled: true,
-    allowsInlineMediaPlayback: true,
-    mediaTypesRequiringUserActionForPlayback: [],
   },
 };
 

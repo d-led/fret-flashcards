@@ -10,12 +10,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-interface TestResult {
-  name: string;
-  condition: boolean;
-  details?: string;
-}
-
 function checkAccessibility(): boolean {
   console.log("🔍 Running accessibility checks...\n");
 
@@ -57,7 +51,10 @@ function checkAccessibility(): boolean {
   test("Has fieldset structure", htmlContent.includes("<fieldset>"));
 
   console.log("\n🏷️ ARIA Attributes Tests:");
-  test("Has ARIA labels on buttons", htmlContent.includes('aria-label="Play the target note audio"'));
+  test(
+    "Has ARIA labels on buttons",
+    htmlContent.includes('aria-label="Play the target note audio"'),
+  );
   test("Has status roles", htmlContent.includes('role="status"'));
   test("Has application role", htmlContent.includes('role="application"'));
   test("Has live regions", htmlContent.includes('aria-live="polite"'));

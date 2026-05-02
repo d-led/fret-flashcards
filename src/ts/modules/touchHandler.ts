@@ -3,15 +3,6 @@
  * Prevents spurious HTML element selections during swiping and provides proper touch handling
  */
 
-export interface TouchEvent {
-  type: "touchstart" | "touchmove" | "touchend" | "touchcancel";
-  target: EventTarget | null;
-  touches: TouchList;
-  changedTouches: TouchList;
-  preventDefault: () => void;
-  stopPropagation: () => void;
-}
-
 export interface TouchPoint {
   x: number;
   y: number;
@@ -42,6 +33,10 @@ export class TouchHandler {
   /**
    * Initialize touch handling
    */
+  public getIsInitialized(): boolean {
+    return this.isInitialized;
+  }
+
   public initialize(): void {
     if (this.isInitialized) return;
 
@@ -57,7 +52,9 @@ export class TouchHandler {
    */
   private setupGlobalTouchHandlers(): void {
     // Detect if we're on iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
     // On iOS, be more conservative with event handling to avoid conflicts
     const touchOptions = isIOS ? { passive: true } : { passive: false };
@@ -244,7 +241,7 @@ export class TouchHandler {
   /**
    * Handle touch cancel events
    */
-  private handleTouchCancel(event: TouchEvent): void {
+  private handleTouchCancel(_event: TouchEvent): void {
     if (this.longPressTimer) {
       clearTimeout(this.longPressTimer);
       this.longPressTimer = null;
@@ -295,7 +292,6 @@ export class TouchHandler {
    * Handle fret button taps
    */
   private handleFretButtonTap(target: HTMLElement): void {
-    const fret = parseInt(target.getAttribute("data-fret") || "0");
     const currentCard = (window as any).currentCard;
 
     if (!currentCard) return;
@@ -315,8 +311,7 @@ export class TouchHandler {
    * Handle fretboard taps
    */
   private handleFretboardTap(target: HTMLElement): void {
-    const string = parseInt(target.getAttribute("data-string") || "0");
-    const fret = parseInt(target.getAttribute("data-fret") || "0");
+    const string = parseInt(target.getAttribute("data-string") || "0", 10);
     const currentCard = (window as any).currentCard;
 
     if (!currentCard || string !== currentCard.string) return;
@@ -423,6 +418,9 @@ export const touchHandler = TouchHandler.getInstance();
 declare global {
   interface Window {
     touchHandler: TouchHandler;
+    mobileEnhancements?: {
+      hapticLight: () => void;
+    };
   }
 }
 

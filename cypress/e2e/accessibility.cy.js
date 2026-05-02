@@ -57,7 +57,11 @@ describe("Accessibility Tests", () => {
       cy.get("#mic-toggle").should("have.attr", "aria-label", "Enable microphone for voice input");
 
       // Reset buttons
-      cy.get("#reset-tuning").should("have.attr", "aria-label", "Reset guitar tuning to standard E-A-D-G-B-E");
+      cy.get("#reset-tuning").should(
+        "have.attr",
+        "aria-label",
+        "Reset guitar tuning to standard E-A-D-G-B-E",
+      );
       cy.get("#reset-stats").should("have.attr", "aria-label", "Reset all statistics to zero");
     });
 

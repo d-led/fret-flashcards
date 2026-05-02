@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "capacitor.config.ts",
+    "cypress/**/*.ts",
+    "cypress.config.ts",
+    "packages/render/src/**/*.ts",
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.property.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "build"]
+}

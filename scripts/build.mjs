@@ -34,13 +34,19 @@ function copyVendorAssets() {
   try {
     const vendorDest = path.join(outdir, "vendor");
     fs.mkdirSync(vendorDest, { recursive: true });
-    copyFile(path.join("node_modules", "vexflow", "build", "cjs", "vexflow.js"), path.join(vendorDest, "vexflow.js"));
+    copyFile(
+      path.join("node_modules", "vexflow", "build", "cjs", "vexflow.js"),
+      path.join(vendorDest, "vexflow.js"),
+    );
   } catch (e) {
     // ignore if not present
   }
   try {
     const vendorDest = path.join(outdir, "vendor");
-    copyFile(path.join("node_modules", "jquery", "dist", "jquery.min.js"), path.join(vendorDest, "jquery.min.js"));
+    copyFile(
+      path.join("node_modules", "jquery", "dist", "jquery.min.js"),
+      path.join(vendorDest, "jquery.min.js"),
+    );
   } catch (e) {
     // ignore if not present
   }
@@ -115,7 +121,12 @@ async function buildJS(watch = false) {
   updateConfigsForPublicPath();
 
   const options = {
-    entryPoints: [path.join("src", "ts", "index.ts"), path.join("src", "css", "main.css"), path.join("src", "static", "index.html"), path.join("src", "logo", "logo.svg")],
+    entryPoints: [
+      path.join("src", "ts", "index.ts"),
+      path.join("src", "css", "main.css"),
+      path.join("src", "static", "index.html"),
+      path.join("src", "logo", "logo.svg"),
+    ],
     bundle: true,
     sourcemap: true,
     outdir: outdir,
