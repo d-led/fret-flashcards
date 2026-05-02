@@ -154,17 +154,24 @@ npm run app-store:screenshots:add
 
 1. **Generate Screenshots**:
 
-   npm run app-store:prep  # ⚠️ WARNING: Deletes old screenshots! Includes screenshot generation
+   npm run app-store:prep # ⚠️ WARNING: Deletes old screenshots! Includes screenshot generation
+
    # OR
-   npm run screenshots     # Screenshots only (fastlane)
+
+   npm run screenshots # Screenshots only (fastlane)
+
    # OR
-   npm run screenshots:fastlane  # Screenshots using fastlane script
+
+   npm run screenshots:fastlane # Screenshots using fastlane script
 
 2. **Upload Screenshots**:
 
-   npm run app-store:screenshots  # Replace existing
+   npm run app-store:screenshots # Replace existing
+
    # OR
-   npm run app-store:screenshots:add  # Add to existing
+
+   npm run app-store:screenshots:add # Add to existing
+
 ```raw
 
 3. **Verify Upload**: Check App Store Connect to confirm screenshots were uploaded correctly.
@@ -214,6 +221,7 @@ The validation script (`app-store-validate.js`) checks:
 ### App Description
 
 ```
+
 String Homework Tutor - Master the Fretboard
 
 The homework tutor you always wished for! Learn guitar notes on the fretboard and their location in sheet music with this interactive, accessible flashcard game.
@@ -247,11 +255,13 @@ INSPIRED BY
 Steve Vai's anecdote about Joe Satriani's first homework: "learn all notes on the fretboard"
 
 No internet required - everything works offline!
+
 ```raw
 
 ### Keywords
 
 ```
+
 guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings
 
 ### URLs
