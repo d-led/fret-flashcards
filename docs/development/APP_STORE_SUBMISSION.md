@@ -2,6 +2,31 @@
 
 Complete guide for submitting **String Homework Tutor** to the iOS App Store using Fastlane automation.
 
+## ⚡ 60-Second Runbook (Copy/Paste)
+
+Run these from the repo root:
+
+```bash
+# 0) Optional but recommended before release
+scripts/quality-gate.sh
+
+# 1) Validate App Store assets/config
+npm run app-store:validate
+
+# 2) Prepare assets/screenshots (WARNING: removes old screenshots)
+npm run app-store:prep
+
+# 3) Upload build to TestFlight
+npm run app-store:testflight
+
+# 4) Upload screenshots + metadata
+npm run app-store:screenshots
+npm run app-store:metadata
+
+# 5) Submit release to App Store
+npm run app-store:release
+```
+
 ## 📋 Quick Start
 
 ### 1. Prerequisites
@@ -35,8 +60,6 @@ npm run app-store:prep
 
 # Step 3: Submit to TestFlight first
 npm run app-store:testflight
-
-one potential error: [rsync is installed from homebrew](https://stackoverflow.com/questions/57292882/xcode-organizer-copy-failed) &rarr; fix: `brew unlink rsync`
 
 # Step 4: Upload screenshots to App Store Connect
 npm run app-store:screenshots
@@ -131,21 +154,18 @@ npm run app-store:screenshots:add
 
 1. **Generate Screenshots**:
 
-   ```bash
    npm run app-store:prep  # ⚠️ WARNING: Deletes old screenshots! Includes screenshot generation
    # OR
    npm run screenshots     # Screenshots only (fastlane)
    # OR
    npm run screenshots:fastlane  # Screenshots using fastlane script
-   ```
 
 2. **Upload Screenshots**:
 
-   ```bash
    npm run app-store:screenshots  # Replace existing
    # OR
    npm run app-store:screenshots:add  # Add to existing
-   ```
+```raw
 
 3. **Verify Upload**: Check App Store Connect to confirm screenshots were uploaded correctly.
 
@@ -227,13 +247,12 @@ INSPIRED BY
 Steve Vai's anecdote about Joe Satriani's first homework: "learn all notes on the fretboard"
 
 No internet required - everything works offline!
-```
+```raw
 
 ### Keywords
 
 ```
 guitar,learning,music,fretboard,notes,practice,sheet music,offline,voice,strings,mandolin,tunings
-```
 
 ### URLs
 
