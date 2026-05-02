@@ -13,9 +13,11 @@
 # What it fixes:
 # - inputPaths: Adds back the Pods-App-frameworks.sh script and Pods_App.framework
 # - outputPaths: Adds back the target build directory path for the framework
+# - Deployment target: Ensures iOS deployment target is at least 15.0
 #
 # The script uses Python for reliable text replacement with proper regex patterns.
 PROJECT_FILE="ios/App/App.xcodeproj/project.pbxproj"
+PODFILE="ios/App/Podfile"
 
 # Check if the file exists
 if [ ! -f "$PROJECT_FILE" ]; then
@@ -47,12 +49,20 @@ content = re.sub(
     content
 )
 
+# Ensure app/project deployment target is iOS 15.0 for Capacitor 8
+content = content.replace('IPHONEOS_DEPLOYMENT_TARGET = 14.0;', 'IPHONEOS_DEPLOYMENT_TARGET = 15.0;')
+
 # Write the file back
 with open('$PROJECT_FILE', 'w') as f:
     f.write(content)
 
-print('✅ Fixed CocoaPods framework paths')
+print('✅ Fixed CocoaPods framework paths and deployment target')
 "
 else
     echo "ℹ️  Framework paths already correct"
+fi
+
+# Keep Podfile platform in sync with Capacitor minimum target
+if [ -f "$PODFILE" ]; then
+    perl -0pi -e "s/platform :ios, '14\\.0'/platform :ios, '15.0'/g" "$PODFILE"
 fi
