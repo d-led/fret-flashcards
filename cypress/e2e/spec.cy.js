@@ -33,6 +33,7 @@ describe("Guitar Fretboard Flashcard Game", () => {
     // Change various settings
     cy.setExtendedRange(true);
     cy.setAccidentals(true);
+    cy.setHideOpenNotes(true);
     cy.setTimeoutSeconds(5);
     cy.setNumStrings(4);
 
@@ -42,6 +43,7 @@ describe("Guitar Fretboard Flashcard Game", () => {
     // Ensure settings are preserved
     cy.shouldHaveExtendedRange(true);
     cy.shouldHaveAccidentals(true);
+    cy.shouldHaveHideOpenNotes(true);
     cy.shouldHaveTimeoutSeconds(5);
     cy.shouldHaveNumStrings(4);
 

@@ -310,7 +310,8 @@ Cypress.Commands.add("calculateCorrectFrets", (note, stringIdx, fretCount) => {
     .then(($cell) => {
       // Use jQuery to find the corresponding open-note cell in the same row
       const $row = $cell.closest("tr");
-      const openNote = $row.find(".open-note").text().trim();
+      const $openNoteCell = $row.find(".open-note");
+      const openNote = ($openNoteCell.attr("data-open-note") || $openNoteCell.text()).trim();
 
       const openIdx = allNotes.indexOf(openNote);
       if (openIdx === -1) {
@@ -437,6 +438,14 @@ Cypress.Commands.add("shouldHaveScoreNotation", (expected) => {
   } else {
     cy.get("#show-score-notation").should("not.be.checked");
   }
+});
+
+Cypress.Commands.add("setHideOpenNotes", (enabled) => {
+  setCheckboxSetting("#hide-open-notes", enabled);
+});
+
+Cypress.Commands.add("shouldHaveHideOpenNotes", (expected) => {
+  shouldHaveCheckboxState("#hide-open-notes", expected);
 });
 
 Cypress.Commands.add("setNumStrings", (num) => {

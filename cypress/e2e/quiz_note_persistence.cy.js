@@ -22,4 +22,26 @@ describe("Quiz note persistence with score notation", () => {
     cy.shouldHaveQuizNoteVisible();
     cy.shouldHaveQuizNoteMachineReadable();
   });
+
+  it("hides open-note labels when hide open notes is enabled", () => {
+    cy.get(".open-note")
+      .first()
+      .invoke("text")
+      .should("match", /^[A-G][b#]?$/);
+
+    cy.setHideOpenNotes(true);
+    cy.shouldHaveHideOpenNotes(true);
+    cy.get(".open-note").first().invoke("text").should("eq", "");
+  });
+
+  it("persists hide open notes across reload", () => {
+    cy.setHideOpenNotes(true);
+    cy.shouldHaveHideOpenNotes(true);
+    cy.get(".open-note").first().invoke("text").should("eq", "");
+
+    cy.reloadAndVisitApp();
+
+    cy.shouldHaveHideOpenNotes(true);
+    cy.get(".open-note").first().invoke("text").should("eq", "");
+  });
 });

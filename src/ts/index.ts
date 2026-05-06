@@ -768,6 +768,7 @@ async function bootstrapFretApp(): Promise<void> {
 
   let enableBias = true; // Default to true for improved learning
   let showScoreNotation = false; // Default to false, to hide score by default
+  let hideOpenNotes = false; // Default to false, to show open-note labels by default
   let scoreKey = "C"; // Default key for score notation
   let hideQuizNote = false; // Default to false, to show quiz note by default
   let enableTTS = false; // Default to false, text-to-speech for quiz notes
@@ -1274,6 +1275,7 @@ async function bootstrapFretApp(): Promise<void> {
       tuning: tuning.slice(),
       enableBias: enableBias,
       showScoreNotation: showScoreNotation,
+      hideOpenNotes: hideOpenNotes,
       scoreKey: scoreKey,
       hideQuizNote: hideQuizNote,
       enableTTS: enableTTS,
@@ -1300,6 +1302,7 @@ async function bootstrapFretApp(): Promise<void> {
       const $fretCount = $("#fret-count");
       const $enableBias = $("#enable-bias");
       const $hideQuizNote = $("#hide-quiz-note");
+      const $hideOpenNotes = $("#hide-open-notes");
 
       // Handle backward compatibility with extendedRange
       if ("extendedRange" in settings) {
@@ -1363,6 +1366,10 @@ async function bootstrapFretApp(): Promise<void> {
           $hideQuizNote.prop("checked", false);
         }
       }
+      if ("hideOpenNotes" in settings) {
+        hideOpenNotes = !!settings.hideOpenNotes;
+      }
+      $hideOpenNotes.prop("checked", hideOpenNotes);
       if ("scoreKey" in settings) {
         scoreKey = settings.scoreKey;
         $("#score-key").val(scoreKey);
@@ -1699,7 +1706,8 @@ async function bootstrapFretApp(): Promise<void> {
       fretRows += `<tr>`;
       // Add title attribute for hover tooltip showing error count (safe fallback to 0)
       const wrongCount = Array.isArray(stringErrorCounts) ? stringErrorCounts[s] || 0 : 0;
-      fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0">${stringNames[s].openNote}</td>`;
+      const openNoteText = hideOpenNotes ? "" : stringNames[s].openNote;
+      fretRows += `<td class="open-note" title="wrong: ${wrongCount}" data-string="${s}" data-fret="0" data-open-note="${stringNames[s].openNote}">${openNoteText}</td>`;
       for (let f = 0; f < fretCount + extraFret; f++) {
         let fretClass = "fret-cell";
         if (f === 0) fretClass += " open-fret";
@@ -3960,6 +3968,14 @@ async function bootstrapFretApp(): Promise<void> {
         hideQuizNote = false;
       }
       if (currentCard) updateQuizNoteDisplay();
+    });
+
+    $("#hide-open-notes").on("change", function () {
+      hideOpenNotes = this.checked;
+      saveSettings();
+      if (currentCard) {
+        drawFretboardTable(currentCard.string, foundFrets);
+      }
     });
 
     $("#score-key").on("change", function () {
