@@ -11,6 +11,15 @@
  */
 
 import { PitchDetector } from "pitchy";
+import { shouldSuppressForCarryover, updateCarryoverGuard } from "./modules/micDetectionState";
+import {
+  ALL_NOTES as allNotes,
+  FLAT_NOTES as flatNotes,
+  NATURAL_NOTES as naturalNotes,
+  NOTE_VARIANTS as noteVariants,
+  areNotesEquivalent,
+  getMidi,
+} from "./modules/musicTheory";
 import { mobileEnhancements } from "./modules/mobileEnhancements";
 import type { ActiveQuizCard, Statistics } from "./types/interfaces";
 import { fretWindow } from "./types/window-globals";
@@ -172,29 +181,6 @@ async function bootstrapFretApp(): Promise<void> {
     webOnlyInitializations();
     mobileOnlyInitializations();
   }
-
-  const naturalNotes = ["C", "D", "E", "F", "G", "A", "B"];
-  const allNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-  const flatNotes = ["Db", "Eb", "Gb", "Ab", "Bb"];
-  const noteVariants = [
-    { name: "C", idx: 0 },
-    { name: "C#", idx: 1 },
-    { name: "Db", idx: 1 },
-    { name: "D", idx: 2 },
-    { name: "D#", idx: 3 },
-    { name: "Eb", idx: 3 },
-    { name: "E", idx: 4 },
-    { name: "F", idx: 5 },
-    { name: "F#", idx: 6 },
-    { name: "Gb", idx: 6 },
-    { name: "G", idx: 7 },
-    { name: "G#", idx: 8 },
-    { name: "Ab", idx: 8 },
-    { name: "A", idx: 9 },
-    { name: "A#", idx: 10 },
-    { name: "Bb", idx: 10 },
-    { name: "B", idx: 11 },
-  ];
 
   // Independent octave shift (in semitones) applied when writing notation for each clef.
   // Adjust these to control where notes appear on the staff for treble and bass independently.
@@ -1148,38 +1134,6 @@ async function bootstrapFretApp(): Promise<void> {
   // Octaves for MIDI calculation based on string count (expanded to 3-12)
   // Removed: now combined into defaultTunings
 
-  // Function to calculate MIDI from note and octave
-  function getMidi(note: string, octave: number) {
-    const baseMidi = {
-      C: 0,
-      "C#": 1,
-      Db: 1,
-      D: 2,
-      "D#": 3,
-      Eb: 3,
-      E: 4,
-      F: 5,
-      "F#": 6,
-      Gb: 6,
-      G: 7,
-      "G#": 8,
-      Ab: 8,
-      A: 9,
-      "A#": 10,
-      Bb: 10,
-      B: 11,
-    };
-    return 12 * (octave + 1) + baseMidi[note as keyof typeof baseMidi];
-  }
-
-  // Helper function to check if two notes are enharmonically equivalent (e.g., C# and Db)
-  function areNotesEquivalent(note1: string, note2: string) {
-    // Find the pitch class index for both notes using the static noteVariants
-    const idx1 = noteVariants.find((nv) => nv.name === note1)?.idx;
-    const idx2 = noteVariants.find((nv) => nv.name === note2)?.idx;
-    return idx1 !== undefined && idx2 !== undefined && idx1 === idx2;
-  }
-
   // Helper function to get the correct enharmonic spelling for a note based on key signature
   function getEnharmonicForKey(noteIndex: number, keySignature: string) {
     // Define key signature preferences for enharmonic spellings
@@ -1640,6 +1594,14 @@ async function bootstrapFretApp(): Promise<void> {
     currentCard = session[sessionIdx];
     currentCard.shownTime = Date.now(); // Track when the card is shown
     foundFrets = currentCard.found.slice();
+    // Suppress previous card's still-ringing stable note until silence or pitch change.
+    if (pitchDetecting && lastDetectedNoteId !== null) {
+      micCarryoverGuardActive = true;
+      micCarryoverNoteId = lastDetectedNoteId;
+    } else {
+      micCarryoverGuardActive = false;
+      micCarryoverNoteId = null;
+    }
     // expose stable attributes for tests (and other tooling)
     $quizNoteBtn.attr("data-note", currentCard.note);
 
@@ -2323,6 +2285,8 @@ async function bootstrapFretApp(): Promise<void> {
   let noteStableSince: number | null = null;
   let displayedNoteId: number | null = null;
   let lastSubmissionTime: number = 0;
+  let micCarryoverGuardActive = false;
+  let micCarryoverNoteId: number | null = null;
   const NOTE_STABLE_MS = 300;
   const MIN_RESUBMISSION_DELAY_MS = 1000; // Allow resubmission of same note after 1 second
 
@@ -3109,6 +3073,9 @@ async function bootstrapFretApp(): Promise<void> {
       return;
     }
 
+    micCarryoverGuardActive = false;
+    micCarryoverNoteId = null;
+
     // Check if we're on HTTPS (required for microphone access)
     // if (location.protocol !== "https:" && location.hostname !== "localhost") {
     //   throw new Error("Microphone access requires HTTPS. Please access this app via HTTPS.");
@@ -3442,6 +3409,17 @@ async function bootstrapFretApp(): Promise<void> {
 
       // Only update visible status and meter when the same note persisted for NOTE_STABLE_MS
       const stable = noteStableSince !== null && now - noteStableSince >= NOTE_STABLE_MS;
+      if (micCarryoverGuardActive) {
+        const nextGuard = updateCarryoverGuard(
+          {
+            active: micCarryoverGuardActive,
+            carryoverNoteId: micCarryoverNoteId,
+          },
+          currentNoteId,
+        );
+        micCarryoverGuardActive = nextGuard.active;
+        micCarryoverNoteId = nextGuard.carryoverNoteId;
+      }
       if (rms < adjustedNoiseFloor) {
         // Silence detected: immediately reset smoothed level and clear meters so UI returns to 0
         smoothedLevel = 0;
@@ -3475,7 +3453,11 @@ async function bootstrapFretApp(): Promise<void> {
           (displayedNoteId !== currentNoteId ||
             (displayedNoteId === currentNoteId &&
               now - lastSubmissionTime > MIN_RESUBMISSION_DELAY_MS)) &&
-          countdownValue <= 0
+          countdownValue <= 0 &&
+          !shouldSuppressForCarryover(
+            { active: micCarryoverGuardActive, carryoverNoteId: micCarryoverNoteId },
+            currentNoteId,
+          )
         ) {
           try {
             // Only process microphone input when countdown is not active
@@ -3507,6 +3489,8 @@ async function bootstrapFretApp(): Promise<void> {
 
   function stopMic() {
     pitchDetecting = false;
+    micCarryoverGuardActive = false;
+    micCarryoverNoteId = null;
     if (pitchAnimFrame) {
       cancelAnimationFrame(pitchAnimFrame);
       pitchAnimFrame = null;
